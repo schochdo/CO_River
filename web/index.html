@@ -75,8 +75,19 @@
       <!-- Layer Control Card -->
       <section class="card layer-card">
         <div class="card-header">
-          <h3>Layer Controls</h3>
+          <h3>Layer & Basemap Controls</h3>
         </div>
+        <div class="basemap-select-wrap">
+          <label for="basemap-select" style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">BASEMAP STYLE</label>
+          <select id="basemap-select" onchange="changeBasemap(this.value)" class="custom-select">
+            <option value="esriTerrain" selected>Soft Shaded Relief (Esri Terrain)</option>
+            <option value="esriRelief">Pure Hillshade (Esri Relief)</option>
+            <option value="cartoLight">Clean Light (Carto Positron)</option>
+            <option value="usgsRelief">USGS National Map Relief</option>
+            <option value="openTopo">OpenTopoMap (High Contrast)</option>
+          </select>
+        </div>
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 10px 0;">
         <div class="toggle-group">
           <label class="toggle-label">
             <span>Streamflow Gauges</span>

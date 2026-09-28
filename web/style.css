@@ -323,6 +323,31 @@ input:checked + .slider:before {
   transform: translateX(16px);
 }
 
+/* Custom Select */
+.custom-select {
+  width: 100%;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text-main);
+  background-color: #f8fafc;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.custom-select:hover {
+  background-color: #f1f5f9;
+}
+
+.custom-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
 /* Metric Cards */
 .highlight-card {
   background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%);

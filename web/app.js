@@ -12,6 +12,35 @@ let layers = {
 let telemetryData = [];
 let stationMarkers = {};
 
+let currentBasemap;
+const basemaps = {
+  esriTerrain: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 13,
+    attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, NPS'
+  }),
+  esriRelief: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 13,
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri'
+  }),
+  cartoLight: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  }),
+  usgsRelief: L.tileLayer("https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 16,
+    attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a>'
+  }),
+  openTopo: L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+    maxZoom: 16,
+    attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap'
+  })
+};
+
+let referenceLabels = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}", {
+  maxZoom: 13,
+  opacity: 0.75
+});
+
 document.addEventListener("DOMContentLoaded", () => {
   initMap();
   loadData();
@@ -25,14 +54,33 @@ function initMap() {
 
   L.control.zoom({ position: "topleft" }).addTo(map);
 
-  // Basemap: High-Resolution Topographic & Shaded Relief
-  const topoLayer = L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
-    maxZoom: 16,
-    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, SRTM | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a>'
-  }).addTo(map);
+  // Set default basemap: Soft Shaded Relief (Esri Terrain Base)
+  currentBasemap = basemaps.esriTerrain;
+  currentBasemap.addTo(map);
+  referenceLabels.addTo(map);
 
   // Add all layer groups to map by default
   Object.values(layers).forEach(layer => layer.addTo(map));
+}
+
+function changeBasemap(key) {
+  if (basemaps[key]) {
+    map.removeLayer(currentBasemap);
+    currentBasemap = basemaps[key];
+    currentBasemap.addTo(map);
+    
+    // Keep reference labels on top of shaded relief
+    if (key === "esriTerrain" || key === "esriRelief" || key === "usgsRelief") {
+      if (!map.hasLayer(referenceLabels)) {
+        referenceLabels.addTo(map);
+      }
+      referenceLabels.bringToFront();
+    } else {
+      if (map.hasLayer(referenceLabels)) {
+        map.removeLayer(referenceLabels);
+      }
+    }
+  }
 }
 
 async function loadData() {
