@@ -64,3 +64,8 @@
 3. [ ] Compile analytical narrative and data science calculations into the final Jupyter Notebook for DAT1001 submission.
 
 
+
+### D. USGS NHD Flowlines (GIS Routing)
+*Endpoint:* `https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/4/query`
+* **River Geometries:** High-resolution linestrings generated for the Colorado River and Green River.
+* **Lake Clip:** Used `geopandas` and `shapely` to clip the high-res geometries against the official NHD lake polygons, ensuring the stream lines break naturally at reservoir entrances and resume at the dam face.
