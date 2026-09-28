@@ -62,8 +62,10 @@
       <!-- Quick Legend on Map -->
       <div class="map-legend">
         <h4>Plumbing Legend</h4>
-        <div class="legend-item"><span class="legend-line river" style="height: 5px;"></span> River Mainstem (Width &sim; CFS)</div>
-        <div class="legend-item"><span class="legend-box" style="background:#0284c7; width:14px; height:10px; border-radius:2px;"></span> Major Lakes (USGS NHD)</div>
+        <div class="legend-item"><span class="legend-line river" style="height: 5px;"></span> Mainstem (Width &sim; Q<sup>0.5</sup>)</div>
+        <div class="legend-item"><span class="legend-line" style="background:#38bdf8; height: 2.5px;"></span> Tributaries (Width &sim; CFS)</div>
+        <div class="legend-item"><span class="legend-box" style="background:#0284c7; width:14px; height:10px; border-radius:2px;"></span> Reservoirs & Lakes (20)</div>
+        <div class="legend-item"><span style="display:inline-block; width:11px; height:11px; background:#1e293b; border:1px solid #fff; border-radius:2px; margin-right:6px; vertical-align:middle;"></span> Major Dams (16)</div>
         <div class="legend-item"><span class="legend-line divide"></span> Continental Divide</div>
         <div class="legend-item"><span class="legend-line tunnel"></span> Trans-Mountain Siphon</div>
         <div class="legend-item"><span class="legend-dot gauge"></span> Streamflow Badge (cfs)</div>
@@ -91,6 +93,16 @@
         <hr style="border: none; border-top: 1px solid var(--border-color); margin: 10px 0;">
         <div class="toggle-group">
           <label class="toggle-label">
+            <span>Mainstem & Major Rivers</span>
+            <input type="checkbox" id="toggle-river" checked onchange="toggleLayer('river')">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle-label">
+            <span>Secondary Tributaries</span>
+            <input type="checkbox" id="toggle-minorRivers" checked onchange="toggleLayer('minorRivers')">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle-label">
             <span>Streamflow Gauges</span>
             <input type="checkbox" id="toggle-gauges" checked onchange="toggleLayer('gauges')">
             <span class="slider"></span>
@@ -106,7 +118,7 @@
             <span class="slider"></span>
           </label>
           <label class="toggle-label">
-            <span>Major Dams</span>
+            <span>Major Dams (16)</span>
             <input type="checkbox" id="toggle-dams" checked onchange="toggleLayer('dams')">
             <span class="slider"></span>
           </label>
@@ -239,6 +251,6 @@
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="app.js?v=4.0"></script>
+  <script src="app.js?v=5.0"></script>
 </body>
 </html>

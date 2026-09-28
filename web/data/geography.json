@@ -12608,6 +12608,83 @@
       "purpose": "Trans-mountain diversion to Aurora and Colorado Springs (Homestake Project)",
       "lat": 39.3683,
       "lon": -106.4678
+    },
+    {
+      "id": "flaming_gorge_dam",
+      "name": "Flaming Gorge Dam",
+      "impounds": "Flaming Gorge Reservoir (Green River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 502,
+      "year": 1964,
+      "purpose": "Major CRSP Upper Basin storage unit, Green River regulation, hydropower",
+      "lat": 40.915,
+      "lon": -109.421
+    },
+    {
+      "id": "navajo_dam",
+      "name": "Navajo Dam",
+      "impounds": "Navajo Reservoir (San Juan River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 402,
+      "year": 1962,
+      "purpose": "Major CRSP storage unit; supplies San Juan\u2013Chama diversion & Navajo Nation",
+      "lat": 36.8028,
+      "lon": -107.6144
+    },
+    {
+      "id": "davis_dam",
+      "name": "Davis Dam",
+      "impounds": "Lake Mohave (Colorado River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 200,
+      "year": 1951,
+      "purpose": "Regulates Hoover Dam releases to satisfy 1944 Mexican Water Treaty obligations",
+      "lat": 35.1989,
+      "lon": -114.5694
+    },
+    {
+      "id": "morelos_dam",
+      "name": "Morelos Dam",
+      "impounds": "Colorado River (US/Mexico International Border)",
+      "operator": "International Boundary & Water Commission (IBWC / CILA)",
+      "height_ft": 35,
+      "year": 1950,
+      "purpose": "Terminal diversion dam routing Mexican 1.5M AF treaty water into Mexicali Valley canals",
+      "lat": 32.7144,
+      "lon": -114.7297
+    },
+    {
+      "id": "blue_mesa_dam",
+      "name": "Blue Mesa Dam",
+      "impounds": "Blue Mesa Reservoir (Gunnison River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 390,
+      "year": 1965,
+      "purpose": "Wayne N. Aspinall Storage Unit impounding Colorado largest reservoir body",
+      "lat": 38.4522,
+      "lon": -107.3325
+    },
+    {
+      "id": "mcphee_dam",
+      "name": "McPhee Dam",
+      "impounds": "McPhee Reservoir (Dolores River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 270,
+      "year": 1985,
+      "purpose": "Dolores Project storage providing water for Ute Mountain Ute Tribe & Cortez agriculture",
+      "lat": 37.5786,
+      "lon": -108.5753
+    },
+    {
+      "id": "theodore_roosevelt_dam",
+      "name": "Theodore Roosevelt Dam",
+      "impounds": "Theodore Roosevelt Lake (Salt River)",
+      "operator": "Salt River Project (SRP) / USBR",
+      "height_ft": 357,
+      "year": 1911,
+      "purpose": "Historic 1911 cornerstone of the Salt River Project feeding Phoenix agricultural & urban grid",
+      "lat": 33.6706,
+      "lon": -111.1611
     }
   ]
 }

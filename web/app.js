@@ -2,6 +2,7 @@
 let map;
 let layers = {
   river: L.layerGroup(),
+  minorRivers: L.layerGroup(),
   divide: L.layerGroup(),
   tunnels: L.layerGroup(),
   basin: L.layerGroup(),
@@ -210,18 +211,40 @@ function renderGeography(geo, riverNetwork, lakes) {
 
   // 4. CFS-Weighted River Network (Width Scaled to Flow Volume)
   if (riverNetwork) {
+    layers.river.clearLayers();
+    layers.minorRivers.clearLayers();
     riverNetwork.forEach(seg => {
       // Handle MultiPolyline (array of lines, where each line is an array of [lon, lat] points)
       const coords = seg.coords.map(line => line.map(pt => [pt[1], pt[0]]));
+      const isMinor = seg.category === "minor_tributary";
+      const targetLayer = isMinor ? layers.minorRivers : layers.river;
+      const catBadge = seg.category === "mainstem" 
+        ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:4px;">Mainstem Reach</span>' 
+        : (seg.category === "major_tributary" 
+            ? '<span style="font-size:10px;font-weight:700;color:#0369a1;background:#f0f9ff;padding:1px 5px;border-radius:4px;">Major Tributary</span>'
+            : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:1px 5px;border-radius:4px;">Tributary Reach</span>');
+
+      const notesHtml = seg.notes ? `<div style="font-size:11px;color:#64748b;margin-top:3px;line-height:1.3;">${seg.notes}</div>` : '';
+
       L.polyline(coords, {
         pane: 'riverPane',
-        color: "#0284c7",
+        color: isMinor ? "#38bdf8" : "#0284c7",
         weight: seg.weight,
-        opacity: 0.90,
+        opacity: isMinor ? 0.85 : 0.95,
         lineCap: "round",
         lineJoin: "round"
-      }).bindTooltip(`<strong>${seg.name}</strong><br>Flow: <strong>${seg.flow_cfs.toLocaleString()} cfs</strong>`, { sticky: true })
-        .addTo(layers.river);
+      }).bindTooltip(`
+        <div style="font-family:'Inter',sans-serif; min-width: 140px;">
+          <div style="margin-bottom:3px;">${catBadge}</div>
+          <strong style="font-size:12px;color:#0f172a;">${seg.name}</strong><br>
+          <div style="font-size:11px;color:#334155;margin-top:2px;">
+            Estimated Discharge: <strong>${seg.flow_cfs.toLocaleString()} cfs</strong><br>
+            <span style="font-size:10px;color:#64748b;">Hydraulic Width: ${seg.weight}px (w &sim; Q<sup>0.5</sup>)</span>
+          </div>
+          ${notesHtml}
+        </div>
+      `, { sticky: true })
+        .addTo(targetLayer);
     });
   }
 
