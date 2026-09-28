@@ -1,12 +1,12 @@
 {
-  "fetched_at": "2026-09-27T18:55:00.535186",
+  "fetched_at": "2026-09-27T19:32:35.790011",
   "streamflows": [
     {
       "id": "09070500",
       "name": "Colorado River near Dotsero, CO",
       "type": "streamflow",
       "flow_cfs": 710.0,
-      "timestamp": "2026-09-27T18:00:00.000-06:00",
+      "timestamp": "2026-09-27T19:00:00.000-06:00",
       "lat": 39.6446111,
       "lon": -107.0780139
     },
@@ -15,7 +15,7 @@
       "name": "Colorado River near Cameo, CO",
       "type": "streamflow",
       "flow_cfs": 1410.0,
-      "timestamp": "2026-09-27T18:30:00.000-06:00",
+      "timestamp": "2026-09-27T19:15:00.000-06:00",
       "lat": 39.2391463,
       "lon": -108.2661946
     },
@@ -32,8 +32,8 @@
       "id": "09180500",
       "name": "Colorado River near Cisco, UT",
       "type": "streamflow",
-      "flow_cfs": 2600.0,
-      "timestamp": "2026-09-27T18:00:00.000-06:00",
+      "flow_cfs": 2560.0,
+      "timestamp": "2026-09-27T19:00:00.000-06:00",
       "lat": 38.81054095,
       "lon": -109.2934493
     },
@@ -50,8 +50,8 @@
       "id": "09379500",
       "name": "San Juan River near Bluff, UT",
       "type": "streamflow",
-      "flow_cfs": 2810.0,
-      "timestamp": "2026-09-27T18:45:00.000-06:00",
+      "flow_cfs": 2830.0,
+      "timestamp": "2026-09-27T19:15:00.000-06:00",
       "lat": 37.15067778,
       "lon": -109.8666889
     },
@@ -59,19 +59,10 @@
       "id": "09380000",
       "name": "Colorado River at Lees Ferry, AZ",
       "type": "streamflow",
-      "flow_cfs": 8520.0,
-      "timestamp": "2026-09-27T17:00:00.000-07:00",
+      "flow_cfs": 8990.0,
+      "timestamp": "2026-09-27T18:00:00.000-07:00",
       "lat": 36.86433333,
       "lon": -111.58787222
-    },
-    {
-      "id": "09527700",
-      "name": "All-American Canal near Imperial Dam",
-      "type": "streamflow",
-      "flow_cfs": 1570.0,
-      "timestamp": "2026-09-27T17:30:00.000-07:00",
-      "lat": 32.70425,
-      "lon": -115.0481139
     }
   ],
   "tunnels": [
@@ -116,6 +107,16 @@
       "lon": -106.5297
     },
     {
+      "id": "09527700",
+      "name": "All-American Canal near Imperial Dam",
+      "type": "diversion_tunnel",
+      "destination": "Imperial & Coachella Valleys",
+      "flow_cfs": 1570.0,
+      "timestamp": "2026-09-27T17:30:00.000-07:00",
+      "lat": 32.70425,
+      "lon": -115.0481139
+    },
+    {
       "id": "09424150",
       "name": "Colorado River Aqueduct near Parker Dam",
       "type": "diversion_tunnel",
@@ -134,7 +135,7 @@
       "elevation_ft": 3517.5,
       "storage_af": 2509523.84,
       "capacity_pct": 10.3,
-      "timestamp": "2026-09-27T16:45:00.000-07:00",
+      "timestamp": "2026-09-27T17:45:00.000-07:00",
       "lat": 36.9367,
       "lon": -111.4839
     },
