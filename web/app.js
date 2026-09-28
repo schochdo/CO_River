@@ -201,6 +201,46 @@ function renderGeography(geo, riverNetwork, lakes) {
   }
 }
 
+const markerOffsets = {
+  // Gauges
+  "09070500": { dx: -70, dy: -30, color: "#0284c7" }, // Dotsero
+  "09095500": { dx: -80, dy: -10, color: "#0284c7" }, // Cameo
+  "09180500": { dx: -90, dy: 10, color: "#0284c7" },  // Cisco
+  "09380000": { dx: -130, dy: 45, color: "#dc2626" }, // Lees Ferry
+
+  // Tunnels
+  "ADATUNCO": { dx: 120, dy: -60, color: "#9333ea" }, // Adams
+  "MOFTUNCO": { dx: 140, dy: -20, color: "#9333ea" }, // Moffat
+  "ROBTUNCO": { dx: 140, dy: 20, color: "#9333ea" },  // Roberts
+  "BOUTUNCO": { dx: 120, dy: 60, color: "#9333ea" },   // Boustead
+
+  // Reservoirs
+  "lake_powell": { dx: 130, dy: -40, color: "#0284c7" },
+  "lake_mead":   { dx: 130, dy: 40, color: "#0284c7" }
+};
+
+function createLeaderLabel(id, htmlContent) {
+  const conf = markerOffsets[id] || { dx: 50, dy: -30, color: "#64748b" };
+  const { dx, dy, color } = conf;
+  
+  // If dx > 0, box goes to the right (translate by 0% on X)
+  // If dx < 0, box goes to the left (translate by -100% on X)
+  const xOffset = dx > 0 ? "0%" : "-100%";
+  const transform = `translate(calc(${dx}px - ${xOffset}), calc(${dy}px - 50%))`;
+
+  return `
+    <div style="position: relative; width: 0; height: 0; pointer-events: none;">
+      <svg style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: visible; z-index: -1;">
+        <line x1="0" y1="0" x2="${dx}" y2="${dy}" stroke="${color}" stroke-width="1.5" stroke-dasharray="3 3" />
+        <circle cx="0" cy="0" r="4.5" fill="${color}" stroke="#fff" stroke-width="1.5" />
+      </svg>
+      <div style="position: absolute; left: 0; top: 0; transform: ${transform}; pointer-events: none; z-index: 10;">
+        ${htmlContent}
+      </div>
+    </div>
+  `;
+}
+
 function renderMetrics(metrics) {
   // Clear previous markers
   layers.gauges.clearLayers();
@@ -221,9 +261,9 @@ function renderMetrics(metrics) {
 
     const icon = L.divIcon({
       className: "clean-div-icon",
-      html: html,
-      iconSize: null,
-      iconAnchor: [70, 20]
+      html: createLeaderLabel(s.id, html),
+      iconSize: [0, 0],
+      iconAnchor: [0, 0]
     });
 
     const marker = L.marker([s.lat, s.lon], { icon: icon })
@@ -250,9 +290,9 @@ function renderMetrics(metrics) {
 
     const icon = L.divIcon({
       className: "clean-div-icon",
-      html: html,
-      iconSize: null,
-      iconAnchor: [75, 22]
+      html: createLeaderLabel(t.id, html),
+      iconSize: [0, 0],
+      iconAnchor: [0, 0]
     });
 
     const marker = L.marker([t.lat, t.lon], { icon: icon })
@@ -281,9 +321,9 @@ function renderMetrics(metrics) {
 
     const icon = L.divIcon({
       className: "clean-div-icon",
-      html: html,
-      iconSize: null,
-      iconAnchor: [70, 22]
+      html: createLeaderLabel(r.id, html),
+      iconSize: [0, 0],
+      iconAnchor: [0, 0]
     });
 
     const marker = L.marker([r.lat, r.lon], { icon: icon })
