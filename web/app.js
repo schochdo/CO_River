@@ -226,7 +226,7 @@ function createLeaderLabel(id, htmlContent) {
   // If dx > 0, box goes to the right (translate by 0% on X)
   // If dx < 0, box goes to the left (translate by -100% on X)
   const xOffset = dx > 0 ? "0%" : "-100%";
-  const transform = `translate(calc(${dx}px - ${xOffset}), calc(${dy}px - 50%))`;
+  const transform = `translate(calc(${dx}px + ${xOffset}), calc(${dy}px - 50%))`;
 
   return `
     <div style="position: relative; width: 0; height: 0; pointer-events: none;">
