@@ -629,6 +629,14 @@ input:checked + .slider:before {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
+.leader-line {
+  transition: x2 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), y2 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.leader-box-wrap {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
 .custom-callout:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);

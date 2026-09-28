@@ -65,6 +65,10 @@ function initMap() {
 
   // Add all layer groups to map by default
   Object.values(layers).forEach(layer => layer.addTo(map));
+
+  // Dynamic collision avoidance when zooming or panning
+  map.on("zoomend", resolveLabelCollisions);
+  map.on("moveend", resolveLabelCollisions);
 }
 
 function changeBasemap(key) {
@@ -250,6 +254,24 @@ const markerOffsets = {
   "lake_mead":   { dx: 130, dy: 40, color: "#0284c7" }
 };
 
+const registeredLabels = {};
+
+function registerLabelNode(id, lat, lon) {
+  const conf = markerOffsets[id] || { dx: 60, dy: -30, color: "#64748b" };
+  registeredLabels[id] = {
+    id: id,
+    lat: lat,
+    lon: lon,
+    prefDx: conf.dx,
+    prefDy: conf.dy,
+    curDx: conf.dx,
+    curDy: conf.dy,
+    color: conf.color,
+    width: 150,
+    height: 46
+  };
+}
+
 function createLeaderLabel(id, htmlContent) {
   const conf = markerOffsets[id] || { dx: 50, dy: -30, color: "#64748b" };
   const { dx, dy, color } = conf;
@@ -260,16 +282,93 @@ function createLeaderLabel(id, htmlContent) {
   const transform = `translate(calc(${dx}px + ${xOffset}), calc(${dy}px - 50%))`;
 
   return `
-    <div style="position: relative; width: 0; height: 0; pointer-events: none;">
-      <svg style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: visible; z-index: -1;">
-        <line x1="0" y1="0" x2="${dx}" y2="${dy}" stroke="${color}" stroke-width="1.5" stroke-dasharray="3 3" />
+    <div class="leader-container" data-id="${id}" style="position: relative; width: 0; height: 0; pointer-events: none;">
+      <svg class="leader-svg" style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: visible; z-index: -1;">
+        <line class="leader-line" x1="0" y1="0" x2="${dx}" y2="${dy}" stroke="${color}" stroke-width="1.5" stroke-dasharray="3 3" />
         <circle cx="0" cy="0" r="4.5" fill="${color}" stroke="#fff" stroke-width="1.5" />
       </svg>
-      <div style="position: absolute; left: 0; top: 0; transform: ${transform}; pointer-events: none; z-index: 10;">
+      <div class="leader-box-wrap" style="position: absolute; left: 0; top: 0; transform: ${transform}; pointer-events: none; z-index: 10;">
         ${htmlContent}
       </div>
     </div>
   `;
+}
+
+function resolveLabelCollisions() {
+  if (!map) return;
+  const zoom = map.getZoom();
+
+  // Bring labels closer to stations when zoomed in, allow them to fan out when zoomed out
+  const distFactor = Math.max(0.45, Math.min(1.05, 1.0 - (zoom - 6) * 0.14));
+
+  const labels = Object.values(registeredLabels);
+  if (labels.length === 0) return;
+
+  // Calculate screen anchor for each label
+  labels.forEach(lbl => {
+    const pt = map.latLngToContainerPoint([lbl.lat, lbl.lon]);
+    lbl.anchorX = pt.x;
+    lbl.anchorY = pt.y;
+    lbl.curDx = lbl.prefDx * distFactor;
+    lbl.curDy = lbl.prefDy * distFactor;
+  });
+
+  // Run iterative relaxation
+  for (let iter = 0; iter < 14; iter++) {
+    for (let i = 0; i < labels.length; i++) {
+      for (let j = i + 1; j < labels.length; j++) {
+        const a = labels[i];
+        const b = labels[j];
+
+        const aLeft = a.anchorX + a.curDx + (a.curDx > 0 ? 0 : -a.width);
+        const aRight = aLeft + a.width;
+        const aTop = a.anchorY + a.curDy - a.height / 2;
+        const aBottom = aTop + a.height;
+
+        const bLeft = b.anchorX + b.curDx + (b.curDx > 0 ? 0 : -b.width);
+        const bRight = bLeft + b.width;
+        const bTop = b.anchorY + b.curDy - b.height / 2;
+        const bBottom = bTop + b.height;
+
+        const pad = 10;
+        const overlapX = Math.min(aRight + pad, bRight + pad) - Math.max(aLeft - pad, bLeft - pad);
+        const overlapY = Math.min(aBottom + pad, bBottom + pad) - Math.max(aTop - pad, bTop - pad);
+
+        if (overlapX > 0 && overlapY > 0) {
+          // Push vertically to create clean stacked reading lanes
+          const shift = (overlapY / 2);
+          if (aTop < bTop) {
+            a.curDy -= shift;
+            b.curDy += shift;
+          } else {
+            a.curDy += shift;
+            b.curDy -= shift;
+          }
+        }
+      }
+    }
+  }
+
+  // Apply resolved positions to DOM with smooth transitions
+  labels.forEach(lbl => {
+    const container = document.querySelector(`.leader-container[data-id="${lbl.id}"]`);
+    if (!container) return;
+
+    const line = container.querySelector(".leader-line");
+    const boxWrap = container.querySelector(".leader-box-wrap");
+
+    const dx = Math.round(lbl.curDx);
+    const dy = Math.round(lbl.curDy);
+    const xOffset = dx > 0 ? "0%" : "-100%";
+
+    if (line) {
+      line.setAttribute("x2", dx);
+      line.setAttribute("y2", dy);
+    }
+    if (boxWrap) {
+      boxWrap.style.transform = `translate(calc(${dx}px + ${xOffset}), calc(${dy}px - 50%))`;
+    }
+  });
 }
 
 function renderMetrics(metrics) {
@@ -278,6 +377,7 @@ function renderMetrics(metrics) {
 
   // 1. Streamflow Gauges
   metrics.streamflows.forEach(s => {
+    registerLabelNode(s.id, s.lat, s.lon);
     const isLeesFerry = s.id === "09380000";
     const highlightClass = isLeesFerry ? "highlight-lees" : "";
     const tagHtml = isLeesFerry ? `<div class="callout-tag">1922 Compact Divide</div>` : "";
@@ -311,6 +411,7 @@ function renderMetrics(metrics) {
 
   // 2. Trans-Mountain Tunnels Badges
   metrics.tunnels.forEach(t => {
+    registerLabelNode(t.id, t.lat, t.lon);
     const isFrontRange = t.id.endsWith("TUNCO");
     const siphonText = isFrontRange ? "Eastbound Siphon" : "Aqueduct Diversion";
     
@@ -343,6 +444,7 @@ function renderMetrics(metrics) {
 
   // 3. Mega-Reservoirs Badges
   metrics.reservoirs.forEach(r => {
+    registerLabelNode(r.id, r.lat, r.lon);
     const html = `
       <div class="custom-callout">
         <div class="callout-title">${r.name.split("(")[0]}</div>
@@ -371,6 +473,9 @@ function renderMetrics(metrics) {
 
     stationMarkers[r.id] = marker;
   });
+
+  // Automatically resolve initial label collisions once markers are attached
+  setTimeout(resolveLabelCollisions, 80);
 }
 
 function updateSidebar(metrics) {
