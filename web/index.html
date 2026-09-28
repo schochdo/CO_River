@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Colorado River Basin Hydrology & Plumbing Dashboard</title>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-badge">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+        </svg>
+      </div>
+      <div class="title-group">
+        <h1>Colorado River Basin <span class="highlight">Plumbing & Hydrology</span></h1>
+        <p class="subtitle">DAT1001 Project • Real-Time Streamflow, Trans-Mountain Diversions & Reservoir Storage</p>
+      </div>
+    </div>
+    
+    <div class="header-center">
+      <div class="quick-nav">
+        <button class="nav-btn active" onclick="zoomToPreset('basin')">Whole Basin</button>
+        <button class="nav-btn" onclick="zoomToPreset('divide')">West Slope & Tunnels</button>
+        <button class="nav-btn" onclick="zoomToPreset('lees_ferry')">Lees Ferry</button>
+        <button class="nav-btn" onclick="zoomToPreset('reservoirs')">Powell & Mead</button>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="sync-badge">
+        <span class="status-dot"></span>
+        <span id="sync-time">Loading live feeds...</span>
+      </div>
+      <button class="icon-btn" onclick="refreshData()" title="Reload live data">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <polyline points="1 20 1 14 7 14"></polyline>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="dashboard-body">
+    <!-- Map Canvas -->
+    <div id="map-container">
+      <div id="map"></div>
+
+      <!-- Quick Legend on Map -->
+      <div class="map-legend">
+        <h4>Plumbing Legend</h4>
+        <div class="legend-item"><span class="legend-line river"></span> River Mainstem</div>
+        <div class="legend-item"><span class="legend-line divide"></span> Continental Divide</div>
+        <div class="legend-item"><span class="legend-line tunnel"></span> Trans-Mountain Diversion</div>
+        <div class="legend-item"><span class="legend-dot gauge"></span> Streamflow Gauge (cfs)</div>
+        <div class="legend-item"><span class="legend-dot reservoir"></span> Reservoir (% Capacity)</div>
+      </div>
+    </div>
+
+    <!-- Right Sidebar: Controls & Basin Metrics -->
+    <aside class="sidebar-panel">
+      <!-- Layer Control Card -->
+      <section class="card layer-card">
+        <div class="card-header">
+          <h3>Layer Controls</h3>
+        </div>
+        <div class="toggle-group">
+          <label class="toggle-label">
+            <span>Streamflow Gauges</span>
+            <input type="checkbox" id="toggle-gauges" checked onchange="toggleLayer('gauges')">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle-label">
+            <span>Trans-Mountain Tunnels</span>
+            <input type="checkbox" id="toggle-tunnels" checked onchange="toggleLayer('tunnels')">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle-label">
+            <span>Mega-Reservoirs</span>
+            <input type="checkbox" id="toggle-reservoirs" checked onchange="toggleLayer('reservoirs')">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle-label">
+            <span>Continental Divide</span>
+            <input type="checkbox" id="toggle-divide" checked onchange="toggleLayer('divide')">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle-label">
+            <span>Basin Boundaries</span>
+            <input type="checkbox" id="toggle-basin" checked onchange="toggleLayer('basin')">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </section>
+
+      <!-- Key Trans-Basin Metrics -->
+      <section class="card stat-card highlight-card">
+        <div class="card-header">
+          <h3>Trans-Mountain Diversions</h3>
+          <span class="badge purple">West Slope Siphon</span>
+        </div>
+        <div class="big-metric">
+          <span class="metric-val" id="total-diverted-val">681.9</span>
+          <span class="metric-unit">cfs</span>
+        </div>
+        <p class="metric-desc">Water currently siphoned backwards under the Continental Divide to Denver & the Front Range.</p>
+        <div class="comparison-bar">
+          <div class="comp-label">
+            <span>Diverted Under Mountains</span>
+            <span id="diverted-comp">682 cfs</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill purple" style="width: 48%;"></div>
+          </div>
+          <div class="comp-label">
+            <span>Flow Remaining at Dotsero</span>
+            <span id="dotsero-comp">718 cfs</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Water Allocation Breakdown -->
+      <section class="card stat-card">
+        <div class="card-header">
+          <h3>Water Use by Sector</h3>
+          <span class="badge">Colorado Basin</span>
+        </div>
+        <div class="sector-chart-wrap">
+          <div class="donut-chart" style="background: conic-gradient(#059669 0% 78%, #0284c7 78% 92%, #eab308 92% 100%);">
+            <div class="donut-hole">
+              <span class="donut-stat">78%</span>
+              <span class="donut-label">Ag</span>
+            </div>
+          </div>
+          <div class="sector-legend">
+            <div class="sec-item"><span class="sec-box ag"></span> Agriculture (Alfalfa, Hay, Crops): <strong>78%</strong></div>
+            <div class="sec-item"><span class="sec-box mun"></span> Municipal & Industrial: <strong>14%</strong></div>
+            <div class="sec-item"><span class="sec-box evap"></span> Reservoir Evaporation & Loss: <strong>8%</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reservoir Health Card -->
+      <section class="card stat-card">
+        <div class="card-header">
+          <h3>Mega-Reservoir Storage</h3>
+          <span class="badge red">Structural Deficit</span>
+        </div>
+        
+        <div class="res-item">
+          <div class="res-info">
+            <span class="res-name">Lake Powell (Glen Canyon)</span>
+            <span class="res-val" id="powell-storage-text">10.3% (2.51M AF)</span>
+          </div>
+          <div class="progress-track">
+            <div id="powell-meter" class="progress-fill warning" style="width: 10.3%;"></div>
+          </div>
+        </div>
+
+        <div class="res-item">
+          <div class="res-info">
+            <span class="res-name">Lake Mead (Hoover Dam)</span>
+            <span class="res-val" id="mead-storage-text">32.9% (8.60M AF)</span>
+          </div>
+          <div class="progress-track">
+            <div id="mead-meter" class="progress-fill warning" style="width: 32.9%;"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Domain Note Card -->
+      <section class="card text-card">
+        <h4>Hydrologic & Legal Context</h4>
+        <p>The 1922 Compact allocated <strong>15.0 to 16.5 million acre-feet</strong> of "paper water" during an anomalously wet decade. In reality, the 21st-century average runoff is only <strong>~12.3 million acre-feet</strong>, creating the persistent basin-wide structural deficit documented in <em>Cadillac Desert</em>.</p>
+      </section>
+    </aside>
+  </main>
+
+  <!-- Bottom Collapsible Station Table -->
+  <footer class="app-table-panel">
+    <div class="table-header">
+      <div class="table-title">
+        <h3>ACTIVE TELEMETRY NODES (<span id="node-count">10</span>)</h3>
+        <span class="table-sub">Click any row to fly to its position on the map</span>
+      </div>
+      <button class="collapse-btn" onclick="toggleTableCollapse()">
+        <span id="collapse-icon">▼</span>
+      </button>
+    </div>
+    
+    <div class="table-container" id="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Station / Structure</th>
+            <th>Type</th>
+            <th>Basin / Region</th>
+            <th>Flow / Storage Reading</th>
+            <th>Notes / Destination</th>
+            <th>Latest Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="telemetry-rows">
+          <tr><td colspan="6" style="text-align:center; padding: 20px;">Loading telemetry nodes...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="app.js"></script>
+</body>
+</html>
