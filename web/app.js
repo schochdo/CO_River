@@ -59,7 +59,7 @@ function initMap() {
   L.control.zoom({ position: "topleft" }).addTo(map);
 
   // Set default basemap: Soft Shaded Relief (Esri Terrain Base)
-  currentBasemap = basemaps.esriSatellite;
+  currentBasemap = basemaps.esriTerrain;
   currentBasemap.addTo(map);
   referenceLabels.addTo(map);
 
@@ -74,7 +74,7 @@ function changeBasemap(key) {
     currentBasemap.addTo(map);
     
     // Keep reference labels on top of shaded relief
-    if (key === "esriTerrain" || key === "esriRelief" || key === "usgsRelief") {
+    if (key === "esriTerrain" || key === "esriRelief" || key === "usgsRelief" || key === "esriSatellite") {
       if (!map.hasLayer(referenceLabels)) {
         referenceLabels.addTo(map);
       }
