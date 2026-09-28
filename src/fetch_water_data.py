@@ -35,15 +35,27 @@ def fetch_usgs_streamflow():
         
         if values:
             latest = values[-1]
-            results.append({
-                "id": code,
-                "name": name,
-                "type": "streamflow",
-                "flow_cfs": float(latest["value"]),
-                "timestamp": latest["dateTime"],
-                "lat": lat,
-                "lon": lon
-            })
+            if code == "09527700":
+                results.append({
+                    "id": code,
+                    "name": name,
+                    "type": "diversion_tunnel",
+                    "destination": "Imperial & Coachella Valleys",
+                    "flow_cfs": float(latest["value"]),
+                    "timestamp": latest["dateTime"],
+                    "lat": lat,
+                    "lon": lon
+                })
+            else:
+                results.append({
+                    "id": code,
+                    "name": name,
+                    "type": "streamflow",
+                    "flow_cfs": float(latest["value"]),
+                    "timestamp": latest["dateTime"],
+                    "lat": lat,
+                    "lon": lon
+                })
     return results
 
 
@@ -205,8 +217,12 @@ def fetch_reservoirs():
 
 def main():
     print("Fetching Colorado River hydrologic data...")
-    streamflows = fetch_usgs_streamflow()
+    raw_streamflows = fetch_usgs_streamflow()
+    streamflows = [s for s in raw_streamflows if s["type"] == "streamflow"]
+    aac = [s for s in raw_streamflows if s["type"] == "diversion_tunnel"]
+    
     tunnels = fetch_cdwr_tunnels()
+    tunnels.extend(aac) # Add AAC
     tunnels.extend(fetch_usgs_daily()) # Add CRA to tunnels
     reservoirs = fetch_reservoirs()
 

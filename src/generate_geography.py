@@ -6,27 +6,40 @@ def generate_geography():
     
     # 1. Continental Divide (Colorado Section)
     divide_coords = [
-        [-106.85, 41.00], # WY/CO border near Sierra Madre / Park Range
-        [-106.68, 40.80], # Mount Zirkel Wilderness
-        [-106.61, 40.52], # Rabbit Ears Pass
-        [-106.33, 40.35], # Muddy Pass
-        [-105.80, 40.43], # Rocky Mountain National Park / Milner Pass
-        [-105.74, 40.26], # RMNP / Longs Peak ridge
-        [-105.67, 39.90], # Rollins Pass / Moffat Tunnel crossing
-        [-105.83, 39.75], # Berthoud Pass
-        [-105.88, 39.66], # Loveland Pass
-        [-105.85, 39.55], # Montezuma / Roberts Tunnel crossing
-        [-106.06, 39.36], # Hoosier Pass (Breckenridge / Alma)
-        [-106.20, 39.29], # Fremont Pass (Climax)
-        [-106.39, 39.27], # Tennessee Pass
-        [-106.56, 39.25], # Boustead Tunnel crossing (Independence Pass / Hunter-Fryingpan)
-        [-106.37, 38.84], # Cottonwood Pass
-        [-106.33, 38.50], # Monarch Pass
-        [-106.80, 38.10], # Cochetopa Pass
-        [-107.20, 37.90], # Slumgullion Pass / San Juans
-        [-107.50, 37.75], # Weminuche Wilderness
-        [-106.80, 37.40], # Wolf Creek Pass
-        [-106.60, 37.00]  # NM/CO border
+        [-113.80, 48.90],
+        [-112.50, 47.00],
+        [-112.00, 45.50],
+        [-110.50, 44.40],
+        [-109.80, 43.50],
+        [-109.00, 42.50],
+        [-107.50, 41.50],
+        [-106.85, 41.00],
+        [-106.68, 40.80],
+        [-106.61, 40.52],
+        [-106.33, 40.35],
+        [-105.80, 40.43],
+        [-105.74, 40.26],
+        [-105.67, 39.90],
+        [-105.83, 39.75],
+        [-105.88, 39.66],
+        [-105.85, 39.55],
+        [-106.06, 39.36],
+        [-106.20, 39.29],
+        [-106.39, 39.27],
+        [-106.56, 39.25],
+        [-106.37, 38.84],
+        [-106.33, 38.50],
+        [-106.80, 38.10],
+        [-107.20, 37.90],
+        [-107.50, 37.75],
+        [-106.80, 37.40],
+        [-106.60, 37.00],
+        [-106.70, 36.50],
+        [-107.50, 35.50],
+        [-108.20, 34.00],
+        [-108.50, 33.00],
+        [-108.60, 32.00],
+        [-108.70, 31.00]
     ]
     
     # 2. Trans-Mountain Tunnels (Polylines cutting under the Divide from West Slope to Front Range)
@@ -77,6 +90,35 @@ def generate_geography():
             "coords": [
                 [-106.600, 39.262], # West Portal (Fryingpan)
                 [-106.400, 39.261]  # East Portal (Turquoise Lake)
+            ]
+
+        },
+        {
+            "id": "09424150",
+            "name": "Colorado River Aqueduct",
+            "length_miles": 242.0,
+            "operator": "Metropolitan Water District (MWD)",
+            "from": "Lake Havasu / Parker Dam (AZ/CA)",
+            "to": "Lake Mathews / Los Angeles Basin (CA)",
+            "coords": [
+                [-114.16, 34.31], 
+                [-115.50, 34.00], 
+                [-116.80, 33.90], 
+                [-117.44, 33.81]  
+            ]
+        },
+        {
+            "id": "09527700",
+            "name": "All-American Canal",
+            "length_miles": 82.0,
+            "operator": "Imperial Irrigation District (IID)",
+            "from": "Imperial Dam (AZ/CA)",
+            "to": "Imperial Valley (CA)",
+            "coords": [
+                [-114.47, 32.88], 
+                [-114.72, 32.73], 
+                [-115.30, 32.68], 
+                [-115.55, 32.70]  
             ]
         }
     ]

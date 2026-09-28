@@ -1,6 +1,34 @@
 {
   "continental_divide": [
     [
+      -113.8,
+      48.9
+    ],
+    [
+      -112.5,
+      47.0
+    ],
+    [
+      -112.0,
+      45.5
+    ],
+    [
+      -110.5,
+      44.4
+    ],
+    [
+      -109.8,
+      43.5
+    ],
+    [
+      -109.0,
+      42.5
+    ],
+    [
+      -107.5,
+      41.5
+    ],
+    [
       -106.85,
       41.0
     ],
@@ -83,6 +111,30 @@
     [
       -106.6,
       37.0
+    ],
+    [
+      -106.7,
+      36.5
+    ],
+    [
+      -107.5,
+      35.5
+    ],
+    [
+      -108.2,
+      34.0
+    ],
+    [
+      -108.5,
+      33.0
+    ],
+    [
+      -108.6,
+      32.0
+    ],
+    [
+      -108.7,
+      31.0
     ]
   ],
   "tunnels": [
@@ -155,6 +207,58 @@
         [
           -106.4,
           39.261
+        ]
+      ]
+    },
+    {
+      "id": "09424150",
+      "name": "Colorado River Aqueduct",
+      "length_miles": 242.0,
+      "operator": "Metropolitan Water District (MWD)",
+      "from": "Lake Havasu / Parker Dam (AZ/CA)",
+      "to": "Lake Mathews / Los Angeles Basin (CA)",
+      "coords": [
+        [
+          -114.16,
+          34.31
+        ],
+        [
+          -115.5,
+          34.0
+        ],
+        [
+          -116.8,
+          33.9
+        ],
+        [
+          -117.44,
+          33.81
+        ]
+      ]
+    },
+    {
+      "id": "09527700",
+      "name": "All-American Canal",
+      "length_miles": 82.0,
+      "operator": "Imperial Irrigation District (IID)",
+      "from": "Imperial Dam (AZ/CA)",
+      "to": "Imperial Valley (CA)",
+      "coords": [
+        [
+          -114.47,
+          32.88
+        ],
+        [
+          -114.72,
+          32.73
+        ],
+        [
+          -115.3,
+          32.68
+        ],
+        [
+          -115.55,
+          32.7
         ]
       ]
     }

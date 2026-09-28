@@ -185,6 +185,11 @@ function renderGeography(geo, riverNetwork, lakes) {
   if (geo.tunnels) {
     geo.tunnels.forEach(t => {
       const coords = t.coords.map(pt => [pt[1], pt[0]]);
+      const isFrontRange = t.id.endsWith("TUNCO");
+      const lengthText = isFrontRange ? `${t.length_miles} miles under Divide` : `${t.length_miles} miles`;
+      const fromText = isFrontRange ? `<strong>West Portal:</strong> ${t.from}` : `<strong>Intake:</strong> ${t.from}`;
+      const toText = isFrontRange ? `<strong>East Portal:</strong> ${t.to}` : `<strong>Terminus:</strong> ${t.to}`;
+
       L.polyline(coords, {
         color: "#9333ea",
         weight: 4.5,
@@ -193,9 +198,9 @@ function renderGeography(geo, riverNetwork, lakes) {
       }).bindPopup(`
         <strong>${t.name}</strong><br>
         <em>${t.operator}</em><br>
-        <strong>Length:</strong> ${t.length_miles} miles under Divide<br>
-        <strong>West Portal:</strong> ${t.from}<br>
-        <strong>East Portal:</strong> ${t.to}
+        <strong>Length:</strong> ${lengthText}<br>
+        ${fromText}<br>
+        ${toText}
       `).addTo(layers.tunnels);
     });
   }
@@ -287,11 +292,14 @@ function renderMetrics(metrics) {
 
   // 2. Trans-Mountain Tunnels Badges
   metrics.tunnels.forEach(t => {
+    const isFrontRange = t.id.endsWith("TUNCO");
+    const siphonText = isFrontRange ? "Eastbound Siphon" : "Aqueduct Diversion";
+    
     const html = `
       <div class="custom-callout highlight-tunnel">
         <div class="callout-title">${t.name.split("(")[0]}</div>
         <div class="callout-val" style="color:#7c3aed;">${t.flow_cfs.toLocaleString()} <span style="font-size:10px;font-weight:600;color:#64748b;">cfs</span></div>
-        <div style="font-size:9px;color:#7c3aed;font-weight:600;">Eastbound Siphon</div>
+        <div style="font-size:9px;color:#7c3aed;font-weight:600;">${siphonText}</div>
       </div>
     `;
 
