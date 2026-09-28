@@ -1,0 +1,107 @@
+{
+  "fetched_at": "2026-09-27T18:07:06.899629",
+  "streamflows": [
+    {
+      "id": "09070500",
+      "name": "Colorado River near Dotsero, CO",
+      "type": "streamflow",
+      "flow_cfs": 718.0,
+      "timestamp": "2026-09-27T17:00:00.000-06:00",
+      "lat": 39.6446111,
+      "lon": -107.0780139
+    },
+    {
+      "id": "09095500",
+      "name": "Colorado River near Cameo, CO",
+      "type": "streamflow",
+      "flow_cfs": 1420.0,
+      "timestamp": "2026-09-27T17:45:00.000-06:00",
+      "lat": 39.2391463,
+      "lon": -108.2661946
+    },
+    {
+      "id": "09180500",
+      "name": "Colorado River near Cisco, UT",
+      "type": "streamflow",
+      "flow_cfs": 2640.0,
+      "timestamp": "2026-09-27T17:00:00.000-06:00",
+      "lat": 38.81054095,
+      "lon": -109.2934493
+    },
+    {
+      "id": "09380000",
+      "name": "Colorado River at Lees Ferry, AZ",
+      "type": "streamflow",
+      "flow_cfs": 8140.0,
+      "timestamp": "2026-09-27T16:00:00.000-07:00",
+      "lat": 36.86433333,
+      "lon": -111.58787222
+    }
+  ],
+  "tunnels": [
+    {
+      "id": "ADATUNCO",
+      "name": "Alva B. Adams Tunnel",
+      "destination": "Grand Lake -> Estes Park / Northern Water",
+      "type": "diversion_tunnel",
+      "flow_cfs": 447.0,
+      "timestamp": "2025-09-27T00:00:00",
+      "lat": 40.3283,
+      "lon": -105.5786
+    },
+    {
+      "id": "MOFTUNCO",
+      "name": "Moffat Water Tunnel",
+      "destination": "Fraser River -> Gross Reservoir / Denver Water",
+      "type": "diversion_tunnel",
+      "flow_cfs": 65.4,
+      "timestamp": "2025-09-27T00:00:00",
+      "lat": 39.9022,
+      "lon": -105.6433
+    },
+    {
+      "id": "ROBTUNCO",
+      "name": "Harold D. Roberts Tunnel",
+      "destination": "Dillon Reservoir -> South Platte / Denver Water",
+      "type": "diversion_tunnel",
+      "flow_cfs": 167.0,
+      "timestamp": "2025-09-27T00:00:00",
+      "lat": 39.4633,
+      "lon": -105.6797
+    },
+    {
+      "id": "BOUTUNCO",
+      "name": "Charles H. Boustead Tunnel",
+      "destination": "Fryingpan -> Arkansas Basin / Aurora",
+      "type": "diversion_tunnel",
+      "flow_cfs": 2.48,
+      "timestamp": "2025-09-27T00:00:00",
+      "lat": 39.2619,
+      "lon": -106.5297
+    }
+  ],
+  "reservoirs": [
+    {
+      "id": "lake_powell",
+      "name": "Lake Powell (Glen Canyon Dam)",
+      "type": "reservoir",
+      "elevation_ft": 3517.5,
+      "storage_af": 2509523.84,
+      "capacity_pct": 10.3,
+      "timestamp": "2026-09-27T16:45:00.000-07:00",
+      "lat": 36.9367,
+      "lon": -111.4839
+    },
+    {
+      "id": "lake_mead",
+      "name": "Lake Mead (Hoover Dam)",
+      "type": "reservoir",
+      "elevation_ft": 1038.8,
+      "storage_af": 8600000.0,
+      "capacity_pct": 32.9,
+      "timestamp": "2026-09-27",
+      "lat": 36.0156,
+      "lon": -114.7378
+    }
+  ]
+}

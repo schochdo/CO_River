@@ -47,10 +47,18 @@
 
 ---
 
-## 4. Current State & Immediate Next Steps
-1. [x] Verified USGS API multi-site query.
-2. [x] Verified CDWR API for trans-mountain diversion tunnels.
-3. [x] Mockup map generated (`upper_basin_mockup.html`).
-4. [ ] Connect USBR API for Lake Powell and Lake Mead storage.
-5. [ ] Create clean SQLite schema (`data/colorado_river.db`) and unified ingestion script (`src/pipeline.py`).
-6. [ ] Export `latest_metrics.json` for the web interface.
+## 4. Current State & Milestones Completed
+1. [x] Git repository initialized (`main`).
+2. [x] Python isolated virtual environment (`.venv/`) configured with `pandas`, `requests`, `folium`, `numpy`.
+3. [x] Verified USGS NWIS API for Upper Basin sentinel stations (Dotsero, Cameo, Cisco, Lees Ferry).
+4. [x] Verified CDWR HydroBase API for West Slope trans-mountain diversions (Adams, Moffat, Roberts, Boustead tunnels).
+5. [x] Verified USBR / USGS reservoir endpoints for Lake Powell (Glen Canyon) and Lake Mead (Hoover Dam).
+6. [x] Unified Python data pipeline implemented in `src/fetch_water_data.py`.
+7. [x] Live automated data snapshot successfully exported to `data/latest_metrics.json`.
+
+## 5. Immediate Next Steps
+1. [ ] Build the interactive web dashboard (HTML/JS or React + MapLibre) that consumes `data/latest_metrics.json`.
+2. [ ] Add vector GeoJSON lines for the Continental Divide and the 3 trans-mountain tunnel paths.
+3. [ ] Design the floating callout cards (matching the user's mockup: Lees Ferry flow badge, Lake Mead capacity bar).
+4. [ ] Compile analytical narrative and data science calculations into the final Jupyter Notebook for DAT1001 submission.
+
