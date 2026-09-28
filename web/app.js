@@ -1,115 +1,165 @@
-// Global State
+// Colorado River Basin Hydrology & Plumbing Dashboard
+// Powered by MapLibre GL JS with 3D DEM Terrain Elevation & Panoramic Oblique Camera Tilt
+
 let map;
-let layers = {
-  river: L.layerGroup(),
-  minorRivers: L.layerGroup(),
-  divide: L.layerGroup(),
-  tunnels: L.layerGroup(),
-  basin: L.layerGroup(),
-  gauges: L.layerGroup(),
-  reservoirs: L.layerGroup(),
-  dams: L.layerGroup()
-};
+let isTilted = true;
 
-let telemetryData = [];
+// Marker and station registry
+const markers = {
+  gauges: [],
+  tunnels: [],
+  reservoirs: [],
+  dams: []
+};
 let stationMarkers = {};
+let tooltipPopup;
 
-let currentBasemap;
-const basemaps = {
-  esriNatGeo: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}", {
-    maxZoom: 16,
-    attribution: 'Tiles &copy; Esri &mdash; National Geographic, USGS, NOAA'
-  }),
-  esriPhysical: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}", {
-    maxZoom: 8,
-    attribution: 'Tiles &copy; Esri &mdash; US National Park Service, U.S. Geological Survey'
-  }),
-  esriSatellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
-    maxZoom: 17,
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP'
-  }),
-  esriTerrain: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}", {
-    maxZoom: 13,
-    attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, NPS'
-  }),
-  esriRelief: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}", {
-    maxZoom: 13,
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri'
-  }),
-  cartoLight: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  }),
-  usgsRelief: L.tileLayer("https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/{z}/{y}/{x}", {
-    maxZoom: 16,
-    attribution: 'Tiles courtesy of the <a href="https://usgs.gov/">U.S. Geological Survey</a>'
-  }),
-  openTopo: L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
-    maxZoom: 16,
-    attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap'
-  })
+// Basemap configurations
+const basemapLayerKeys = [
+  'esriNatGeo', 'esriPhysical', 'esriTerrain', 'esriSatellite',
+  'esriRelief', 'cartoLight', 'usgsRelief', 'openTopo'
+];
+
+const initialStyle = {
+  version: 8,
+  sources: {
+    'terrain-dem': {
+      type: 'raster-dem',
+      tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      encoding: 'terrarium',
+      maxzoom: 15
+    },
+    'basemap-esriNatGeo': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles &copy; Esri &mdash; National Geographic, USGS, NOAA'
+    },
+    'basemap-esriPhysical': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      maxzoom: 8,
+      attribution: 'Tiles &copy; Esri &mdash; US NPS, USGS'
+    },
+    'basemap-esriTerrain': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles &copy; Esri'
+    },
+    'basemap-esriSatellite': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles &copy; Esri'
+    },
+    'basemap-esriRelief': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles &copy; Esri'
+    },
+    'basemap-cartoLight': {
+      type: 'raster',
+      tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '&copy; CartoDB &copy; OpenStreetMap'
+    },
+    'basemap-usgsRelief': {
+      type: 'raster',
+      tiles: ['https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles courtesy USGS'
+    },
+    'basemap-openTopo': {
+      type: 'raster',
+      tiles: ['https://a.tile.opentopomap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: 'Tiles &copy; OpenTopoMap'
+    },
+    'basemap-labels': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256
+    }
+  },
+  layers: [
+    { id: 'layer-esriNatGeo', type: 'raster', source: 'basemap-esriNatGeo', layout: { visibility: 'visible' } },
+    { id: 'layer-esriPhysical', type: 'raster', source: 'basemap-esriPhysical', layout: { visibility: 'none' } },
+    { id: 'layer-esriTerrain', type: 'raster', source: 'basemap-esriTerrain', layout: { visibility: 'none' } },
+    { id: 'layer-esriSatellite', type: 'raster', source: 'basemap-esriSatellite', layout: { visibility: 'none' } },
+    { id: 'layer-esriRelief', type: 'raster', source: 'basemap-esriRelief', layout: { visibility: 'none' } },
+    { id: 'layer-cartoLight', type: 'raster', source: 'basemap-cartoLight', layout: { visibility: 'none' } },
+    { id: 'layer-usgsRelief', type: 'raster', source: 'basemap-usgsRelief', layout: { visibility: 'none' } },
+    { id: 'layer-openTopo', type: 'raster', source: 'basemap-openTopo', layout: { visibility: 'none' } },
+    { id: 'layer-labels', type: 'raster', source: 'basemap-labels', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.8 } }
+  ]
 };
-
-let referenceLabels = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Reference_Overlay/MapServer/tile/{z}/{y}/{x}", {
-  maxZoom: 13,
-  opacity: 0.75
-});
 
 document.addEventListener("DOMContentLoaded", () => {
   initMap();
-  loadData();
 });
 
 function initMap() {
-  // Center on Colorado River Basin
-  map = L.map("map", {
-    zoomControl: false
-  }).setView([38.5, -109.8], 6);
+  map = new maplibregl.Map({
+    container: 'map',
+    style: initialStyle,
+    center: [-110.2, 38.2],
+    zoom: 6.3,
+    pitch: 42,
+    bearing: -10,
+    maxPitch: 85
+  });
 
-  L.control.zoom({ position: "topleft" }).addTo(map);
+  // Built-in pitch & orientation controls
+  map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
+  map.addControl(new maplibregl.TerrainControl({ source: 'terrain-dem', exaggeration: 1.5 }), 'top-left');
 
-  // Set default basemap: National Geographic Style (Warm Pictorial Relief)
-  currentBasemap = basemaps.esriNatGeo;
-  currentBasemap.addTo(map);
+  // Shared hover tooltip popup
+  tooltipPopup = new maplibregl.Popup({
+    closeButton: false,
+    closeOnClick: false,
+    offset: 12
+  });
 
-  // Add all layer groups to map by default
-  Object.values(layers).forEach(layer => layer.addTo(map));
+  map.on('load', () => {
+    // Activate 3D DEM Terrain Elevation
+    map.setTerrain({
+      source: 'terrain-dem',
+      exaggeration: 1.5
+    });
 
-  // Explicit zIndex panes for cartographic stacking
-  map.createPane('riverPane');
-  map.getPane('riverPane').style.zIndex = 410; // Continuous river on bottom
-
-  map.createPane('lakesPane');
-  map.getPane('lakesPane').style.zIndex = 420; // Lake bodies sit cleanly on top of river
-
-  map.createPane('dividePane');
-  map.getPane('dividePane').style.zIndex = 430; // Continental divide sits above water
-
-  map.createPane('tunnelsPane');
-  map.getPane('tunnelsPane').style.zIndex = 440; // Aqueducts and tunnels sit above water
-
-  map.createPane('damsPane');
-  map.getPane('damsPane').style.zIndex = 450; // Dam markers sit above lines and water
+    loadData();
+  });
 }
 
 function changeBasemap(key) {
-  if (basemaps[key]) {
-    map.removeLayer(currentBasemap);
-    currentBasemap = basemaps[key];
-    currentBasemap.addTo(map);
-    
-    // Keep reference labels on top for basemaps that lack labels
-    if (key === "esriTerrain" || key === "esriRelief" || key === "usgsRelief" || key === "esriSatellite" || key === "esriPhysical") {
-      if (!map.hasLayer(referenceLabels)) {
-        referenceLabels.addTo(map);
-      }
-      referenceLabels.bringToFront();
-    } else {
-      // esriNatGeo has built-in classic editorial labels
-      if (map.hasLayer(referenceLabels)) {
-        map.removeLayer(referenceLabels);
-      }
+  basemapLayerKeys.forEach(k => {
+    const layerId = `layer-${k}`;
+    if (map.getLayer(layerId)) {
+      map.setLayoutProperty(layerId, 'visibility', k === key ? 'visible' : 'none');
     }
+  });
+
+  // Reference labels overlay for basemaps that lack labels
+  const needsLabels = ['esriPhysical', 'esriTerrain', 'esriRelief', 'usgsRelief', 'esriSatellite'].includes(key);
+  if (map.getLayer('layer-labels')) {
+    map.setLayoutProperty('layer-labels', 'visibility', needsLabels ? 'visible' : 'none');
+  }
+}
+
+function toggleTilt() {
+  const btn = document.getElementById("tilt-toggle-btn");
+  if (isTilted) {
+    map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+    isTilted = false;
+    if (btn) btn.textContent = "3D Tilt: OFF (Flat 2D)";
+  } else {
+    map.easeTo({ pitch: 42, bearing: -10, duration: 1000 });
+    isTilted = true;
+    if (btn) btn.textContent = "3D Tilt: ON";
   }
 }
 
@@ -129,7 +179,7 @@ async function loadData() {
     const lakes = await lakesRes.json();
 
     renderGeography(geography, riverNetwork, lakes);
-    renderMetrics(metrics);
+    renderMetrics(metrics, geography);
     populateTelemetryTable(metrics);
     updateSidebar(metrics);
 
@@ -140,7 +190,6 @@ async function loadData() {
     document.getElementById("sync-time").textContent = "Error loading live data";
   }
 }
-
 
 function formatTimestamp(isoString) {
   if (!isoString) return "Today";
@@ -157,207 +206,367 @@ function formatTimestamp(isoString) {
 }
 
 function renderGeography(geo, riverNetwork, lakes) {
-  // 1. Official USGS NHD Lake Polygons (Lake Powell & Lake Mead)
-  if (lakes && lakes.features) {
-    L.geoJSON(lakes, {
-      pane: 'lakesPane',
-      style: {
-        color: "#0369a1",
-        weight: 1.5,
-        fillColor: "#0284c7",
-        fillOpacity: 0.85
+  // 1. Basin Boundaries (Upper vs Lower)
+  const basinsGeoJSON = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: { name: 'Upper Colorado River Basin (WY, CO, UT, NM)', fill: '#f59e0b', color: '#0284c7' },
+        geometry: { type: 'Polygon', coordinates: [geo.upper_basin_outline] }
       },
-      onEachFeature: (feature, layer) => {
-        const name = feature.properties.GNIS_NAME || "Reservoir";
-        const area = feature.properties.AREASQKM ? `${Math.round(feature.properties.AREASQKM)} sq km` : "";
-        layer.bindTooltip(`<strong>${name}</strong><br>USGS NHD Shoreline (${area})`, { sticky: true });
+      {
+        type: 'Feature',
+        properties: { name: 'Lower Colorado River Basin (NV, AZ, CA)', fill: '#ea580c', color: '#b45309' },
+        geometry: { type: 'Polygon', coordinates: [geo.lower_basin_outline] }
       }
-    }).addTo(layers.reservoirs);
-  }
+    ]
+  };
 
-  // 2. Basin Boundaries (Upper vs Lower) with Warm Artistic Regional Washes
-  if (geo.upper_basin_outline) {
-    const upperCoords = geo.upper_basin_outline.map(pt => [pt[1], pt[0]]);
-    L.polygon(upperCoords, {
-      color: "#0284c7",
-      weight: 1.8,
-      dashArray: "5, 7",
-      fillColor: "#f59e0b", // warm amber sandstone wash
-      fillOpacity: 0.07
-    }).bindTooltip("Upper Colorado River Basin (WY, CO, UT, NM)", { sticky: true })
-      .addTo(layers.basin);
-  }
+  if (!map.getSource('basins')) {
+    map.addSource('basins', { type: 'geojson', data: basinsGeoJSON });
+    map.addLayer({
+      id: 'basin-fill',
+      type: 'fill',
+      source: 'basins',
+      paint: {
+        'fill-color': ['get', 'fill'],
+        'fill-opacity': 0.07
+      }
+    });
+    map.addLayer({
+      id: 'basin-line',
+      type: 'line',
+      source: 'basins',
+      paint: {
+        'line-color': ['get', 'color'],
+        'line-width': 1.8,
+        'line-dasharray': [3, 4]
+      }
+    });
 
-  if (geo.lower_basin_outline) {
-    const lowerCoords = geo.lower_basin_outline.map(pt => [pt[1], pt[0]]);
-    L.polygon(lowerCoords, {
-      color: "#b45309",
-      weight: 1.8,
-      dashArray: "5, 7",
-      fillColor: "#ea580c", // warm desert terracotta wash
-      fillOpacity: 0.07
-    }).bindTooltip("Lower Colorado River Basin (NV, AZ, CA)", { sticky: true })
-      .addTo(layers.basin);
-  }
-
-  // 3. Continental Divide
-  if (geo.continental_divide) {
-    const divideCoords = geo.continental_divide.map(pt => [pt[1], pt[0]]);
-    L.polyline(divideCoords, {
-      pane: 'dividePane',
-      color: "#b45309",
-      weight: 3.5,
-      dashArray: "8, 6",
-      opacity: 0.85
-    }).bindTooltip("Continental Divide of the Americas", { sticky: true })
-      .addTo(layers.divide);
-  }
-
-  // 4. CFS-Weighted River Network (Width Scaled to Flow Volume) with Luminous Glow Halo
-  if (riverNetwork) {
-    layers.river.clearLayers();
-    layers.minorRivers.clearLayers();
-    riverNetwork.forEach(seg => {
-      // Handle MultiPolyline (array of lines, where each line is an array of [lon, lat] points)
-      const coords = seg.coords.map(line => line.map(pt => [pt[1], pt[0]]));
-      const isMinor = seg.category === "minor_tributary";
-      const targetLayer = isMinor ? layers.minorRivers : layers.river;
-      const catBadge = seg.category === "mainstem" 
-        ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:4px;">Mainstem Reach</span>' 
-        : (seg.category === "major_tributary" 
-            ? '<span style="font-size:10px;font-weight:700;color:#0369a1;background:#f0f9ff;padding:1px 5px;border-radius:4px;">Major Tributary</span>'
-            : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:1px 5px;border-radius:4px;">Tributary Reach</span>');
-
-      const notesHtml = seg.notes ? `<div style="font-size:11px;color:#64748b;margin-top:3px;line-height:1.3;">${seg.notes}</div>` : '';
-
-      // Flowline with GPU drop-shadow glow (eliminates overlapping cap/bubble artifacts)
-      L.polyline(coords, {
-        pane: 'riverPane',
-        className: 'river-flowline',
-        color: isMinor ? "#0284c7" : "#0369a1",
-        weight: seg.weight,
-        opacity: 0.95,
-        lineCap: "round",
-        lineJoin: "round"
-      }).bindTooltip(`
-        <div style="font-family:'Inter',sans-serif; min-width: 140px;">
-          <div style="margin-bottom:3px;">${catBadge}</div>
-          <strong style="font-size:12px;color:#0f172a;">${seg.name}</strong><br>
-          <div style="font-size:11px;color:#334155;margin-top:2px;">
-            Estimated Discharge: <strong>${seg.flow_cfs.toLocaleString()} cfs</strong><br>
-            <span style="font-size:10px;color:#64748b;">Hydraulic Width: ${seg.weight}px (w &sim; Q<sup>0.5</sup>)</span>
-          </div>
-          ${notesHtml}
-        </div>
-      `, { sticky: true })
-        .addTo(targetLayer);
+    map.on('mousemove', 'basin-fill', (e) => {
+      if (!e.features.length) return;
+      map.getCanvas().style.cursor = 'pointer';
+      tooltipPopup.setLngLat(e.lngLat).setHTML(`<strong>${e.features[0].properties.name}</strong>`).addTo(map);
+    });
+    map.on('mouseleave', 'basin-fill', () => {
+      map.getCanvas().style.cursor = '';
+      tooltipPopup.remove();
     });
   }
 
-  // 5. Trans-Mountain Tunnels
-  if (geo.tunnels) {
-    geo.tunnels.forEach(t => {
-      const coords = t.coords.map(pt => [pt[1], pt[0]]);
-      const isFrontRange = t.id.endsWith("TUNCO");
+  // 2. Continental Divide Line
+  const divideGeoJSON = {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: { name: 'Continental Divide of the Americas' },
+        geometry: { type: 'LineString', coordinates: geo.continental_divide }
+      }
+    ]
+  };
+
+  if (!map.getSource('divide')) {
+    map.addSource('divide', { type: 'geojson', data: divideGeoJSON });
+    map.addLayer({
+      id: 'divide-line',
+      type: 'line',
+      source: 'divide',
+      paint: {
+        'line-color': '#b45309',
+        'line-width': 3.5,
+        'line-dasharray': [4, 3],
+        'line-opacity': 0.85
+      }
+    });
+
+    map.on('mousemove', 'divide-line', (e) => {
+      map.getCanvas().style.cursor = 'pointer';
+      tooltipPopup.setLngLat(e.lngLat).setHTML(`<strong>Continental Divide of the Americas</strong><br><span style="font-size:11px;color:#64748b;">Hydrologic Boundary between Pacific & Atlantic Slopes</span>`).addTo(map);
+    });
+    map.on('mouseleave', 'divide-line', () => {
+      map.getCanvas().style.cursor = '';
+      tooltipPopup.remove();
+    });
+  }
+
+  // 3. Lakes & Reservoirs (USGS NHD Shorelines)
+  if (lakes && lakes.features && !map.getSource('lakes')) {
+    map.addSource('lakes', { type: 'geojson', data: lakes });
+    map.addLayer({
+      id: 'lakes-fill',
+      type: 'fill',
+      source: 'lakes',
+      paint: {
+        'fill-color': '#0284c7',
+        'fill-opacity': 0.85
+      }
+    });
+    map.addLayer({
+      id: 'lakes-stroke',
+      type: 'line',
+      source: 'lakes',
+      paint: {
+        'line-color': '#0369a1',
+        'line-width': 1.5
+      }
+    });
+
+    map.on('mousemove', 'lakes-fill', (e) => {
+      if (!e.features.length) return;
+      map.getCanvas().style.cursor = 'pointer';
+      const p = e.features[0].properties;
+      const name = p.GNIS_NAME || "Reservoir";
+      const area = p.AREASQKM ? `${Math.round(p.AREASQKM)} sq km` : "";
+      tooltipPopup.setLngLat(e.lngLat).setHTML(`<strong>${name}</strong><br><span style="font-size:11px;color:#64748b;">USGS NHD Shoreline (${area})</span>`).addTo(map);
+    });
+    map.on('mouseleave', 'lakes-fill', () => {
+      map.getCanvas().style.cursor = '';
+      tooltipPopup.remove();
+    });
+  }
+
+  // 4. CFS-Weighted River Network (Shapely-Welded Continuous Vectors)
+  if (riverNetwork && !map.getSource('rivers')) {
+    map.addSource('rivers', { type: 'geojson', data: riverNetwork });
+
+    // 4a. Mainstem & Major Tributaries - Outer Glow
+    map.addLayer({
+      id: 'rivers-main-glow',
+      type: 'line',
+      source: 'rivers',
+      filter: ['!=', ['get', 'category'], 'minor_tributary'],
+      paint: {
+        'line-color': '#38bdf8',
+        'line-width': ['+', ['get', 'weight'], 3.5],
+        'line-blur': 2.5,
+        'line-opacity': 0.75
+      }
+    });
+
+    // 4b. Mainstem & Major Tributaries - Core Flowline
+    map.addLayer({
+      id: 'rivers-main-core',
+      type: 'line',
+      source: 'rivers',
+      filter: ['!=', ['get', 'category'], 'minor_tributary'],
+      layout: {
+        'line-cap': 'round',
+        'line-join': 'round'
+      },
+      paint: {
+        'line-color': [
+          'match',
+          ['get', 'category'],
+          'mainstem', '#0369a1',
+          'major_tributary', '#0284c7',
+          '#0284c7'
+        ],
+        'line-width': ['get', 'weight'],
+        'line-opacity': 0.95
+      }
+    });
+
+    // 4c. Secondary Minor Tributaries - Outer Glow
+    map.addLayer({
+      id: 'rivers-minor-glow',
+      type: 'line',
+      source: 'rivers',
+      filter: ['==', ['get', 'category'], 'minor_tributary'],
+      paint: {
+        'line-color': '#38bdf8',
+        'line-width': ['+', ['get', 'weight'], 2.5],
+        'line-blur': 2.0,
+        'line-opacity': 0.65
+      }
+    });
+
+    // 4d. Secondary Minor Tributaries - Core Flowline
+    map.addLayer({
+      id: 'rivers-minor-core',
+      type: 'line',
+      source: 'rivers',
+      filter: ['==', ['get', 'category'], 'minor_tributary'],
+      layout: {
+        'line-cap': 'round',
+        'line-join': 'round'
+      },
+      paint: {
+        'line-color': '#0284c7',
+        'line-width': ['get', 'weight'],
+        'line-opacity': 0.90
+      }
+    });
+
+    // River hover tooltips
+    ['rivers-main-core', 'rivers-minor-core'].forEach(layerId => {
+      map.on('mousemove', layerId, (e) => {
+        if (!e.features.length) return;
+        map.getCanvas().style.cursor = 'pointer';
+        const p = e.features[0].properties;
+        const catBadge = p.category === 'mainstem'
+          ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:4px;">Mainstem Reach</span>'
+          : (p.category === 'major_tributary'
+              ? '<span style="font-size:10px;font-weight:700;color:#0369a1;background:#f0f9ff;padding:1px 5px;border-radius:4px;">Major Tributary</span>'
+              : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:1px 5px;border-radius:4px;">Tributary Reach</span>');
+
+        const notesHtml = p.notes ? `<div style="font-size:11px;color:#64748b;margin-top:3px;line-height:1.3;">${p.notes}</div>` : '';
+
+        tooltipPopup.setLngLat(e.lngLat).setHTML(`
+          <div style="font-family:'Inter',sans-serif; min-width: 140px;">
+            <div style="margin-bottom:3px;">${catBadge}</div>
+            <strong style="font-size:12px;color:#0f172a;">${p.name}</strong><br>
+            <div style="font-size:11px;color:#334155;margin-top:2px;">
+              Estimated Discharge: <strong>${Number(p.flow_cfs).toLocaleString()} cfs</strong><br>
+              <span style="font-size:10px;color:#64748b;">Hydraulic Width: ${p.weight}px (w &sim; Q<sup>0.5</sup>)</span>
+            </div>
+            ${notesHtml}
+          </div>
+        `).addTo(map);
+      });
+
+      map.on('mouseleave', layerId, () => {
+        map.getCanvas().style.cursor = '';
+        tooltipPopup.remove();
+      });
+    });
+  }
+
+  // 5. Trans-Mountain Tunnels & Siphons
+  if (geo.tunnels && !map.getSource('tunnels')) {
+    const tunnelsGeoJSON = {
+      type: 'FeatureCollection',
+      features: geo.tunnels.map(t => ({
+        type: 'Feature',
+        properties: { ...t },
+        geometry: { type: 'LineString', coordinates: t.coords }
+      }))
+    };
+
+    map.addSource('tunnels', { type: 'geojson', data: tunnelsGeoJSON });
+    map.addLayer({
+      id: 'tunnels-line',
+      type: 'line',
+      source: 'tunnels',
+      paint: {
+        'line-color': '#9333ea',
+        'line-width': 4.5,
+        'line-dasharray': [2, 3],
+        'line-opacity': 0.95
+      }
+    });
+
+    map.on('click', 'tunnels-line', (e) => {
+      if (!e.features.length) return;
+      const t = e.features[0].properties;
+      const isFrontRange = t.id && t.id.endsWith("TUNCO");
       const lengthText = isFrontRange ? `${t.length_miles} miles under Divide` : `${t.length_miles} miles`;
       const fromText = isFrontRange ? `<strong>West Portal:</strong> ${t.from}` : `<strong>Intake:</strong> ${t.from}`;
       const toText = isFrontRange ? `<strong>East Portal:</strong> ${t.to}` : `<strong>Terminus:</strong> ${t.to}`;
 
-      L.polyline(coords, {
-        pane: 'tunnelsPane',
-        color: "#9333ea",
-        weight: 4.5,
-        dashArray: "3, 5",
-        opacity: 0.95
-      }).bindPopup(`
-        <strong>${t.name}</strong><br>
-        <em>${t.operator}</em><br>
-        <strong>Length:</strong> ${lengthText}<br>
-        ${fromText}<br>
-        ${toText}
-      `).addTo(layers.tunnels);
-    });
-  }
-
-  // 6. Major Dams (Concrete & Earthfill Impoundments)
-  if (geo.dams) {
-    layers.dams.clearLayers();
-    geo.dams.forEach(d => {
-      const icon = L.divIcon({
-        className: "dam-div-icon",
-        html: `
-          <div class="dam-marker" title="${d.name}">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffffff">
-              <path d="M4 4h16l-3 16H7L4 4zm2.5 2l2.25 12h6.5l2.25-12h-11z"/>
-            </svg>
-          </div>
-        `,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
-      });
-
-      L.marker([d.lat, d.lon], { icon: icon, pane: 'damsPane' })
-        .bindPopup(`
-          <div style="font-family:'Inter',sans-serif; min-width: 170px;">
-            <strong style="font-size:13px;color:#0f172a;">${d.name}</strong><br>
-            <span style="font-size:11px;color:#64748b;font-weight:600;">${d.operator}</span>
+      new maplibregl.Popup({ offset: 8 })
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <div style="font-family:'Inter',sans-serif; min-width: 200px;">
+            <strong style="font-size:13px;color:#0f172a;">${t.name}</strong><br>
+            <span style="font-size:11px;color:#7c3aed;font-weight:600;">${t.operator || ''}</span>
             <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
             <div style="font-size:11px;line-height:1.45;color:#334155;">
-              <strong>Impounds:</strong> ${d.impounds}<br>
-              <strong>Height:</strong> ${d.height_ft} ft | <strong>Built:</strong> ${d.year}<br>
-              <strong>Purpose:</strong> ${d.purpose}
+              <strong>Length:</strong> ${lengthText}<br>
+              ${fromText}<br>
+              ${toText}
             </div>
           </div>
         `)
-        .addTo(layers.dams);
+        .addTo(map);
     });
+
+    map.on('mouseenter', 'tunnels-line', () => map.getCanvas().style.cursor = 'pointer');
+    map.on('mouseleave', 'tunnels-line', () => map.getCanvas().style.cursor = '');
   }
 }
 
-function renderMetrics(metrics) {
-  // Clear previous markers
-  layers.gauges.clearLayers();
+function renderMetrics(metrics, geo) {
+  // Clear existing markers
+  Object.values(markers).forEach(arr => {
+    arr.forEach(m => m.remove());
+    arr.length = 0;
+  });
+  stationMarkers = {};
 
-  // 1. Streamflow Gauges (Compact CFS Badges Anchored Directly on Gauge Points)
+  // 1. Major Dams (16 Dam Markers in 3D Space)
+  if (geo && geo.dams) {
+    geo.dams.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'dam-marker';
+      el.title = d.name;
+      el.innerHTML = `
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffffff">
+          <path d="M4 4h16l-3 16H7L4 4zm2.5 2l2.25 12h6.5l2.25-12h-11z"/>
+        </svg>
+      `;
+
+      const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
+        <div style="font-family:'Inter',sans-serif; min-width: 170px;">
+          <strong style="font-size:13px;color:#0f172a;">${d.name}</strong><br>
+          <span style="font-size:11px;color:#64748b;font-weight:600;">${d.operator}</span>
+          <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
+          <div style="font-size:11px;line-height:1.45;color:#334155;">
+            <strong>Impounds:</strong> ${d.impounds}<br>
+            <strong>Height:</strong> ${d.height_ft} ft | <strong>Built:</strong> ${d.year}<br>
+            <strong>Purpose:</strong> ${d.purpose}
+          </div>
+        </div>
+      `);
+
+      const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([d.lon, d.lat])
+        .setPopup(popup)
+        .addTo(map);
+
+      markers.dams.push(marker);
+    });
+  }
+
+  // 2. Streamflow Gauges (Compact CFS Badges)
   metrics.streamflows.forEach(s => {
     const isLeesFerry = s.id === "09380000";
     const highlightClass = isLeesFerry ? "lees-badge" : "";
 
-    const icon = L.divIcon({
-      className: "cfs-div-icon",
-      html: `<div class="cfs-badge gauge ${highlightClass}"><span class="cfs-val">${s.flow_cfs.toLocaleString()}</span> <span class="cfs-unit">cfs</span></div>`,
-      iconSize: [0, 0],
-      iconAnchor: [0, 0]
-    });
+    const el = document.createElement('div');
+    el.className = 'cfs-marker-wrap';
+    el.innerHTML = `<div class="cfs-badge gauge ${highlightClass}"><span class="cfs-val">${s.flow_cfs.toLocaleString()}</span> <span class="cfs-unit">cfs</span></div>`;
 
-    const marker = L.marker([s.lat, s.lon], { icon: icon })
-      .bindTooltip(`<strong>${s.name.split(',')[0]}</strong><br>Discharge: <strong>${s.flow_cfs.toLocaleString()} cfs</strong>`, {
-        direction: "top",
-        offset: [0, -10]
-      })
-      .bindPopup(`
-        <div style="font-family:'Inter',sans-serif; min-width: 215px; padding: 2px;">
-          <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-            <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px;">USGS Real-Time Gauge</span>
-            ${isLeesFerry ? '<span style="font-size:10px; font-weight:700; color:#dc2626; background:#fee2e2; padding:2px 6px; border-radius:4px;">1922 Compact Divide</span>' : ''}
-          </div>
-          <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${s.name}</strong>
-          <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-            <span style="font-size:11px; color:#64748b; font-weight:600;">Current Discharge:</span>
-            <span style="font-size:16px; font-weight:800; color:#0284c7;">${s.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>
-          </div>
-          <div style="font-size:11px; color:#475569; line-height:1.5;">
-            <strong>USGS Station ID:</strong> <a href="https://waterdata.usgs.gov/monitoring-location/${s.id}" target="_blank" style="color:#0284c7; text-decoration:none; font-weight:600;">${s.id} ↗</a><br>
-            <strong>Last Measured:</strong> ${formatTimestamp(s.timestamp)}
-          </div>
+    const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
+      <div style="font-family:'Inter',sans-serif; min-width: 215px; padding: 2px;">
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+          <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px;">USGS Real-Time Gauge</span>
+          ${isLeesFerry ? '<span style="font-size:10px; font-weight:700; color:#dc2626; background:#fee2e2; padding:2px 6px; border-radius:4px;">1922 Compact Divide</span>' : ''}
         </div>
-      `, { offset: [0, -8] })
-      .addTo(layers.gauges);
+        <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${s.name}</strong>
+        <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+          <span style="font-size:11px; color:#64748b; font-weight:600;">Current Discharge:</span>
+          <span style="font-size:16px; font-weight:800; color:#0284c7;">${s.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>
+        </div>
+        <div style="font-size:11px; color:#475569; line-height:1.5;">
+          <strong>USGS Station ID:</strong> <a href="https://waterdata.usgs.gov/monitoring-location/${s.id}" target="_blank" style="color:#0284c7; text-decoration:none; font-weight:600;">${s.id} ↗</a><br>
+          <strong>Last Measured:</strong> ${formatTimestamp(s.timestamp)}
+        </div>
+      </div>
+    `);
 
-    stationMarkers[s.id] = marker;
+    const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+      .setLngLat([s.lon, s.lat])
+      .setPopup(popup)
+      .addTo(map);
+
+    markers.gauges.push(marker);
+    stationMarkers[s.id] = { marker, popup, lat: s.lat, lon: s.lon };
   });
 
-  // 2. Trans-Mountain Tunnels & Diversion Badges
+  // 3. Trans-Mountain Tunnels & Diversion Badges
   metrics.tunnels.forEach(t => {
     const isFrontRange = t.id.endsWith("TUNCO");
     const siphonText = isFrontRange ? "Eastbound Siphon" : "Aqueduct Diversion";
@@ -365,82 +574,76 @@ function renderMetrics(metrics) {
     const fromText = isFrontRange ? `<strong>West Portal:</strong> ${t.from}` : `<strong>Intake:</strong> ${t.from}`;
     const toText = isFrontRange ? `<strong>East Portal:</strong> ${t.to}` : `<strong>Terminus:</strong> ${t.to}`;
 
-    const icon = L.divIcon({
-      className: "cfs-div-icon",
-      html: `<div class="cfs-badge tunnel-badge"><span class="cfs-val">${t.flow_cfs.toLocaleString()}</span> <span class="cfs-unit">cfs</span></div>`,
-      iconSize: [0, 0],
-      iconAnchor: [0, 0]
-    });
+    const el = document.createElement('div');
+    el.className = 'cfs-marker-wrap';
+    el.innerHTML = `<div class="cfs-badge tunnel-badge"><span class="cfs-val">${t.flow_cfs.toLocaleString()}</span> <span class="cfs-unit">cfs</span></div>`;
 
-    const marker = L.marker([t.lat, t.lon], { icon: icon })
-      .bindTooltip(`<strong>${t.name.split('(')[0]}</strong><br>Diverted: <strong>${t.flow_cfs.toLocaleString()} cfs</strong>`, {
-        direction: "top",
-        offset: [0, -10]
-      })
-      .bindPopup(`
-        <div style="font-family:'Inter',sans-serif; min-width: 220px; padding: 2px;">
-          <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-            <span style="font-size:10px; font-weight:700; color:#7e22ce; background:#f3e8ff; padding:2px 6px; border-radius:4px;">${siphonText}</span>
-          </div>
-          <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${t.name}</strong>
-          <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:6px;">${t.operator || ''}</div>
-          <div style="margin: 6px 0; padding: 8px 10px; background:#faf5ff; border-radius:6px; border:1px solid #f3e8ff; display:flex; justify-content:space-between; align-items:baseline;">
-            <span style="font-size:11px; color:#6b21a8; font-weight:600;">Diverted Flow:</span>
-            <span style="font-size:16px; font-weight:800; color:#7c3aed;">${t.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#6b21a8;">cfs</span></span>
-          </div>
-          <div style="font-size:11px; color:#475569; line-height:1.5;">
-            <strong>Destination:</strong> ${t.destination}<br>
-            <strong>Length:</strong> ${lengthText}<br>
-            ${fromText}<br>
-            ${toText}<br>
-            <strong>Last Measured:</strong> ${formatTimestamp(t.timestamp)}
-          </div>
+    const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
+      <div style="font-family:'Inter',sans-serif; min-width: 220px; padding: 2px;">
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+          <span style="font-size:10px; font-weight:700; color:#7e22ce; background:#f3e8ff; padding:2px 6px; border-radius:4px;">${siphonText}</span>
         </div>
-      `, { offset: [0, -8] })
-      .addTo(layers.tunnels);
+        <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${t.name}</strong>
+        <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:6px;">${t.operator || ''}</div>
+        <div style="margin: 6px 0; padding: 8px 10px; background:#faf5ff; border-radius:6px; border:1px solid #f3e8ff; display:flex; justify-content:space-between; align-items:baseline;">
+          <span style="font-size:11px; color:#6b21a8; font-weight:600;">Diverted Flow:</span>
+          <span style="font-size:16px; font-weight:800; color:#7c3aed;">${t.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#6b21a8;">cfs</span></span>
+        </div>
+        <div style="font-size:11px; color:#475569; line-height:1.5;">
+          <strong>Destination:</strong> ${t.destination}<br>
+          <strong>Length:</strong> ${lengthText}<br>
+          ${fromText}<br>
+          ${toText}<br>
+          <strong>Last Measured:</strong> ${formatTimestamp(t.timestamp)}
+        </div>
+      </div>
+    `);
 
-    stationMarkers[t.id] = marker;
+    const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+      .setLngLat([t.lon, t.lat])
+      .setPopup(popup)
+      .addTo(map);
+
+    markers.tunnels.push(marker);
+    stationMarkers[t.id] = { marker, popup, lat: t.lat, lon: t.lon };
   });
 
-  // 3. Mega-Reservoirs Badges
+  // 4. Reservoirs Badges
   metrics.reservoirs.forEach(r => {
-    const icon = L.divIcon({
-      className: "cfs-div-icon",
-      html: `<div class="cfs-badge res-badge"><span class="cfs-val">${r.capacity_pct}%</span></div>`,
-      iconSize: [0, 0],
-      iconAnchor: [0, 0]
-    });
+    const el = document.createElement('div');
+    el.className = 'cfs-marker-wrap';
+    el.innerHTML = `<div class="cfs-badge res-badge"><span class="cfs-val">${r.capacity_pct}%</span></div>`;
 
-    const marker = L.marker([r.lat, r.lon], { icon: icon })
-      .bindTooltip(`<strong>${r.name.split('(')[0]}</strong>: ${r.capacity_pct}% Full`, {
-        direction: "top",
-        offset: [0, -10]
-      })
-      .bindPopup(`
-        <div style="font-family:'Inter',sans-serif; min-width: 215px; padding: 2px;">
-          <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-            <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px;">Mega-Reservoir Storage</span>
+    const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
+      <div style="font-family:'Inter',sans-serif; min-width: 215px; padding: 2px;">
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+          <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px;">Mega-Reservoir Storage</span>
+        </div>
+        <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${r.name}</strong>
+        <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+            <span style="font-size:11px; color:#64748b; font-weight:600;">Current Storage:</span>
+            <span style="font-size:16px; font-weight:800; color:#0284c7;">${r.capacity_pct}% <span style="font-size:11px; font-weight:600; color:#64748b;">Full</span></span>
           </div>
-          <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${r.name}</strong>
-          <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;">
-            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
-              <span style="font-size:11px; color:#64748b; font-weight:600;">Current Storage:</span>
-              <span style="font-size:16px; font-weight:800; color:#0284c7;">${r.capacity_pct}% <span style="font-size:11px; font-weight:600; color:#64748b;">Full</span></span>
-            </div>
-            <div style="height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
-              <div style="width:${r.capacity_pct}%; height:100%; background:#0284c7;"></div>
-            </div>
-          </div>
-          <div style="font-size:11px; color:#475569; line-height:1.5;">
-            <strong>Elevation:</strong> ${r.elevation_ft.toLocaleString()} ft<br>
-            <strong>Total Volume:</strong> ${Math.round(r.storage_af).toLocaleString()} Acre-Feet<br>
-            <strong>Last Measured:</strong> ${formatTimestamp(r.timestamp)}
+          <div style="height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
+            <div style="width:${r.capacity_pct}%; height:100%; background:#0284c7;"></div>
           </div>
         </div>
-      `, { offset: [0, -8] })
-      .addTo(layers.reservoirs);
+        <div style="font-size:11px; color:#475569; line-height:1.5;">
+          <strong>Elevation:</strong> ${r.elevation_ft.toLocaleString()} ft<br>
+          <strong>Total Volume:</strong> ${Math.round(r.storage_af).toLocaleString()} Acre-Feet<br>
+          <strong>Last Measured:</strong> ${formatTimestamp(r.timestamp)}
+        </div>
+      </div>
+    `);
 
-    stationMarkers[r.id] = marker;
+    const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+      .setLngLat([r.lon, r.lat])
+      .setPopup(popup)
+      .addTo(map);
+
+    markers.reservoirs.push(marker);
+    stationMarkers[r.id] = { marker, popup, lat: r.lat, lon: r.lon };
   });
 }
 
@@ -532,45 +735,113 @@ function populateTelemetryTable(metrics) {
 }
 
 function flyToNode(id, lat, lon) {
-  map.flyTo([lat, lon], 10, { duration: 1.2 });
+  map.flyTo({
+    center: [lon, lat],
+    zoom: 10.5,
+    pitch: 50,
+    duration: 1500,
+    essential: true
+  });
   if (stationMarkers[id]) {
     setTimeout(() => {
-      stationMarkers[id].openPopup();
-    }, 1200);
+      stationMarkers[id].popup.addTo(map);
+    }, 1500);
   }
 }
 
-// Preset Zoom Navigation
+// Preset Zoom Navigation with 3D Tilt
 function zoomToPreset(preset) {
   document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
-  event.target.classList.add("active");
+  if (event && event.target && event.target.classList.contains("nav-btn") && event.target.id !== "tilt-toggle-btn") {
+    event.target.classList.add("active");
+  }
 
   switch(preset) {
     case "basin":
-      map.flyTo([38.5, -109.8], 6, { duration: 1.2 });
+      map.flyTo({
+        center: [-110.2, 38.0],
+        zoom: 6.3,
+        pitch: 42,
+        bearing: -10,
+        duration: 1600
+      });
       break;
     case "divide":
-      // Focus on the West Slope headwater tunnels in the user's backyard
-      map.flyTo([39.8, -105.9], 9, { duration: 1.2 });
+      // West Slope headwater tunnels cutting under the Continental Divide
+      map.flyTo({
+        center: [-105.9, 39.85],
+        zoom: 9.8,
+        pitch: 56,
+        bearing: -30,
+        duration: 1600
+      });
       break;
     case "lees_ferry":
-      map.flyTo([36.86, -111.59], 10, { duration: 1.2 });
+      // Lees Ferry & Marble Canyon Gorge
+      map.flyTo({
+        center: [-111.59, 36.86],
+        zoom: 11.2,
+        pitch: 54,
+        bearing: 40,
+        duration: 1600
+      });
       break;
     case "reservoirs":
-      map.flyTo([36.5, -113.0], 7, { duration: 1.2 });
+      // Powell & Mead corridor across Grand Canyon
+      map.flyTo({
+        center: [-113.2, 36.6],
+        zoom: 7.5,
+        pitch: 50,
+        bearing: -15,
+        duration: 1600
+      });
       break;
   }
 }
 
 // Layer Toggle Handlers
+function setLayerVisibility(layerId, isVisible) {
+  if (map && map.getLayer(layerId)) {
+    map.setLayoutProperty(layerId, 'visibility', isVisible ? 'visible' : 'none');
+  }
+}
+
 function toggleLayer(layerName) {
   const checkbox = document.getElementById(`toggle-${layerName}`);
   if (!checkbox) return;
+  const isChecked = checkbox.checked;
 
-  if (checkbox.checked) {
-    map.addLayer(layers[layerName]);
-  } else {
-    map.removeLayer(layers[layerName]);
+  switch(layerName) {
+    case "river":
+      setLayerVisibility('rivers-main-glow', isChecked);
+      setLayerVisibility('rivers-main-core', isChecked);
+      break;
+    case "minorRivers":
+      setLayerVisibility('rivers-minor-glow', isChecked);
+      setLayerVisibility('rivers-minor-core', isChecked);
+      break;
+    case "gauges":
+      markers.gauges.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
+      break;
+    case "tunnels":
+      setLayerVisibility('tunnels-line', isChecked);
+      markers.tunnels.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
+      break;
+    case "reservoirs":
+      setLayerVisibility('lakes-fill', isChecked);
+      setLayerVisibility('lakes-stroke', isChecked);
+      markers.reservoirs.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
+      break;
+    case "dams":
+      markers.dams.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
+      break;
+    case "divide":
+      setLayerVisibility('divide-line', isChecked);
+      break;
+    case "basin":
+      setLayerVisibility('basin-fill', isChecked);
+      setLayerVisibility('basin-line', isChecked);
+      break;
   }
 }
 

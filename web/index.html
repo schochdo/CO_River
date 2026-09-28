@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Colorado River Basin Hydrology & Plumbing Dashboard</title>
   
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <!-- MapLibre GL CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"/>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +35,7 @@
         <button class="nav-btn" onclick="zoomToPreset('divide')">West Slope & Tunnels</button>
         <button class="nav-btn" onclick="zoomToPreset('lees_ferry')">Lees Ferry</button>
         <button class="nav-btn" onclick="zoomToPreset('reservoirs')">Powell & Mead</button>
+        <button class="nav-btn" onclick="toggleTilt()" id="tilt-toggle-btn" title="Toggle 3D Elevation Relief & Camera Tilt">3D Tilt: ON</button>
       </div>
     </div>
 
@@ -251,8 +252,8 @@
     </div>
   </footer>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="app.js?v=8.0"></script>
+  <!-- MapLibre GL JS -->
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="app.js?v=9.0"></script>
 </body>
 </html>

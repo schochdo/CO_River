@@ -170,6 +170,9 @@ body {
 }
 
 #map {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   background: #dbeafe;
@@ -719,10 +722,10 @@ input:checked + .slider:before {
   border-radius: 3px;
 }
 
-/* Compact CFS Map Badge Markers (Directly on Station Coordinates) */
-.cfs-div-icon {
-  background: transparent !important;
-  border: none !important;
+/* Compact CFS Map Badge Markers (Directly on Station Coordinates in 3D Space) */
+.cfs-marker-wrap {
+  cursor: pointer;
+  transform: translate(0, 0);
 }
 
 .cfs-badge {
@@ -741,14 +744,12 @@ input:checked + .slider:before {
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.28);
   cursor: pointer;
   white-space: nowrap;
-  transform: translate(-50%, -50%);
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
   user-select: none;
-  z-index: 450;
 }
 
 .cfs-badge:hover {
-  transform: translate(-50%, -50%) scale(1.18);
+  transform: scale(1.18);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
   z-index: 1000 !important;
 }
@@ -782,24 +783,111 @@ input:checked + .slider:before {
   border-color: #ffffff;
 }
 
-/* Luminous River Flowline: GPU-accelerated halo without segment joint overlap artifacts */
-.river-flowline {
-  filter: drop-shadow(0 0 3px rgba(56, 189, 248, 0.75));
-  transition: filter 0.2s ease;
+/* Dam Markers (Pinned to Dam Coordinates in 3D) */
+.dam-marker {
+  width: 20px;
+  height: 20px;
+  background: #1e293b;
+  border: 1.5px solid #ffffff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
-.river-flowline:hover {
-  filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.95));
+.dam-marker:hover {
+  transform: scale(1.22);
+  background: #0f172a;
+  border-color: #38bdf8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
 }
 
-/* Subdued watercolor palette: slightly desaturated with enhanced terrain contrast */
-.leaflet-tile-pane {
-  filter: saturate(0.86) contrast(1.06);
+/* MapLibre GL Popups */
+.maplibregl-popup {
+  z-index: 1000;
+  max-width: 330px !important;
 }
 
-/* Allow Leaflet div-icons to auto-size based on CSS content */
-.leaflet-div-icon.clean-div-icon {
-  background: transparent !important;
-  border: none !important;
+.maplibregl-popup-content {
+  padding: 12px 14px;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #0f172a;
+}
+
+.maplibregl-popup-close-button {
+  font-size: 16px;
+  color: #94a3b8;
+  padding: 4px 8px;
+  top: 4px;
+  right: 4px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.maplibregl-popup-close-button:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: #ffffff;
+}
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: #ffffff;
+}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: #ffffff;
+}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: #ffffff;
+}
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip {
+  border-bottom-color: #ffffff;
+}
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  border-bottom-color: #ffffff;
+}
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip {
+  border-top-color: #ffffff;
+}
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  border-top-color: #ffffff;
+}
+
+/* MapLibre Controls */
+.maplibregl-ctrl-group {
+  background: #ffffff !important;
+  border-radius: 8px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  overflow: hidden;
+}
+
+.maplibregl-ctrl-group button {
+  width: 32px !important;
+  height: 32px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.maplibregl-ctrl-group button:last-child {
+  border-bottom: none !important;
+}
+
+.maplibregl-ctrl-group button:hover {
+  background-color: #f8fafc !important;
+}
+
+/* Subdued watercolor canvas palette */
+.maplibregl-canvas {
+  filter: saturate(0.92) contrast(1.04);
 }
 

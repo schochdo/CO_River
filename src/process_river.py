@@ -145,14 +145,11 @@ ALL_TRIBUTARIES = [
     ("Verde River",           "verde_river",           "verde_river",           420, "minor_tributary"),
     ("San Pedro River",       "san_pedro_river",       "san_pedro_river",       140, "minor_tributary"),
     ("Santa Cruz River",      "santa_cruz_river",      "santa_cruz_river",       90, "minor_tributary"),
-]
-
-# Headwater rivers in Colorado
-HEADWATER_RIVERS = [
-    ("Eagle River",        "eagle_river",        320, "minor_tributary"),
-    ("Roaring Fork River", "roaring_fork_river", 480, "minor_tributary"),
-    ("Blue River",         "blue_river",         210, "minor_tributary"),
-    ("Fraser River",       "fraser_river",        65, "minor_tributary"),
+    # Colorado Headwaters
+    ("Eagle River",           "eagle_river",           "eagle_river",           320, "minor_tributary"),
+    ("Roaring Fork River",    "roaring_fork_river",    "roaring_fork_river",    480, "minor_tributary"),
+    ("Blue River",            "blue_river",            "blue_river",            210, "minor_tributary"),
+    ("Fraser River",          "fraser_river",          "fraser_river",           65, "minor_tributary"),
 ]
 
 def is_in_basin(geom):
@@ -297,27 +294,6 @@ def process():
                 "coords": lines
             }
             print(f"  ✓ {display_name:25s}: {len(lines):4d} segments (flow={cfs:4d} cfs, weight={compute_weight(cfs):4.1f})")
-        else:
-            print(f"  ⚠ No data for {display_name}")
-    
-    # ── 5. Headwater rivers (preserve from existing river_network.json) ──
-    print("\nPreserving headwater rivers from existing data...")
-    try:
-        with open("web/data/river_network.json") as f:
-            existing = json.load(f)
-        
-        hw_dict = {name: (cfs, cat) for name, _, cfs, cat in HEADWATER_RIVERS}
-        for reach in existing:
-            if reach["name"] in hw_dict and reach["name"] not in reach_groups:
-                cfs, cat = hw_dict[reach["name"]]
-                reach["flow_cfs"] = cfs
-                reach["weight"] = compute_weight(cfs)
-                reach["category"] = cat
-                reach_groups[reach["name"]] = reach
-                print(f"  ✓ Preserved {reach['name']} ({len(reach['coords'])} segments, flow={cfs} cfs, weight={compute_weight(cfs)})")
-    except Exception as e:
-        print(f"  ⚠ Could not preserve headwater rivers: {e}")
-    
     # ── Merge connected flowlines into continuous unbroken paths ──
     print("\nMerging connected flowlines into continuous unbroken paths (eliminating joint artifacts)...")
     before_segs = sum(len(r["coords"]) for r in reach_groups.values())
@@ -336,10 +312,34 @@ def process():
     after_segs = sum(len(r["coords"]) for r in reach_groups.values())
     print(f"  ✓ Welded {before_segs} fragmented segments down to {after_segs} continuous unbroken lines")
 
-    # ── Output ──
-    output = list(reach_groups.values())
+    # ── Standard GeoJSON FeatureCollection Output ──
+    features = []
+    for r in reach_groups.values():
+        features.append({
+            "type": "Feature",
+            "properties": {
+                "name": r["name"],
+                "reach": r["reach"],
+                "flow_cfs": r["flow_cfs"],
+                "weight": r["weight"],
+                "category": r["category"],
+                "notes": r.get("notes", "")
+            },
+            "geometry": {
+                "type": "MultiLineString",
+                "coordinates": r["coords"]
+            }
+        })
+    
+    geojson_out = {
+        "type": "FeatureCollection",
+        "features": features
+    }
+    
     with open("web/data/river_network.json", "w") as f:
-        json.dump(output, f)
+        json.dump(geojson_out, f)
+    
+    output = list(reach_groups.values())
     
     total_segments = sum(len(r["coords"]) for r in output)
     print(f"\n{'='*70}")
