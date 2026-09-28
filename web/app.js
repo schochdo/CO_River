@@ -16,6 +16,14 @@ let stationMarkers = {};
 
 let currentBasemap;
 const basemaps = {
+  esriNatGeo: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 16,
+    attribution: 'Tiles &copy; Esri &mdash; National Geographic, USGS, NOAA'
+  }),
+  esriPhysical: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 8,
+    attribution: 'Tiles &copy; Esri &mdash; US National Park Service, U.S. Geological Survey'
+  }),
   esriSatellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
     maxZoom: 17,
     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP'
@@ -60,10 +68,9 @@ function initMap() {
 
   L.control.zoom({ position: "topleft" }).addTo(map);
 
-  // Set default basemap: Soft Shaded Relief (Esri Terrain Base)
-  currentBasemap = basemaps.esriTerrain;
+  // Set default basemap: National Geographic Style (Warm Pictorial Relief)
+  currentBasemap = basemaps.esriNatGeo;
   currentBasemap.addTo(map);
-  referenceLabels.addTo(map);
 
   // Add all layer groups to map by default
   Object.values(layers).forEach(layer => layer.addTo(map));
@@ -91,13 +98,14 @@ function changeBasemap(key) {
     currentBasemap = basemaps[key];
     currentBasemap.addTo(map);
     
-    // Keep reference labels on top of shaded relief
+    // Keep reference labels on top only for basemaps that lack labels
     if (key === "esriTerrain" || key === "esriRelief" || key === "usgsRelief" || key === "esriSatellite") {
       if (!map.hasLayer(referenceLabels)) {
         referenceLabels.addTo(map);
       }
       referenceLabels.bringToFront();
     } else {
+      // esriNatGeo has built-in classic editorial labels; esriPhysical is clean label-free
       if (map.hasLayer(referenceLabels)) {
         map.removeLayer(referenceLabels);
       }
@@ -167,15 +175,15 @@ function renderGeography(geo, riverNetwork, lakes) {
     }).addTo(layers.reservoirs);
   }
 
-  // 2. Basin Boundaries (Upper vs Lower)
+  // 2. Basin Boundaries (Upper vs Lower) with Warm Artistic Regional Washes
   if (geo.upper_basin_outline) {
     const upperCoords = geo.upper_basin_outline.map(pt => [pt[1], pt[0]]);
     L.polygon(upperCoords, {
       color: "#0284c7",
-      weight: 1.5,
-      dashArray: "4, 6",
-      fillColor: "#0284c7",
-      fillOpacity: 0.04
+      weight: 1.8,
+      dashArray: "5, 7",
+      fillColor: "#f59e0b", // warm amber sandstone wash
+      fillOpacity: 0.07
     }).bindTooltip("Upper Colorado River Basin (WY, CO, UT, NM)", { sticky: true })
       .addTo(layers.basin);
   }
@@ -183,11 +191,11 @@ function renderGeography(geo, riverNetwork, lakes) {
   if (geo.lower_basin_outline) {
     const lowerCoords = geo.lower_basin_outline.map(pt => [pt[1], pt[0]]);
     L.polygon(lowerCoords, {
-      color: "#d97706",
-      weight: 1.5,
-      dashArray: "4, 6",
-      fillColor: "#d97706",
-      fillOpacity: 0.04
+      color: "#b45309",
+      weight: 1.8,
+      dashArray: "5, 7",
+      fillColor: "#ea580c", // warm desert terracotta wash
+      fillOpacity: 0.07
     }).bindTooltip("Lower Colorado River Basin (NV, AZ, CA)", { sticky: true })
       .addTo(layers.basin);
   }
@@ -197,7 +205,7 @@ function renderGeography(geo, riverNetwork, lakes) {
     const divideCoords = geo.continental_divide.map(pt => [pt[1], pt[0]]);
     L.polyline(divideCoords, {
       pane: 'dividePane',
-      color: "#d97706",
+      color: "#b45309",
       weight: 3.5,
       dashArray: "8, 6",
       opacity: 0.85
@@ -205,7 +213,7 @@ function renderGeography(geo, riverNetwork, lakes) {
       .addTo(layers.divide);
   }
 
-  // 4. CFS-Weighted River Network (Width Scaled to Flow Volume)
+  // 4. CFS-Weighted River Network (Width Scaled to Flow Volume) with Luminous Glow Halo
   if (riverNetwork) {
     layers.river.clearLayers();
     layers.minorRivers.clearLayers();
@@ -222,11 +230,24 @@ function renderGeography(geo, riverNetwork, lakes) {
 
       const notesHtml = seg.notes ? `<div style="font-size:11px;color:#64748b;margin-top:3px;line-height:1.3;">${seg.notes}</div>` : '';
 
+      // Under-layer: Soft Luminous Glowing Halo (Artistic illumination)
+      const haloWeight = Math.round(seg.weight * 2.2);
       L.polyline(coords, {
         pane: 'riverPane',
-        color: isMinor ? "#38bdf8" : "#0284c7",
+        color: isMinor ? "#7dd3fc" : "#38bdf8",
+        weight: haloWeight,
+        opacity: isMinor ? 0.28 : 0.38,
+        lineCap: "round",
+        lineJoin: "round",
+        interactive: false
+      }).addTo(targetLayer);
+
+      // Top layer: Vibrant Core Flowline
+      L.polyline(coords, {
+        pane: 'riverPane',
+        color: isMinor ? "#0284c7" : "#0369a1",
         weight: seg.weight,
-        opacity: isMinor ? 0.85 : 0.95,
+        opacity: 0.95,
         lineCap: "round",
         lineJoin: "round"
       }).bindTooltip(`

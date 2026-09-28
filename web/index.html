@@ -82,8 +82,10 @@
         <div class="basemap-select-wrap">
           <label for="basemap-select" style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">BASEMAP STYLE</label>
           <select id="basemap-select" onchange="changeBasemap(this.value)" class="custom-select">
-                        <option value="esriSatellite">Satellite Imagery (Esri World Imagery)</option>
-            <option value="esriTerrain" selected>Soft Shaded Relief (Esri Terrain)</option>
+            <option value="esriNatGeo" selected>National Geographic (Warm Physical Style)</option>
+            <option value="esriPhysical">World Physical (Clean Mountain Relief)</option>
+            <option value="esriTerrain">Soft Shaded Relief (Esri Terrain)</option>
+            <option value="esriSatellite">Satellite Imagery (Esri World Imagery)</option>
             <option value="esriRelief">Pure Hillshade (Esri Relief)</option>
             <option value="cartoLight">Clean Light (Carto Positron)</option>
             <option value="usgsRelief">USGS National Map Relief</option>
@@ -251,6 +253,6 @@
 
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-  <script src="app.js?v=6.0"></script>
+  <script src="app.js?v=7.0"></script>
 </body>
 </html>
