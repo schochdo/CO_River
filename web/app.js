@@ -66,6 +66,19 @@ function initMap() {
   // Add all layer groups to map by default
   Object.values(layers).forEach(layer => layer.addTo(map));
 
+  // Explicit zIndex panes for cartographic stacking
+  map.createPane('riverPane');
+  map.getPane('riverPane').style.zIndex = 410; // Continuous river on bottom
+
+  map.createPane('lakesPane');
+  map.getPane('lakesPane').style.zIndex = 420; // Lake bodies sit cleanly on top of river
+
+  map.createPane('dividePane');
+  map.getPane('dividePane').style.zIndex = 430; // Continental divide sits above water
+
+  map.createPane('tunnelsPane');
+  map.getPane('tunnelsPane').style.zIndex = 440; // Aqueducts and tunnels sit above water
+
   // Dynamic collision avoidance when zooming or panning
   map.on("zoomend", resolveLabelCollisions);
   map.on("moveend", resolveLabelCollisions);
@@ -137,11 +150,12 @@ function renderGeography(geo, riverNetwork, lakes) {
   // 1. Official USGS NHD Lake Polygons (Lake Powell & Lake Mead)
   if (lakes && lakes.features) {
     L.geoJSON(lakes, {
+      pane: 'lakesPane',
       style: {
         color: "#0369a1",
         weight: 1.5,
         fillColor: "#0284c7",
-        fillOpacity: 0.75
+        fillOpacity: 0.85
       },
       onEachFeature: (feature, layer) => {
         const name = feature.properties.GNIS_NAME || "Reservoir";
@@ -180,6 +194,7 @@ function renderGeography(geo, riverNetwork, lakes) {
   if (geo.continental_divide) {
     const divideCoords = geo.continental_divide.map(pt => [pt[1], pt[0]]);
     L.polyline(divideCoords, {
+      pane: 'dividePane',
       color: "#d97706",
       weight: 3.5,
       dashArray: "8, 6",
@@ -194,9 +209,10 @@ function renderGeography(geo, riverNetwork, lakes) {
       // Handle MultiPolyline (array of lines, where each line is an array of [lon, lat] points)
       const coords = seg.coords.map(line => line.map(pt => [pt[1], pt[0]]));
       L.polyline(coords, {
+        pane: 'riverPane',
         color: "#0284c7",
         weight: seg.weight,
-        opacity: 0.88,
+        opacity: 0.90,
         lineCap: "round",
         lineJoin: "round"
       }).bindTooltip(`<strong>${seg.name}</strong><br>Flow: <strong>${seg.flow_cfs.toLocaleString()} cfs</strong>`, { sticky: true })
@@ -214,6 +230,7 @@ function renderGeography(geo, riverNetwork, lakes) {
       const toText = isFrontRange ? `<strong>East Portal:</strong> ${t.to}` : `<strong>Terminus:</strong> ${t.to}`;
 
       L.polyline(coords, {
+        pane: 'tunnelsPane',
         color: "#9333ea",
         weight: 4.5,
         dashArray: "3, 5",

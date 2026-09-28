@@ -1,6 +1,6 @@
 import json
 import geopandas as gpd
-from shapely.geometry import shape, Point, LineString
+from shapely.geometry import shape, Point
 
 REACHES = {
     "Colorado River - Headwaters to Granby": {"id": "headwaters", "cfs": 350, "weight": 2.5, "pt": Point(-106.050, 40.090)},
@@ -26,30 +26,20 @@ def get_closest_reach(centroid):
 
 def is_in_basin(geom):
     c = geom.centroid
-    # The Colorado River Basin is roughly bounded by:
-    # Longitude: -116.0 (California/Nevada border area) to -105.0 (Colorado headwaters)
-    # Latitude: 31.0 (Mexico border) to 44.0 (Wyoming Green River headwaters)
     return -116.0 <= c.x <= -105.0 and 31.0 <= c.y <= 44.0
 
 def process():
-    print("Loading lakes...")
-    lakes = gpd.read_file("web/data/lakes.geojson")
-    lake_polygons = lakes.geometry.buffer(0).union_all()
-    
-    # Dictionary to collect MultiPolylines by reach name
     reach_groups = {}
     
     print("Processing Green River...")
     try:
         with open("web/data/green_river_raw.geojson") as f:
             green_data = json.load(f)
-        
         green_lines = []
         for feat in green_data["features"]:
             geom = shape(feat["geometry"]).simplify(0.0005, preserve_topology=True)
             if not geom.is_empty and is_in_basin(geom):
                 green_lines.append([[pt[0], pt[1]] for pt in geom.coords])
-                
         reach_groups["Green River (Major Tributary)"] = {
             "name": "Green River (Major Tributary)",
             "reach": "green_river",
@@ -60,7 +50,7 @@ def process():
     except Exception as e:
         print("Error with green river:", e)
 
-    print("Processing Colorado River...")
+    print("Processing Colorado River (Continuous Uncut Channel)...")
     with open("web/data/co_river_raw.geojson") as f:
         co_data = json.load(f)
         
@@ -68,13 +58,7 @@ def process():
         geom = shape(feat["geometry"])
         if geom.is_empty or not is_in_basin(geom): continue
         
-        if geom.intersects(lake_polygons):
-            intersection = geom.intersection(lake_polygons)
-            if intersection.length > geom.length * 0.5:
-                continue
-            geom = geom.difference(lake_polygons)
-            if geom.is_empty: continue
-            
+        # Keep river continuous without lake differences!
         geom = geom.simplify(0.0005, preserve_topology=True)
         if geom.is_empty: continue
         
@@ -86,7 +70,7 @@ def process():
             continue
             
         for line in lines:
-            if line.length < 0.001: continue
+            if line.length < 0.0005: continue
             centroid = line.centroid
             reach_name, reach_data = get_closest_reach(centroid)
             
@@ -100,11 +84,12 @@ def process():
                 }
             
             reach_groups[reach_name]["coords"].append([[pt[0], pt[1]] for pt in line.coords])
-            
-    for name, raw_file, reach_id, weight in [
-        ("Yampa River", "web/data/yampa_river_raw.geojson", "yampa_river", 4.0),
-        ("San Juan River", "web/data/sanjuan_river_raw.geojson", "sanjuan_river", 5.0),
-        ("Gunnison River", "web/data/gunnison_river_raw.geojson", "gunnison_river", 4.0)
+
+    # Tributaries
+    for name, raw_file, reach_id, weight, flow in [
+        ("Yampa River", "web/data/yampa_river_raw.geojson", "yampa_river", 4.0, 140),
+        ("San Juan River", "web/data/sanjuan_river_raw.geojson", "sanjuan_river", 5.5, 2800),
+        ("Gunnison River", "web/data/gunnison_river_raw.geojson", "gunnison_river", 4.5, 1140)
     ]:
         print(f"Processing {name}...")
         try:
@@ -119,7 +104,7 @@ def process():
                 reach_groups[name] = {
                     "name": name,
                     "reach": reach_id,
-                    "flow_cfs": 1500, # Approximate, used for tooltip baseline if needed
+                    "flow_cfs": flow,
                     "weight": weight,
                     "coords": lines
                 }
@@ -129,7 +114,7 @@ def process():
     output = list(reach_groups.values())
     with open("web/data/river_network.json", "w") as f:
         json.dump(output, f)
-    print(f"Wrote {len(output)} reaches with multipolylines to river_network.json")
+    print(f"Wrote {len(output)} reaches with completely continuous river channels to river_network.json")
 
 if __name__ == "__main__":
     process()
