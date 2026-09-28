@@ -12,8 +12,12 @@ def fetch_usgs_streamflow():
     sites = {
         "09070500": "Colorado River near Dotsero, CO",
         "09095500": "Colorado River near Cameo, CO",
+        "09152500": "Gunnison River near Grand Junction, CO",
         "09180500": "Colorado River near Cisco, UT",
-        "09380000": "Colorado River at Lees Ferry, AZ"
+        "09260050": "Yampa River at Deerlodge Park, CO",
+        "09379500": "San Juan River near Bluff, UT",
+        "09380000": "Colorado River at Lees Ferry, AZ",
+        "09527700": "All-American Canal near Imperial Dam"
     }
     site_ids = ",".join(sites.keys())
     url = f"https://waterservices.usgs.gov/nwis/iv/?format=json&sites={site_ids}&parameterCd=00060&siteStatus=all"
@@ -40,6 +44,44 @@ def fetch_usgs_streamflow():
                 "lat": lat,
                 "lon": lon
             })
+    return results
+
+
+def fetch_usgs_daily():
+    """
+    Fetches Daily Values (DV) for infrastructure that doesn't report instantaneous flows (e.g. Colorado River Aqueduct).
+    """
+    sites = {
+        "09424150": "Colorado River Aqueduct near Parker Dam"
+    }
+    site_ids = ",".join(sites.keys())
+    url = f"https://waterservices.usgs.gov/nwis/dv/?format=json&sites={site_ids}&parameterCd=00060&siteStatus=all"
+    
+    results = []
+    try:
+        response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=10)
+        data = response.json()
+        for ts in data.get("value", {}).get("timeSeries", []):
+            code = ts["sourceInfo"]["siteCode"][0]["value"]
+            name = sites.get(code, ts["sourceInfo"]["siteName"])
+            lat = ts["sourceInfo"]["geoLocation"]["geogLocation"]["latitude"]
+            lon = ts["sourceInfo"]["geoLocation"]["geogLocation"]["longitude"]
+            values = ts["values"][0]["value"]
+            
+            if values:
+                latest = values[-1]
+                results.append({
+                    "id": code,
+                    "name": name,
+                    "type": "diversion_tunnel", # we can classify it as diversion to color it purple
+                    "destination": "Los Angeles / Southern California",
+                    "flow_cfs": float(latest["value"]),
+                    "timestamp": latest["dateTime"],
+                    "lat": lat,
+                    "lon": lon
+                })
+    except Exception as e:
+        print(f"Warning: Failed to fetch DV data: {e}")
     return results
 
 def fetch_cdwr_tunnels():
@@ -165,6 +207,7 @@ def main():
     print("Fetching Colorado River hydrologic data...")
     streamflows = fetch_usgs_streamflow()
     tunnels = fetch_cdwr_tunnels()
+    tunnels.extend(fetch_usgs_daily()) # Add CRA to tunnels
     reservoirs = fetch_reservoirs()
 
     payload = {
@@ -174,8 +217,8 @@ def main():
         "reservoirs": reservoirs
     }
 
-    os.makedirs("data", exist_ok=True)
-    out_file = "data/latest_metrics.json"
+    os.makedirs("web/data", exist_ok=True)
+    out_file = "web/data/latest_metrics.json"
     with open(out_file, "w") as f:
         json.dump(payload, f, indent=2)
 

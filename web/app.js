@@ -208,6 +208,13 @@ const markerOffsets = {
   "09180500": { dx: -90, dy: 10, color: "#0284c7" },  // Cisco
   "09380000": { dx: -130, dy: 45, color: "#dc2626" }, // Lees Ferry
 
+  "09152500": { dx: -100, dy: -30, color: "#0284c7" }, // Gunnison
+  "09260050": { dx: -80, dy: -50, color: "#0284c7" },  // Yampa
+  "09379500": { dx: 120, dy: 30, color: "#0284c7" },   // San Juan
+  "09527700": { dx: -130, dy: 20, color: "#0284c7" },  // All-American Canal
+  "09424150": { dx: -140, dy: -20, color: "#9333ea" }, // CRA
+
+
   // Tunnels
   "ADATUNCO": { dx: 120, dy: -60, color: "#9333ea" }, // Adams
   "MOFTUNCO": { dx: 140, dy: -20, color: "#9333ea" }, // Moffat
@@ -340,8 +347,10 @@ function renderMetrics(metrics) {
 }
 
 function updateSidebar(metrics) {
-  // 1. Total Siphoned Under Divide
-  const totalDiverted = metrics.tunnels.reduce((sum, t) => sum + t.flow_cfs, 0);
+  // 1. Total Siphoned Under Divide (Front Range only)
+  const totalDiverted = metrics.tunnels
+    .filter(t => t.id.endsWith("TUNCO"))
+    .reduce((sum, t) => sum + t.flow_cfs, 0);
   document.getElementById("total-diverted-val").textContent = totalDiverted.toFixed(1);
   document.getElementById("diverted-comp").textContent = `${Math.round(totalDiverted)} cfs`;
 

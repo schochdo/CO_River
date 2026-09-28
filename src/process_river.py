@@ -101,6 +101,31 @@ def process():
             
             reach_groups[reach_name]["coords"].append([[pt[0], pt[1]] for pt in line.coords])
             
+    for name, raw_file, reach_id, weight in [
+        ("Yampa River", "web/data/yampa_river_raw.geojson", "yampa_river", 4.0),
+        ("San Juan River", "web/data/sanjuan_river_raw.geojson", "sanjuan_river", 5.0),
+        ("Gunnison River", "web/data/gunnison_river_raw.geojson", "gunnison_river", 4.0)
+    ]:
+        print(f"Processing {name}...")
+        try:
+            with open(raw_file) as f:
+                data = json.load(f)
+            lines = []
+            for feat in data["features"]:
+                geom = shape(feat["geometry"]).simplify(0.0005, preserve_topology=True)
+                if not geom.is_empty and is_in_basin(geom):
+                    lines.append([[pt[0], pt[1]] for pt in geom.coords])
+            if lines:
+                reach_groups[name] = {
+                    "name": name,
+                    "reach": reach_id,
+                    "flow_cfs": 1500, # Approximate, used for tooltip baseline if needed
+                    "weight": weight,
+                    "coords": lines
+                }
+        except Exception as e:
+            print(f"Error with {name}:", e)
+            
     output = list(reach_groups.values())
     with open("web/data/river_network.json", "w") as f:
         json.dump(output, f)

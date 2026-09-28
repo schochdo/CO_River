@@ -44,3 +44,21 @@ if __name__ == "__main__":
         features = fetch_features_by_ids(green_ids)
         with open("web/data/green_river_raw.geojson", "w") as f:
             json.dump({"type": "FeatureCollection", "features": features}, f)
+
+    yampa_ids = fetch_river_ids("Yampa River")
+    sanjuan_ids = fetch_river_ids("San Juan River")
+    gunnison_ids = fetch_river_ids("Gunnison River")
+    
+    print(f"Yampa IDs: {len(yampa_ids)}")
+    print(f"San Juan IDs: {len(sanjuan_ids)}")
+    print(f"Gunnison IDs: {len(gunnison_ids)}")
+    
+    if yampa_ids:
+        with open("web/data/yampa_river_raw.geojson", "w") as f:
+            json.dump({"type": "FeatureCollection", "features": fetch_features_by_ids(yampa_ids)}, f)
+    if sanjuan_ids:
+        with open("web/data/sanjuan_river_raw.geojson", "w") as f:
+            json.dump({"type": "FeatureCollection", "features": fetch_features_by_ids(sanjuan_ids)}, f)
+    if gunnison_ids:
+        with open("web/data/gunnison_river_raw.geojson", "w") as f:
+            json.dump({"type": "FeatureCollection", "features": fetch_features_by_ids(gunnison_ids)}, f)

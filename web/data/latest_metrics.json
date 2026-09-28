@@ -1,12 +1,12 @@
 {
-  "fetched_at": "2026-09-27T18:07:06.899629",
+  "fetched_at": "2026-09-27T18:55:00.535186",
   "streamflows": [
     {
       "id": "09070500",
       "name": "Colorado River near Dotsero, CO",
       "type": "streamflow",
-      "flow_cfs": 718.0,
-      "timestamp": "2026-09-27T17:00:00.000-06:00",
+      "flow_cfs": 710.0,
+      "timestamp": "2026-09-27T18:00:00.000-06:00",
       "lat": 39.6446111,
       "lon": -107.0780139
     },
@@ -14,28 +14,64 @@
       "id": "09095500",
       "name": "Colorado River near Cameo, CO",
       "type": "streamflow",
-      "flow_cfs": 1420.0,
-      "timestamp": "2026-09-27T17:45:00.000-06:00",
+      "flow_cfs": 1410.0,
+      "timestamp": "2026-09-27T18:30:00.000-06:00",
       "lat": 39.2391463,
       "lon": -108.2661946
+    },
+    {
+      "id": "09152500",
+      "name": "Gunnison River near Grand Junction, CO",
+      "type": "streamflow",
+      "flow_cfs": 1140.0,
+      "timestamp": "2026-09-27T18:30:00.000-06:00",
+      "lat": 38.98331575,
+      "lon": -108.4506446
     },
     {
       "id": "09180500",
       "name": "Colorado River near Cisco, UT",
       "type": "streamflow",
-      "flow_cfs": 2640.0,
-      "timestamp": "2026-09-27T17:00:00.000-06:00",
+      "flow_cfs": 2600.0,
+      "timestamp": "2026-09-27T18:00:00.000-06:00",
       "lat": 38.81054095,
       "lon": -109.2934493
+    },
+    {
+      "id": "09260050",
+      "name": "Yampa River at Deerlodge Park, CO",
+      "type": "streamflow",
+      "flow_cfs": 141.0,
+      "timestamp": "2026-09-27T18:15:00.000-06:00",
+      "lat": 40.45161747,
+      "lon": -108.52512937
+    },
+    {
+      "id": "09379500",
+      "name": "San Juan River near Bluff, UT",
+      "type": "streamflow",
+      "flow_cfs": 2810.0,
+      "timestamp": "2026-09-27T18:45:00.000-06:00",
+      "lat": 37.15067778,
+      "lon": -109.8666889
     },
     {
       "id": "09380000",
       "name": "Colorado River at Lees Ferry, AZ",
       "type": "streamflow",
-      "flow_cfs": 8140.0,
-      "timestamp": "2026-09-27T16:00:00.000-07:00",
+      "flow_cfs": 8520.0,
+      "timestamp": "2026-09-27T17:00:00.000-07:00",
       "lat": 36.86433333,
       "lon": -111.58787222
+    },
+    {
+      "id": "09527700",
+      "name": "All-American Canal near Imperial Dam",
+      "type": "streamflow",
+      "flow_cfs": 1570.0,
+      "timestamp": "2026-09-27T17:30:00.000-07:00",
+      "lat": 32.70425,
+      "lon": -115.0481139
     }
   ],
   "tunnels": [
@@ -78,6 +114,16 @@
       "timestamp": "2025-09-27T00:00:00",
       "lat": 39.2619,
       "lon": -106.5297
+    },
+    {
+      "id": "09424150",
+      "name": "Colorado River Aqueduct near Parker Dam",
+      "type": "diversion_tunnel",
+      "destination": "Los Angeles / Southern California",
+      "flow_cfs": 1740.0,
+      "timestamp": "2022-09-30T00:00:00.000",
+      "lat": 34.31612564,
+      "lon": -114.1571702
     }
   ],
   "reservoirs": [
