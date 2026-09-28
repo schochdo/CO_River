@@ -98,14 +98,14 @@ function changeBasemap(key) {
     currentBasemap = basemaps[key];
     currentBasemap.addTo(map);
     
-    // Keep reference labels on top only for basemaps that lack labels
-    if (key === "esriTerrain" || key === "esriRelief" || key === "usgsRelief" || key === "esriSatellite") {
+    // Keep reference labels on top for basemaps that lack labels
+    if (key === "esriTerrain" || key === "esriRelief" || key === "usgsRelief" || key === "esriSatellite" || key === "esriPhysical") {
       if (!map.hasLayer(referenceLabels)) {
         referenceLabels.addTo(map);
       }
       referenceLabels.bringToFront();
     } else {
-      // esriNatGeo has built-in classic editorial labels; esriPhysical is clean label-free
+      // esriNatGeo has built-in classic editorial labels
       if (map.hasLayer(referenceLabels)) {
         map.removeLayer(referenceLabels);
       }
@@ -230,21 +230,10 @@ function renderGeography(geo, riverNetwork, lakes) {
 
       const notesHtml = seg.notes ? `<div style="font-size:11px;color:#64748b;margin-top:3px;line-height:1.3;">${seg.notes}</div>` : '';
 
-      // Under-layer: Soft Luminous Glowing Halo (Artistic illumination)
-      const haloWeight = Math.round(seg.weight * 2.2);
+      // Flowline with GPU drop-shadow glow (eliminates overlapping cap/bubble artifacts)
       L.polyline(coords, {
         pane: 'riverPane',
-        color: isMinor ? "#7dd3fc" : "#38bdf8",
-        weight: haloWeight,
-        opacity: isMinor ? 0.28 : 0.38,
-        lineCap: "round",
-        lineJoin: "round",
-        interactive: false
-      }).addTo(targetLayer);
-
-      // Top layer: Vibrant Core Flowline
-      L.polyline(coords, {
-        pane: 'riverPane',
+        className: 'river-flowline',
         color: isMinor ? "#0284c7" : "#0369a1",
         weight: seg.weight,
         opacity: 0.95,

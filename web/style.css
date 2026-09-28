@@ -782,6 +782,21 @@ input:checked + .slider:before {
   border-color: #ffffff;
 }
 
+/* Luminous River Flowline: GPU-accelerated halo without segment joint overlap artifacts */
+.river-flowline {
+  filter: drop-shadow(0 0 3px rgba(56, 189, 248, 0.75));
+  transition: filter 0.2s ease;
+}
+
+.river-flowline:hover {
+  filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.95));
+}
+
+/* Subdued watercolor palette: slightly desaturated with enhanced terrain contrast */
+.leaflet-tile-pane {
+  filter: saturate(0.86) contrast(1.06);
+}
+
 /* Allow Leaflet div-icons to auto-size based on CSS content */
 .leaflet-div-icon.clean-div-icon {
   background: transparent !important;

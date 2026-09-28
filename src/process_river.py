@@ -20,7 +20,8 @@ Output: web/data/river_network.json
 
 import json
 import os
-from shapely.geometry import shape, Point, MultiLineString
+from shapely.geometry import shape, Point, MultiLineString, LineString
+from shapely.ops import linemerge
 
 def compute_weight(flow_cfs):
     """
@@ -317,6 +318,24 @@ def process():
     except Exception as e:
         print(f"  ⚠ Could not preserve headwater rivers: {e}")
     
+    # ── Merge connected flowlines into continuous unbroken paths ──
+    print("\nMerging connected flowlines into continuous unbroken paths (eliminating joint artifacts)...")
+    before_segs = sum(len(r["coords"]) for r in reach_groups.values())
+    for r in reach_groups.values():
+        valid_lines = [LineString(line) for line in r["coords"] if len(line) >= 2]
+        if not valid_lines:
+            continue
+        try:
+            merged = linemerge(valid_lines)
+            if isinstance(merged, LineString):
+                r["coords"] = [[[round(pt[0], 5), round(pt[1], 5)] for pt in merged.coords]]
+            elif isinstance(merged, MultiLineString):
+                r["coords"] = [[[round(pt[0], 5), round(pt[1], 5)] for pt in g.coords] for g in merged.geoms]
+        except Exception as e:
+            pass
+    after_segs = sum(len(r["coords"]) for r in reach_groups.values())
+    print(f"  ✓ Welded {before_segs} fragmented segments down to {after_segs} continuous unbroken lines")
+
     # ── Output ──
     output = list(reach_groups.values())
     with open("web/data/river_network.json", "w") as f:
