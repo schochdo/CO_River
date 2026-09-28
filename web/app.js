@@ -14,6 +14,10 @@ let stationMarkers = {};
 
 let currentBasemap;
 const basemaps = {
+  esriSatellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 17,
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP'
+  }),
   esriTerrain: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}", {
     maxZoom: 13,
     attribution: 'Tiles &copy; Esri &mdash; Source: USGS, Esri, TANA, DeLorme, NPS'
@@ -55,7 +59,7 @@ function initMap() {
   L.control.zoom({ position: "topleft" }).addTo(map);
 
   // Set default basemap: Soft Shaded Relief (Esri Terrain Base)
-  currentBasemap = basemaps.esriTerrain;
+  currentBasemap = basemaps.esriSatellite;
   currentBasemap.addTo(map);
   referenceLabels.addTo(map);
 
@@ -107,6 +111,21 @@ async function loadData() {
   } catch (error) {
     console.error("Error loading water dashboard data:", error);
     document.getElementById("sync-time").textContent = "Error loading live data";
+  }
+}
+
+
+function formatTimestamp(isoString) {
+  if (!isoString) return "Today";
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return "Today";
+    return d.toLocaleString('en-US', {
+      month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit', timeZoneName: 'short'
+    });
+  } catch (e) {
+    return "Today";
   }
 }
 
@@ -283,7 +302,7 @@ function renderMetrics(metrics) {
         <strong>${s.name}</strong><br>
         <strong>USGS Gauge ID:</strong> ${s.id}<br>
         <strong>Discharge:</strong> ${s.flow_cfs.toLocaleString()} cfs<br>
-        <strong>Measured:</strong> ${s.timestamp}
+        <strong>Measured:</strong> ${formatTimestamp(s.timestamp)}
       `)
       .addTo(layers.gauges);
 
@@ -315,7 +334,7 @@ function renderMetrics(metrics) {
         <strong>${t.name}</strong><br>
         <strong>Diverted Flow:</strong> ${t.flow_cfs} cfs<br>
         <strong>Route:</strong> ${t.destination}<br>
-        <strong>Source:</strong> CDWR HydroBase
+        <strong>Source:</strong> CDWR / USGS<br><strong>Measured:</strong> ${formatTimestamp(t.timestamp)}
       `)
       .addTo(layers.tunnels);
 
@@ -346,7 +365,7 @@ function renderMetrics(metrics) {
         <strong>${r.name}</strong><br>
         <strong>Elevation:</strong> ${r.elevation_ft.toLocaleString()} ft<br>
         <strong>Storage:</strong> ${Math.round(r.storage_af).toLocaleString()} Acre-Feet<br>
-        <strong>Capacity:</strong> ${r.capacity_pct}% of full pool
+        <strong>Capacity:</strong> ${r.capacity_pct}% of full pool<br><strong>Measured:</strong> ${formatTimestamp(r.timestamp)}
       `)
       .addTo(layers.reservoirs);
 
@@ -432,7 +451,7 @@ function populateTelemetryTable(metrics) {
       <td>${node.basin}</td>
       <td><strong>${node.reading}</strong></td>
       <td style="color:#64748b;font-size:11px;">${node.notes}</td>
-      <td style="color:#64748b;font-size:11px;">${node.timestamp ? node.timestamp.split('T')[0] : 'Today'}</td>
+      <td style="color:#64748b;font-size:11px;white-space:nowrap;">${formatTimestamp(node.timestamp)}</td>
     `;
     tr.addEventListener("click", () => {
       flyToNode(node.id, node.lat, node.lon);
