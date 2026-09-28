@@ -85,15 +85,19 @@ function changeBasemap(key) {
 
 async function loadData() {
   try {
-    const [geoRes, metricsRes] = await Promise.all([
+    const [geoRes, metricsRes, riverRes, lakesRes] = await Promise.all([
       fetch("./data/geography.json"),
-      fetch("./data/latest_metrics.json")
+      fetch("./data/latest_metrics.json"),
+      fetch("./data/river_network.json"),
+      fetch("./data/lakes.geojson")
     ]);
 
     const geography = await geoRes.json();
     const metrics = await metricsRes.json();
+    const riverNetwork = await riverRes.json();
+    const lakes = await lakesRes.json();
 
-    renderGeography(geography);
+    renderGeography(geography, riverNetwork, lakes);
     renderMetrics(metrics);
     populateTelemetryTable(metrics);
     updateSidebar(metrics);
@@ -106,8 +110,25 @@ async function loadData() {
   }
 }
 
-function renderGeography(geo) {
-  // 1. Basin Boundaries (Upper vs Lower)
+function renderGeography(geo, riverNetwork, lakes) {
+  // 1. Official USGS NHD Lake Polygons (Lake Powell & Lake Mead)
+  if (lakes && lakes.features) {
+    L.geoJSON(lakes, {
+      style: {
+        color: "#0369a1",
+        weight: 1.5,
+        fillColor: "#0284c7",
+        fillOpacity: 0.75
+      },
+      onEachFeature: (feature, layer) => {
+        const name = feature.properties.GNIS_NAME || "Reservoir";
+        const area = feature.properties.AREASQKM ? `${Math.round(feature.properties.AREASQKM)} sq km` : "";
+        layer.bindTooltip(`<strong>${name}</strong><br>USGS NHD Shoreline (${area})`, { sticky: true });
+      }
+    }).addTo(layers.reservoirs);
+  }
+
+  // 2. Basin Boundaries (Upper vs Lower)
   if (geo.upper_basin_outline) {
     const upperCoords = geo.upper_basin_outline.map(pt => [pt[1], pt[0]]);
     L.polygon(upperCoords, {
@@ -132,7 +153,7 @@ function renderGeography(geo) {
       .addTo(layers.basin);
   }
 
-  // 2. Continental Divide
+  // 3. Continental Divide
   if (geo.continental_divide) {
     const divideCoords = geo.continental_divide.map(pt => [pt[1], pt[0]]);
     L.polyline(divideCoords, {
@@ -144,26 +165,28 @@ function renderGeography(geo) {
       .addTo(layers.divide);
   }
 
-  // 3. River Mainstem Spine
-  if (geo.river_spine) {
-    const riverCoords = geo.river_spine.map(pt => [pt[1], pt[0]]);
-    L.polyline(riverCoords, {
-      color: "#0284c7",
-      weight: 4.5,
-      opacity: 0.85,
-      lineCap: "round",
-      lineJoin: "round"
-    }).bindTooltip("Colorado River Mainstem", { sticky: true })
-      .addTo(layers.river);
+  // 4. CFS-Weighted River Network (Width Scaled to Flow Volume)
+  if (riverNetwork) {
+    riverNetwork.forEach(seg => {
+      const coords = seg.coords.map(pt => [pt[1], pt[0]]);
+      L.polyline(coords, {
+        color: "#0284c7",
+        weight: seg.weight,
+        opacity: 0.88,
+        lineCap: "round",
+        lineJoin: "round"
+      }).bindTooltip(`<strong>${seg.name}</strong><br>Flow: <strong>${seg.flow_cfs.toLocaleString()} cfs</strong>`, { sticky: true })
+        .addTo(layers.river);
+    });
   }
 
-  // 4. Trans-Mountain Tunnels
+  // 5. Trans-Mountain Tunnels
   if (geo.tunnels) {
     geo.tunnels.forEach(t => {
       const coords = t.coords.map(pt => [pt[1], pt[0]]);
-      const tunnelLine = L.polyline(coords, {
+      L.polyline(coords, {
         color: "#9333ea",
-        weight: 5,
+        weight: 4.5,
         dashArray: "3, 5",
         opacity: 0.95
       }).bindPopup(`
@@ -180,7 +203,6 @@ function renderGeography(geo) {
 function renderMetrics(metrics) {
   // Clear previous markers
   layers.gauges.clearLayers();
-  layers.reservoirs.clearLayers();
 
   // 1. Streamflow Gauges
   metrics.streamflows.forEach(s => {
@@ -199,8 +221,8 @@ function renderMetrics(metrics) {
     const icon = L.divIcon({
       className: "clean-div-icon",
       html: html,
-      iconSize: [120, 40],
-      iconAnchor: [60, 20]
+      iconSize: null,
+      iconAnchor: [70, 20]
     });
 
     const marker = L.marker([s.lat, s.lon], { icon: icon })
@@ -228,8 +250,8 @@ function renderMetrics(metrics) {
     const icon = L.divIcon({
       className: "clean-div-icon",
       html: html,
-      iconSize: [130, 45],
-      iconAnchor: [65, 22]
+      iconSize: null,
+      iconAnchor: [75, 22]
     });
 
     const marker = L.marker([t.lat, t.lon], { icon: icon })
@@ -244,7 +266,7 @@ function renderMetrics(metrics) {
     stationMarkers[t.id] = marker;
   });
 
-  // 3. Mega-Reservoirs
+  // 3. Mega-Reservoirs Badges
   metrics.reservoirs.forEach(r => {
     const html = `
       <div class="custom-callout">
@@ -259,8 +281,8 @@ function renderMetrics(metrics) {
     const icon = L.divIcon({
       className: "clean-div-icon",
       html: html,
-      iconSize: [120, 45],
-      iconAnchor: [60, 22]
+      iconSize: null,
+      iconAnchor: [70, 22]
     });
 
     const marker = L.marker([r.lat, r.lon], { icon: icon })
