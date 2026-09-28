@@ -1,22 +1,21 @@
 // Colorado River Basin Hydrology & Plumbing Dashboard
-// Powered by MapLibre GL JS with 3D DEM Terrain Elevation & Panoramic Oblique Camera Tilt
+// Powered by MapLibre GL JS with 3D DEM Terrain Option & Top-Down 2D Default
 
 let map;
-let isTilted = true;
+let isTilted = false; // Default to clean, readable 2D top-down mode
 
 // Marker and station registry
 const markers = {
   gauges: [],
   tunnels: [],
-  reservoirs: [],
-  dams: []
+  reservoirs: []
 };
 let stationMarkers = {};
 let tooltipPopup;
 
-// Basemap configurations
+// Basemap configurations: default to Soft Shaded Relief (Esri Terrain)
 const basemapLayerKeys = [
-  'esriNatGeo', 'esriPhysical', 'esriTerrain', 'esriSatellite',
+  'esriTerrain', 'esriNatGeo', 'esriPhysical', 'esriSatellite',
   'esriRelief', 'cartoLight', 'usgsRelief', 'openTopo'
 ];
 
@@ -30,6 +29,12 @@ const initialStyle = {
       encoding: 'terrarium',
       maxzoom: 15
     },
+    'basemap-esriTerrain': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Tiles &copy; Esri &mdash; USGS, Esri, NPS'
+    },
     'basemap-esriNatGeo': {
       type: 'raster',
       tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}'],
@@ -42,12 +47,6 @@ const initialStyle = {
       tileSize: 256,
       maxzoom: 8,
       attribution: 'Tiles &copy; Esri &mdash; US NPS, USGS'
-    },
-    'basemap-esriTerrain': {
-      type: 'raster',
-      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'],
-      tileSize: 256,
-      attribution: 'Tiles &copy; Esri'
     },
     'basemap-esriSatellite': {
       type: 'raster',
@@ -86,15 +85,17 @@ const initialStyle = {
     }
   },
   layers: [
-    { id: 'layer-esriNatGeo', type: 'raster', source: 'basemap-esriNatGeo', layout: { visibility: 'visible' } },
+    // Soft Shaded Relief (Esri Terrain) active by default
+    { id: 'layer-esriTerrain', type: 'raster', source: 'basemap-esriTerrain', layout: { visibility: 'visible' } },
+    { id: 'layer-esriNatGeo', type: 'raster', source: 'basemap-esriNatGeo', layout: { visibility: 'none' } },
     { id: 'layer-esriPhysical', type: 'raster', source: 'basemap-esriPhysical', layout: { visibility: 'none' } },
-    { id: 'layer-esriTerrain', type: 'raster', source: 'basemap-esriTerrain', layout: { visibility: 'none' } },
     { id: 'layer-esriSatellite', type: 'raster', source: 'basemap-esriSatellite', layout: { visibility: 'none' } },
     { id: 'layer-esriRelief', type: 'raster', source: 'basemap-esriRelief', layout: { visibility: 'none' } },
     { id: 'layer-cartoLight', type: 'raster', source: 'basemap-cartoLight', layout: { visibility: 'none' } },
     { id: 'layer-usgsRelief', type: 'raster', source: 'basemap-usgsRelief', layout: { visibility: 'none' } },
     { id: 'layer-openTopo', type: 'raster', source: 'basemap-openTopo', layout: { visibility: 'none' } },
-    { id: 'layer-labels', type: 'raster', source: 'basemap-labels', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.8 } }
+    // Reference labels overlay on top of terrain
+    { id: 'layer-labels', type: 'raster', source: 'basemap-labels', layout: { visibility: 'visible' }, paint: { 'raster-opacity': 0.85 } }
   ]
 };
 
@@ -103,17 +104,18 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function initMap() {
+  // Default: clean 2D top-down orientation (pitch 0, bearing 0)
   map = new maplibregl.Map({
     container: 'map',
     style: initialStyle,
-    center: [-110.2, 38.2],
+    center: [-109.8, 38.5],
     zoom: 6.3,
-    pitch: 42,
-    bearing: -10,
+    pitch: 0,
+    bearing: 0,
     maxPitch: 85
   });
 
-  // Built-in pitch & orientation controls
+  // Pitch & orientation navigation controls
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
   map.addControl(new maplibregl.TerrainControl({ source: 'terrain-dem', exaggeration: 1.5 }), 'top-left');
 
@@ -125,7 +127,7 @@ function initMap() {
   });
 
   map.on('load', () => {
-    // Activate 3D DEM Terrain Elevation
+    // Keep 3D terrain registered so toggling 3D tilt is instant
     map.setTerrain({
       source: 'terrain-dem',
       exaggeration: 1.5
@@ -143,8 +145,8 @@ function changeBasemap(key) {
     }
   });
 
-  // Reference labels overlay for basemaps that lack labels
-  const needsLabels = ['esriPhysical', 'esriTerrain', 'esriRelief', 'usgsRelief', 'esriSatellite'].includes(key);
+  // Reference labels overlay for basemaps that lack built-in editorial labels
+  const needsLabels = ['esriTerrain', 'esriPhysical', 'esriRelief', 'usgsRelief', 'esriSatellite'].includes(key);
   if (map.getLayer('layer-labels')) {
     map.setLayoutProperty('layer-labels', 'visibility', needsLabels ? 'visible' : 'none');
   }
@@ -153,13 +155,15 @@ function changeBasemap(key) {
 function toggleTilt() {
   const btn = document.getElementById("tilt-toggle-btn");
   if (isTilted) {
+    // Switch to top-down 2D mode
     map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
     isTilted = false;
     if (btn) btn.textContent = "3D Tilt: OFF (Flat 2D)";
   } else {
+    // Switch to panoramic 3D tilted relief
     map.easeTo({ pitch: 42, bearing: -10, duration: 1000 });
     isTilted = true;
-    if (btn) btn.textContent = "3D Tilt: ON";
+    if (btn) btn.textContent = "3D Tilt: ON (42°)";
   }
 }
 
@@ -179,7 +183,7 @@ async function loadData() {
     const lakes = await lakesRes.json();
 
     renderGeography(geography, riverNetwork, lakes);
-    renderMetrics(metrics, geography);
+    renderMetrics(metrics);
     populateTelemetryTable(metrics);
     updateSidebar(metrics);
 
@@ -486,51 +490,93 @@ function renderGeography(geo, riverNetwork, lakes) {
     map.on('mouseenter', 'tunnels-line', () => map.getCanvas().style.cursor = 'pointer');
     map.on('mouseleave', 'tunnels-line', () => map.getCanvas().style.cursor = '');
   }
+
+  // 6. Major Dams (Native WebGL Symbol Layer - Locks 1:1 with Map Canvas, Zero Drag Latency)
+  if (geo.dams && !map.getSource('dams')) {
+    const damsGeoJSON = {
+      type: 'FeatureCollection',
+      features: geo.dams.map(d => ({
+        type: 'Feature',
+        properties: { ...d },
+        geometry: { type: 'Point', coordinates: [d.lon, d.lat] }
+      }))
+    };
+
+    map.addSource('dams', { type: 'geojson', data: damsGeoJSON });
+
+    // Custom SVG dam icon loaded into MapLibre GPU texture
+    const damSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
+      <rect x="3" y="3" width="30" height="30" rx="6" fill="#1e293b" stroke="#ffffff" stroke-width="2.5"/>
+      <path d="M8 9h20l-3.2 18H11.2L8 9zm3.8 2.8l2.2 12.4h8l2.2-12.4H11.8z" fill="#38bdf8"/>
+    </svg>`;
+
+    const img = new Image(36, 36);
+    img.onload = () => {
+      if (!map.hasImage('dam-icon')) {
+        map.addImage('dam-icon', img);
+      }
+      if (!map.getLayer('dams-layer')) {
+        map.addLayer({
+          id: 'dams-layer',
+          type: 'symbol',
+          source: 'dams',
+          layout: {
+            'icon-image': 'dam-icon',
+            'icon-size': 0.65,
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true
+          }
+        });
+      }
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(damSvg);
+
+    map.on('click', 'dams-layer', (e) => {
+      if (!e.features.length) return;
+      const d = e.features[0].properties;
+      new maplibregl.Popup({ offset: 14 })
+        .setLngLat(e.lngLat)
+        .setHTML(`
+          <div style="font-family:'Inter',sans-serif; min-width: 170px;">
+            <strong style="font-size:13px;color:#0f172a;">${d.name}</strong><br>
+            <span style="font-size:11px;color:#64748b;font-weight:600;">${d.operator}</span>
+            <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
+            <div style="font-size:11px;line-height:1.45;color:#334155;">
+              <strong>Impounds:</strong> ${d.impounds}<br>
+              <strong>Height:</strong> ${d.height_ft} ft | <strong>Built:</strong> ${d.year}<br>
+              <strong>Purpose:</strong> ${d.purpose}
+            </div>
+          </div>
+        `)
+        .addTo(map);
+    });
+
+    map.on('mousemove', 'dams-layer', (e) => {
+      if (!e.features.length) return;
+      map.getCanvas().style.cursor = 'pointer';
+      const d = e.features[0].properties;
+      tooltipPopup.setLngLat(e.lngLat).setHTML(`
+        <strong>${d.name}</strong><br>
+        <span style="font-size:11px;color:#64748b;">${d.operator} • Impounds ${d.impounds}</span>
+      `).addTo(map);
+    });
+
+    map.on('mouseleave', 'dams-layer', () => {
+      map.getCanvas().style.cursor = '';
+      tooltipPopup.remove();
+    });
+  }
 }
 
-function renderMetrics(metrics, geo) {
-  // Clear existing markers
+function renderMetrics(metrics) {
+  // Clear previous CFS markers
   Object.values(markers).forEach(arr => {
     arr.forEach(m => m.remove());
     arr.length = 0;
   });
   stationMarkers = {};
 
-  // 1. Major Dams (16 Dam Markers in 3D Space)
-  if (geo && geo.dams) {
-    geo.dams.forEach(d => {
-      const el = document.createElement('div');
-      el.className = 'dam-marker';
-      el.title = d.name;
-      el.innerHTML = `
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffffff">
-          <path d="M4 4h16l-3 16H7L4 4zm2.5 2l2.25 12h6.5l2.25-12h-11z"/>
-        </svg>
-      `;
-
-      const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
-        <div style="font-family:'Inter',sans-serif; min-width: 170px;">
-          <strong style="font-size:13px;color:#0f172a;">${d.name}</strong><br>
-          <span style="font-size:11px;color:#64748b;font-weight:600;">${d.operator}</span>
-          <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
-          <div style="font-size:11px;line-height:1.45;color:#334155;">
-            <strong>Impounds:</strong> ${d.impounds}<br>
-            <strong>Height:</strong> ${d.height_ft} ft | <strong>Built:</strong> ${d.year}<br>
-            <strong>Purpose:</strong> ${d.purpose}
-          </div>
-        </div>
-      `);
-
-      const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-        .setLngLat([d.lon, d.lat])
-        .setPopup(popup)
-        .addTo(map);
-
-      markers.dams.push(marker);
-    });
-  }
-
-  // 2. Streamflow Gauges (Compact CFS Badges)
+  // 1. Streamflow Gauges (Compact CFS Badges)
   metrics.streamflows.forEach(s => {
     const isLeesFerry = s.id === "09380000";
     const highlightClass = isLeesFerry ? "lees-badge" : "";
@@ -566,7 +612,7 @@ function renderMetrics(metrics, geo) {
     stationMarkers[s.id] = { marker, popup, lat: s.lat, lon: s.lon };
   });
 
-  // 3. Trans-Mountain Tunnels & Diversion Badges
+  // 2. Trans-Mountain Tunnels & Diversion Badges
   metrics.tunnels.forEach(t => {
     const isFrontRange = t.id.endsWith("TUNCO");
     const siphonText = isFrontRange ? "Eastbound Siphon" : "Aqueduct Diversion";
@@ -608,7 +654,7 @@ function renderMetrics(metrics, geo) {
     stationMarkers[t.id] = { marker, popup, lat: t.lat, lon: t.lon };
   });
 
-  // 4. Reservoirs Badges
+  // 3. Reservoirs Badges
   metrics.reservoirs.forEach(r => {
     const el = document.createElement('div');
     el.className = 'cfs-marker-wrap';
@@ -738,7 +784,8 @@ function flyToNode(id, lat, lon) {
   map.flyTo({
     center: [lon, lat],
     zoom: 10.5,
-    pitch: 50,
+    pitch: isTilted ? 48 : 0,
+    bearing: isTilted ? -10 : 0,
     duration: 1500,
     essential: true
   });
@@ -749,53 +796,45 @@ function flyToNode(id, lat, lon) {
   }
 }
 
-// Preset Zoom Navigation with 3D Tilt
+// Preset Zoom Navigation with mode-sensitive pitch
 function zoomToPreset(preset) {
   document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
   if (event && event.target && event.target.classList.contains("nav-btn") && event.target.id !== "tilt-toggle-btn") {
     event.target.classList.add("active");
   }
 
-  switch(preset) {
-    case "basin":
-      map.flyTo({
-        center: [-110.2, 38.0],
-        zoom: 6.3,
-        pitch: 42,
-        bearing: -10,
-        duration: 1600
-      });
-      break;
-    case "divide":
-      // West Slope headwater tunnels cutting under the Continental Divide
-      map.flyTo({
-        center: [-105.9, 39.85],
-        zoom: 9.8,
-        pitch: 56,
-        bearing: -30,
-        duration: 1600
-      });
-      break;
-    case "lees_ferry":
-      // Lees Ferry & Marble Canyon Gorge
-      map.flyTo({
-        center: [-111.59, 36.86],
-        zoom: 11.2,
-        pitch: 54,
-        bearing: 40,
-        duration: 1600
-      });
-      break;
-    case "reservoirs":
-      // Powell & Mead corridor across Grand Canyon
-      map.flyTo({
-        center: [-113.2, 36.6],
-        zoom: 7.5,
-        pitch: 50,
-        bearing: -15,
-        duration: 1600
-      });
-      break;
+  if (isTilted) {
+    // 3D Oblique Perspectives
+    switch(preset) {
+      case "basin":
+        map.flyTo({ center: [-110.2, 38.0], zoom: 6.3, pitch: 42, bearing: -10, duration: 1500 });
+        break;
+      case "divide":
+        map.flyTo({ center: [-105.9, 39.85], zoom: 9.8, pitch: 56, bearing: -30, duration: 1500 });
+        break;
+      case "lees_ferry":
+        map.flyTo({ center: [-111.59, 36.86], zoom: 11.2, pitch: 54, bearing: 40, duration: 1500 });
+        break;
+      case "reservoirs":
+        map.flyTo({ center: [-113.2, 36.6], zoom: 7.5, pitch: 50, bearing: -15, duration: 1500 });
+        break;
+    }
+  } else {
+    // Clean, readable top-down 2D mode
+    switch(preset) {
+      case "basin":
+        map.flyTo({ center: [-109.8, 38.5], zoom: 6.3, pitch: 0, bearing: 0, duration: 1500 });
+        break;
+      case "divide":
+        map.flyTo({ center: [-105.95, 39.85], zoom: 9.8, pitch: 0, bearing: 0, duration: 1500 });
+        break;
+      case "lees_ferry":
+        map.flyTo({ center: [-111.59, 36.86], zoom: 11.2, pitch: 0, bearing: 0, duration: 1500 });
+        break;
+      case "reservoirs":
+        map.flyTo({ center: [-113.2, 36.6], zoom: 7.5, pitch: 0, bearing: 0, duration: 1500 });
+        break;
+    }
   }
 }
 
@@ -833,7 +872,7 @@ function toggleLayer(layerName) {
       markers.reservoirs.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
       break;
     case "dams":
-      markers.dams.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
+      setLayerVisibility('dams-layer', isChecked);
       break;
     case "divide":
       setLayerVisibility('divide-line', isChecked);
