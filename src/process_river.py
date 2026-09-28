@@ -24,6 +24,13 @@ def get_closest_reach(centroid):
             best_reach = (name, data)
     return best_reach
 
+def is_in_basin(geom):
+    c = geom.centroid
+    # The Colorado River Basin is roughly bounded by:
+    # Longitude: -116.0 (California/Nevada border area) to -105.0 (Colorado headwaters)
+    # Latitude: 31.0 (Mexico border) to 44.0 (Wyoming Green River headwaters)
+    return -116.0 <= c.x <= -105.0 and 31.0 <= c.y <= 44.0
+
 def process():
     print("Loading lakes...")
     lakes = gpd.read_file("web/data/lakes.geojson")
@@ -40,7 +47,7 @@ def process():
         green_lines = []
         for feat in green_data["features"]:
             geom = shape(feat["geometry"]).simplify(0.0005, preserve_topology=True)
-            if not geom.is_empty:
+            if not geom.is_empty and is_in_basin(geom):
                 green_lines.append([[pt[0], pt[1]] for pt in geom.coords])
                 
         reach_groups["Green River (Major Tributary)"] = {
@@ -59,7 +66,7 @@ def process():
         
     for feat in co_data["features"]:
         geom = shape(feat["geometry"])
-        if geom.is_empty: continue
+        if geom.is_empty or not is_in_basin(geom): continue
         
         if geom.intersects(lake_polygons):
             intersection = geom.intersection(lake_polygons)
