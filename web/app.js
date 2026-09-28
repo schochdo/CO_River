@@ -106,11 +106,12 @@ function changeBasemap(key) {
 
 async function loadData() {
   try {
+    const t = Date.now();
     const [geoRes, metricsRes, riverRes, lakesRes] = await Promise.all([
-      fetch("./data/geography.json"),
-      fetch("./data/latest_metrics.json"),
-      fetch("./data/river_network.json"),
-      fetch("./data/lakes.geojson")
+      fetch(`./data/geography.json?t=${t}`),
+      fetch(`./data/latest_metrics.json?t=${t}`),
+      fetch(`./data/river_network.json?t=${t}`),
+      fetch(`./data/lakes.geojson?t=${t}`)
     ]);
 
     const geography = await geoRes.json();
