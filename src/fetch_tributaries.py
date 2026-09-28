@@ -217,6 +217,47 @@ def main():
             print(f"  ✗ FAILED to fetch {display_name}")
             results[display_name] = {"file": None, "segments": 0, "levelpath": None}
         
+        # Special cases for rivers with multi-reach mainstem paths:
+        if display_name == "Duchesne River" and count > 0:
+            print("  Fetching lower Duchesne River reaches (LP 760002864)...")
+            lower_file = os.path.join(OUT_DIR, "duchesne_lower_temp.geojson")
+            lower_count = fetch_by_levelpath(760002864, "Duchesne River (Lower)", lower_file)
+            if lower_count > 0:
+                with open(out_file) as f1, open(lower_file) as f2:
+                    d1, d2 = json.load(f1), json.load(f2)
+                d1["features"].extend(d2["features"])
+                with open(out_file, "w") as f1:
+                    json.dump(d1, f1)
+                if os.path.exists(lower_file):
+                    os.remove(lower_file)
+                count = len(d1["features"])
+                results[display_name]["segments"] = count
+                print(f"  ✓ Merged lower Duchesne (total {count} segments)")
+
+        if display_name == "Virgin River" and count > 0:
+            print("  Fetching submerged Lake Mead Overton Arm thalweg segments...")
+            submerged_params = {
+                "where": "LevelPathI = 720001632 AND Hydroseq <= 720001776",
+                "outFields": "GNIS_NAME,FTYPE,FCODE",
+                "returnGeometry": "true",
+                "f": "geojson",
+                "outSR": "4326"
+            }
+            try:
+                sub_r = requests.get(NHD_URL, params=submerged_params, timeout=30).json()
+                sub_feats = sub_r.get("features", [])
+                if sub_feats:
+                    with open(out_file) as f:
+                        v_data = json.load(f)
+                    v_data["features"].extend(sub_feats)
+                    with open(out_file, "w") as f:
+                        json.dump(v_data, f)
+                    count = len(v_data["features"])
+                    results[display_name]["segments"] = count
+                    print(f"  ✓ Connected Virgin River under Lake Mead (total {count} segments)")
+            except Exception as ex:
+                print(f"  ⚠ Failed fetching Lake Mead submerged arm: {ex}")
+
         time.sleep(0.5)
     
     # Summary
