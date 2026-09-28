@@ -12508,5 +12508,106 @@
       -114.7,
       32.4
     ]
+  ],
+  "dams": [
+    {
+      "id": "hoover_dam",
+      "name": "Hoover Dam",
+      "impounds": "Lake Mead (Colorado River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 726,
+      "year": 1936,
+      "purpose": "Lower Basin mega-storage, flood control, hydropower",
+      "lat": 36.0156,
+      "lon": -114.7377
+    },
+    {
+      "id": "glen_canyon_dam",
+      "name": "Glen Canyon Dam",
+      "impounds": "Lake Powell (Colorado River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 710,
+      "year": 1963,
+      "purpose": "Upper Basin Compact compliance storage, hydropower",
+      "lat": 36.9372,
+      "lon": -111.4839
+    },
+    {
+      "id": "parker_dam",
+      "name": "Parker Dam",
+      "impounds": "Lake Havasu (Colorado River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 320,
+      "year": 1938,
+      "purpose": "Deepest dam in the world; diversion pool for Colorado River Aqueduct (MWD)",
+      "lat": 34.2964,
+      "lon": -114.1331
+    },
+    {
+      "id": "imperial_dam",
+      "name": "Imperial Dam",
+      "impounds": "Imperial Reservoir (Colorado River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 31,
+      "year": 1938,
+      "purpose": "Diversion dam headworks for the All-American Canal to California",
+      "lat": 32.8839,
+      "lon": -114.4678
+    },
+    {
+      "id": "green_mountain_dam",
+      "name": "Green Mountain Dam",
+      "impounds": "Green Mountain Reservoir (Blue River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 309,
+      "year": 1942,
+      "purpose": "Official C-BT Compensatory Storage protecting West Slope senior rights",
+      "lat": 39.8778,
+      "lon": -106.3314
+    },
+    {
+      "id": "dillon_dam",
+      "name": "Dillon Dam",
+      "impounds": "Dillon Reservoir (Blue River)",
+      "operator": "Denver Water",
+      "height_ft": 231,
+      "year": 1963,
+      "purpose": "Denver's largest water storage facility & Roberts Tunnel intake",
+      "lat": 39.6258,
+      "lon": -106.0642
+    },
+    {
+      "id": "granby_dam",
+      "name": "Granby Dam",
+      "impounds": "Lake Granby (Colorado River headwaters)",
+      "operator": "U.S. Bureau of Reclamation / Northern Water",
+      "height_ft": 298,
+      "year": 1950,
+      "purpose": "Primary collection reservoir for C-BT Adams Tunnel trans-mountain diversion",
+      "lat": 40.1492,
+      "lon": -105.86
+    },
+    {
+      "id": "ruedi_dam",
+      "name": "Ruedi Dam",
+      "impounds": "Ruedi Reservoir (Fryingpan River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 285,
+      "year": 1968,
+      "purpose": "Compensatory storage for West Slope (Fryingpan-Arkansas Project)",
+      "lat": 39.3639,
+      "lon": -106.8208
+    },
+    {
+      "id": "homestake_dam",
+      "name": "Homestake Dam",
+      "impounds": "Homestake Reservoir (Homestake Creek)",
+      "operator": "Cities of Aurora & Colorado Springs",
+      "height_ft": 265,
+      "year": 1967,
+      "purpose": "Trans-mountain diversion to Aurora and Colorado Springs (Homestake Project)",
+      "lat": 39.3683,
+      "lon": -106.4678
+    }
   ]
 }

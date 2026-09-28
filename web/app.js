@@ -6,7 +6,8 @@ let layers = {
   tunnels: L.layerGroup(),
   basin: L.layerGroup(),
   gauges: L.layerGroup(),
-  reservoirs: L.layerGroup()
+  reservoirs: L.layerGroup(),
+  dams: L.layerGroup()
 };
 
 let telemetryData = [];
@@ -78,6 +79,9 @@ function initMap() {
 
   map.createPane('tunnelsPane');
   map.getPane('tunnelsPane').style.zIndex = 440; // Aqueducts and tunnels sit above water
+
+  map.createPane('damsPane');
+  map.getPane('damsPane').style.zIndex = 450; // Dam markers sit above lines and water
 
   // Dynamic collision avoidance when zooming or panning
   map.on("zoomend", resolveLabelCollisions);
@@ -243,6 +247,40 @@ function renderGeography(geo, riverNetwork, lakes) {
         ${fromText}<br>
         ${toText}
       `).addTo(layers.tunnels);
+    });
+  }
+
+  // 6. Major Dams (Concrete & Earthfill Impoundments)
+  if (geo.dams) {
+    layers.dams.clearLayers();
+    geo.dams.forEach(d => {
+      const icon = L.divIcon({
+        className: "dam-div-icon",
+        html: `
+          <div class="dam-marker" title="${d.name}">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="#ffffff">
+              <path d="M4 4h16l-3 16H7L4 4zm2.5 2l2.25 12h6.5l2.25-12h-11z"/>
+            </svg>
+          </div>
+        `,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+
+      L.marker([d.lat, d.lon], { icon: icon, pane: 'damsPane' })
+        .bindPopup(`
+          <div style="font-family:'Inter',sans-serif; min-width: 170px;">
+            <strong style="font-size:13px;color:#0f172a;">${d.name}</strong><br>
+            <span style="font-size:11px;color:#64748b;font-weight:600;">${d.operator}</span>
+            <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
+            <div style="font-size:11px;line-height:1.45;color:#334155;">
+              <strong>Impounds:</strong> ${d.impounds}<br>
+              <strong>Height:</strong> ${d.height_ft} ft | <strong>Built:</strong> ${d.year}<br>
+              <strong>Purpose:</strong> ${d.purpose}
+            </div>
+          </div>
+        `)
+        .addTo(layers.dams);
     });
   }
 }
