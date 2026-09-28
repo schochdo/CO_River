@@ -83,10 +83,6 @@ function initMap() {
 
   map.createPane('damsPane');
   map.getPane('damsPane').style.zIndex = 450; // Dam markers sit above lines and water
-
-  // Dynamic collision avoidance when zooming or panning
-  map.on("zoomend", resolveLabelCollisions);
-  map.on("moveend", resolveLabelCollisions);
 }
 
 function changeBasemap(key) {
@@ -308,214 +304,89 @@ function renderGeography(geo, riverNetwork, lakes) {
   }
 }
 
-const markerOffsets = {
-  // Gauges
-  "09070500": { dx: -70, dy: -30, color: "#0284c7" }, // Dotsero
-  "09095500": { dx: -80, dy: -10, color: "#0284c7" }, // Cameo
-  "09180500": { dx: -90, dy: 10, color: "#0284c7" },  // Cisco
-  "09380000": { dx: -130, dy: 45, color: "#dc2626" }, // Lees Ferry
-
-  "09152500": { dx: -100, dy: -30, color: "#0284c7" }, // Gunnison
-  "09260050": { dx: -80, dy: -50, color: "#0284c7" },  // Yampa
-  "09379500": { dx: 120, dy: 30, color: "#0284c7" },   // San Juan
-  "09527700": { dx: -130, dy: 20, color: "#0284c7" },  // All-American Canal
-  "09424150": { dx: -140, dy: -20, color: "#9333ea" }, // CRA
-
-
-  // Tunnels
-  "ADATUNCO": { dx: 120, dy: -60, color: "#9333ea" }, // Adams
-  "MOFTUNCO": { dx: 140, dy: -20, color: "#9333ea" }, // Moffat
-  "ROBTUNCO": { dx: 140, dy: 20, color: "#9333ea" },  // Roberts
-  "BOUTUNCO": { dx: 120, dy: 60, color: "#9333ea" },   // Boustead
-
-  // Reservoirs
-  "lake_powell": { dx: 130, dy: -40, color: "#0284c7" },
-  "lake_mead":   { dx: 130, dy: 40, color: "#0284c7" }
-};
-
-const registeredLabels = {};
-
-function registerLabelNode(id, lat, lon) {
-  const conf = markerOffsets[id] || { dx: 60, dy: -30, color: "#64748b" };
-  registeredLabels[id] = {
-    id: id,
-    lat: lat,
-    lon: lon,
-    prefDx: conf.dx,
-    prefDy: conf.dy,
-    curDx: conf.dx,
-    curDy: conf.dy,
-    color: conf.color,
-    width: 150,
-    height: 46
-  };
-}
-
-function createLeaderLabel(id, htmlContent) {
-  const conf = markerOffsets[id] || { dx: 50, dy: -30, color: "#64748b" };
-  const { dx, dy, color } = conf;
-  
-  // If dx > 0, box goes to the right (translate by 0% on X)
-  // If dx < 0, box goes to the left (translate by -100% on X)
-  const xOffset = dx > 0 ? "0%" : "-100%";
-  const transform = `translate(calc(${dx}px + ${xOffset}), calc(${dy}px - 50%))`;
-
-  return `
-    <div class="leader-container" data-id="${id}" style="position: relative; width: 0; height: 0; pointer-events: none;">
-      <svg class="leader-svg" style="position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: visible; z-index: -1;">
-        <line class="leader-line" x1="0" y1="0" x2="${dx}" y2="${dy}" stroke="${color}" stroke-width="1.5" stroke-dasharray="3 3" />
-        <circle cx="0" cy="0" r="4.5" fill="${color}" stroke="#fff" stroke-width="1.5" />
-      </svg>
-      <div class="leader-box-wrap" style="position: absolute; left: 0; top: 0; transform: ${transform}; pointer-events: none; z-index: 10;">
-        ${htmlContent}
-      </div>
-    </div>
-  `;
-}
-
-function resolveLabelCollisions() {
-  if (!map) return;
-  const zoom = map.getZoom();
-
-  // Bring labels closer to stations when zoomed in, allow them to fan out when zoomed out
-  const distFactor = Math.max(0.45, Math.min(1.05, 1.0 - (zoom - 6) * 0.14));
-
-  const labels = Object.values(registeredLabels);
-  if (labels.length === 0) return;
-
-  // Calculate screen anchor for each label
-  labels.forEach(lbl => {
-    const pt = map.latLngToContainerPoint([lbl.lat, lbl.lon]);
-    lbl.anchorX = pt.x;
-    lbl.anchorY = pt.y;
-    lbl.curDx = lbl.prefDx * distFactor;
-    lbl.curDy = lbl.prefDy * distFactor;
-  });
-
-  // Run iterative relaxation
-  for (let iter = 0; iter < 14; iter++) {
-    for (let i = 0; i < labels.length; i++) {
-      for (let j = i + 1; j < labels.length; j++) {
-        const a = labels[i];
-        const b = labels[j];
-
-        const aLeft = a.anchorX + a.curDx + (a.curDx > 0 ? 0 : -a.width);
-        const aRight = aLeft + a.width;
-        const aTop = a.anchorY + a.curDy - a.height / 2;
-        const aBottom = aTop + a.height;
-
-        const bLeft = b.anchorX + b.curDx + (b.curDx > 0 ? 0 : -b.width);
-        const bRight = bLeft + b.width;
-        const bTop = b.anchorY + b.curDy - b.height / 2;
-        const bBottom = bTop + b.height;
-
-        const pad = 10;
-        const overlapX = Math.min(aRight + pad, bRight + pad) - Math.max(aLeft - pad, bLeft - pad);
-        const overlapY = Math.min(aBottom + pad, bBottom + pad) - Math.max(aTop - pad, bTop - pad);
-
-        if (overlapX > 0 && overlapY > 0) {
-          // Push vertically to create clean stacked reading lanes
-          const shift = (overlapY / 2);
-          if (aTop < bTop) {
-            a.curDy -= shift;
-            b.curDy += shift;
-          } else {
-            a.curDy += shift;
-            b.curDy -= shift;
-          }
-        }
-      }
-    }
-  }
-
-  // Apply resolved positions to DOM with smooth transitions
-  labels.forEach(lbl => {
-    const container = document.querySelector(`.leader-container[data-id="${lbl.id}"]`);
-    if (!container) return;
-
-    const line = container.querySelector(".leader-line");
-    const boxWrap = container.querySelector(".leader-box-wrap");
-
-    const dx = Math.round(lbl.curDx);
-    const dy = Math.round(lbl.curDy);
-    const xOffset = dx > 0 ? "0%" : "-100%";
-
-    if (line) {
-      line.setAttribute("x2", dx);
-      line.setAttribute("y2", dy);
-    }
-    if (boxWrap) {
-      boxWrap.style.transform = `translate(calc(${dx}px + ${xOffset}), calc(${dy}px - 50%))`;
-    }
-  });
-}
-
 function renderMetrics(metrics) {
   // Clear previous markers
   layers.gauges.clearLayers();
 
-  // 1. Streamflow Gauges
+  // 1. Streamflow Gauges (Compact CFS Badges Anchored Directly on Gauge Points)
   metrics.streamflows.forEach(s => {
-    registerLabelNode(s.id, s.lat, s.lon);
     const isLeesFerry = s.id === "09380000";
-    const highlightClass = isLeesFerry ? "highlight-lees" : "";
-    const tagHtml = isLeesFerry ? `<div class="callout-tag">1922 Compact Divide</div>` : "";
-
-    const html = `
-      <div class="custom-callout ${highlightClass}">
-        <div class="callout-title">${s.name.split(",")[0]}</div>
-        <div class="callout-val">${s.flow_cfs.toLocaleString()} <span style="font-size:10px;font-weight:600;color:#64748b;">cfs</span></div>
-        ${tagHtml}
-      </div>
-    `;
+    const highlightClass = isLeesFerry ? "lees-badge" : "";
 
     const icon = L.divIcon({
-      className: "clean-div-icon",
-      html: createLeaderLabel(s.id, html),
+      className: "cfs-div-icon",
+      html: `<div class="cfs-badge gauge ${highlightClass}"><span class="cfs-val">${s.flow_cfs.toLocaleString()}</span> <span class="cfs-unit">cfs</span></div>`,
       iconSize: [0, 0],
       iconAnchor: [0, 0]
     });
 
     const marker = L.marker([s.lat, s.lon], { icon: icon })
+      .bindTooltip(`<strong>${s.name.split(',')[0]}</strong><br>Discharge: <strong>${s.flow_cfs.toLocaleString()} cfs</strong>`, {
+        direction: "top",
+        offset: [0, -10]
+      })
       .bindPopup(`
-        <strong>${s.name}</strong><br>
-        <strong>USGS Gauge ID:</strong> ${s.id}<br>
-        <strong>Discharge:</strong> ${s.flow_cfs.toLocaleString()} cfs<br>
-        <strong>Measured:</strong> ${formatTimestamp(s.timestamp)}
-      `)
+        <div style="font-family:'Inter',sans-serif; min-width: 215px; padding: 2px;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+            <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px;">USGS Real-Time Gauge</span>
+            ${isLeesFerry ? '<span style="font-size:10px; font-weight:700; color:#dc2626; background:#fee2e2; padding:2px 6px; border-radius:4px;">1922 Compact Divide</span>' : ''}
+          </div>
+          <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${s.name}</strong>
+          <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+            <span style="font-size:11px; color:#64748b; font-weight:600;">Current Discharge:</span>
+            <span style="font-size:16px; font-weight:800; color:#0284c7;">${s.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>
+          </div>
+          <div style="font-size:11px; color:#475569; line-height:1.5;">
+            <strong>USGS Station ID:</strong> <a href="https://waterdata.usgs.gov/monitoring-location/${s.id}" target="_blank" style="color:#0284c7; text-decoration:none; font-weight:600;">${s.id} ↗</a><br>
+            <strong>Last Measured:</strong> ${formatTimestamp(s.timestamp)}
+          </div>
+        </div>
+      `, { offset: [0, -8] })
       .addTo(layers.gauges);
 
     stationMarkers[s.id] = marker;
   });
 
-  // 2. Trans-Mountain Tunnels Badges
+  // 2. Trans-Mountain Tunnels & Diversion Badges
   metrics.tunnels.forEach(t => {
-    registerLabelNode(t.id, t.lat, t.lon);
     const isFrontRange = t.id.endsWith("TUNCO");
     const siphonText = isFrontRange ? "Eastbound Siphon" : "Aqueduct Diversion";
-    
-    const html = `
-      <div class="custom-callout highlight-tunnel">
-        <div class="callout-title">${t.name.split("(")[0]}</div>
-        <div class="callout-val" style="color:#7c3aed;">${t.flow_cfs.toLocaleString()} <span style="font-size:10px;font-weight:600;color:#64748b;">cfs</span></div>
-        <div style="font-size:9px;color:#7c3aed;font-weight:600;">${siphonText}</div>
-      </div>
-    `;
+    const lengthText = isFrontRange ? `${t.length_miles} miles under Divide` : `${t.length_miles} miles`;
+    const fromText = isFrontRange ? `<strong>West Portal:</strong> ${t.from}` : `<strong>Intake:</strong> ${t.from}`;
+    const toText = isFrontRange ? `<strong>East Portal:</strong> ${t.to}` : `<strong>Terminus:</strong> ${t.to}`;
 
     const icon = L.divIcon({
-      className: "clean-div-icon",
-      html: createLeaderLabel(t.id, html),
+      className: "cfs-div-icon",
+      html: `<div class="cfs-badge tunnel-badge"><span class="cfs-val">${t.flow_cfs.toLocaleString()}</span> <span class="cfs-unit">cfs</span></div>`,
       iconSize: [0, 0],
       iconAnchor: [0, 0]
     });
 
     const marker = L.marker([t.lat, t.lon], { icon: icon })
+      .bindTooltip(`<strong>${t.name.split('(')[0]}</strong><br>Diverted: <strong>${t.flow_cfs.toLocaleString()} cfs</strong>`, {
+        direction: "top",
+        offset: [0, -10]
+      })
       .bindPopup(`
-        <strong>${t.name}</strong><br>
-        <strong>Diverted Flow:</strong> ${t.flow_cfs} cfs<br>
-        <strong>Route:</strong> ${t.destination}<br>
-        <strong>Source:</strong> CDWR / USGS<br><strong>Measured:</strong> ${formatTimestamp(t.timestamp)}
-      `)
+        <div style="font-family:'Inter',sans-serif; min-width: 220px; padding: 2px;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+            <span style="font-size:10px; font-weight:700; color:#7e22ce; background:#f3e8ff; padding:2px 6px; border-radius:4px;">${siphonText}</span>
+          </div>
+          <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${t.name}</strong>
+          <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:6px;">${t.operator || ''}</div>
+          <div style="margin: 6px 0; padding: 8px 10px; background:#faf5ff; border-radius:6px; border:1px solid #f3e8ff; display:flex; justify-content:space-between; align-items:baseline;">
+            <span style="font-size:11px; color:#6b21a8; font-weight:600;">Diverted Flow:</span>
+            <span style="font-size:16px; font-weight:800; color:#7c3aed;">${t.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#6b21a8;">cfs</span></span>
+          </div>
+          <div style="font-size:11px; color:#475569; line-height:1.5;">
+            <strong>Destination:</strong> ${t.destination}<br>
+            <strong>Length:</strong> ${lengthText}<br>
+            ${fromText}<br>
+            ${toText}<br>
+            <strong>Last Measured:</strong> ${formatTimestamp(t.timestamp)}
+          </div>
+        </div>
+      `, { offset: [0, -8] })
       .addTo(layers.tunnels);
 
     stationMarkers[t.id] = marker;
@@ -523,38 +394,44 @@ function renderMetrics(metrics) {
 
   // 3. Mega-Reservoirs Badges
   metrics.reservoirs.forEach(r => {
-    registerLabelNode(r.id, r.lat, r.lon);
-    const html = `
-      <div class="custom-callout">
-        <div class="callout-title">${r.name.split("(")[0]}</div>
-        <div class="callout-val">${r.capacity_pct}% <span style="font-size:10px;font-weight:600;color:#64748b;">Full</span></div>
-        <div class="callout-meter">
-          <div class="callout-meter-fill" style="width: ${r.capacity_pct}%;"></div>
-        </div>
-      </div>
-    `;
-
     const icon = L.divIcon({
-      className: "clean-div-icon",
-      html: createLeaderLabel(r.id, html),
+      className: "cfs-div-icon",
+      html: `<div class="cfs-badge res-badge"><span class="cfs-val">${r.capacity_pct}%</span></div>`,
       iconSize: [0, 0],
       iconAnchor: [0, 0]
     });
 
     const marker = L.marker([r.lat, r.lon], { icon: icon })
+      .bindTooltip(`<strong>${r.name.split('(')[0]}</strong>: ${r.capacity_pct}% Full`, {
+        direction: "top",
+        offset: [0, -10]
+      })
       .bindPopup(`
-        <strong>${r.name}</strong><br>
-        <strong>Elevation:</strong> ${r.elevation_ft.toLocaleString()} ft<br>
-        <strong>Storage:</strong> ${Math.round(r.storage_af).toLocaleString()} Acre-Feet<br>
-        <strong>Capacity:</strong> ${r.capacity_pct}% of full pool<br><strong>Measured:</strong> ${formatTimestamp(r.timestamp)}
-      `)
+        <div style="font-family:'Inter',sans-serif; min-width: 215px; padding: 2px;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+            <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px;">Mega-Reservoir Storage</span>
+          </div>
+          <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${r.name}</strong>
+          <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+              <span style="font-size:11px; color:#64748b; font-weight:600;">Current Storage:</span>
+              <span style="font-size:16px; font-weight:800; color:#0284c7;">${r.capacity_pct}% <span style="font-size:11px; font-weight:600; color:#64748b;">Full</span></span>
+            </div>
+            <div style="height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
+              <div style="width:${r.capacity_pct}%; height:100%; background:#0284c7;"></div>
+            </div>
+          </div>
+          <div style="font-size:11px; color:#475569; line-height:1.5;">
+            <strong>Elevation:</strong> ${r.elevation_ft.toLocaleString()} ft<br>
+            <strong>Total Volume:</strong> ${Math.round(r.storage_af).toLocaleString()} Acre-Feet<br>
+            <strong>Last Measured:</strong> ${formatTimestamp(r.timestamp)}
+          </div>
+        </div>
+      `, { offset: [0, -8] })
       .addTo(layers.reservoirs);
 
     stationMarkers[r.id] = marker;
   });
-
-  // Automatically resolve initial label collisions once markers are attached
-  setTimeout(resolveLabelCollisions, 80);
 }
 
 function updateSidebar(metrics) {

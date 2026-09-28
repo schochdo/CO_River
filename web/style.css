@@ -719,8 +719,72 @@ input:checked + .slider:before {
   border-radius: 3px;
 }
 
+/* Compact CFS Map Badge Markers (Directly on Station Coordinates) */
+.cfs-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.cfs-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  background: #0284c7;
+  border: 1.5px solid #ffffff;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.28);
+  cursor: pointer;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  user-select: none;
+  z-index: 450;
+}
+
+.cfs-badge:hover {
+  transform: translate(-50%, -50%) scale(1.18);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  z-index: 1000 !important;
+}
+
+.cfs-badge .cfs-val {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.cfs-badge .cfs-unit {
+  font-size: 9px;
+  font-weight: 600;
+  opacity: 0.9;
+  text-transform: lowercase;
+}
+
+.cfs-badge.lees-badge {
+  background: #dc2626;
+  border-color: #fef08a;
+  box-shadow: 0 2px 10px rgba(220, 38, 38, 0.45);
+}
+
+.cfs-badge.tunnel-badge {
+  background: #7c3aed;
+  border-color: #ffffff;
+}
+
+.cfs-badge.res-badge {
+  background: #0369a1;
+  border-color: #ffffff;
+}
+
 /* Allow Leaflet div-icons to auto-size based on CSS content */
 .leaflet-div-icon.clean-div-icon {
   background: transparent !important;
   border: none !important;
 }
+
