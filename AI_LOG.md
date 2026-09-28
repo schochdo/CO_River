@@ -25,3 +25,4 @@ This document tracks AI pair-programming usage for academic integrity and transp
 * **Human-in-the-Loop Control:** Architecture and design decisions (such as focusing on trans-mountain diversions rather than all regional tributaries) were directed by the human author.
 * **Code Verification:** All API endpoints and returned data frames were inspected and verified via local Python executions and compared against official USGS/CDWR published records.
 * **Environment Integrity:** Code was executed strictly within an isolated local virtual environment (`.venv`) tracked under git.
+| **2026-09-27** | Gemini 3.8 Flash | Fetching USGS NHD Flowlines for River Segments | Used NHD API and geopandas/shapely to generate high-resolution river coordinates, preserving CFS weighting while routing around major reservoirs. |

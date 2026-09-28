@@ -168,7 +168,8 @@ function renderGeography(geo, riverNetwork, lakes) {
   // 4. CFS-Weighted River Network (Width Scaled to Flow Volume)
   if (riverNetwork) {
     riverNetwork.forEach(seg => {
-      const coords = seg.coords.map(pt => [pt[1], pt[0]]);
+      // Handle MultiPolyline (array of lines, where each line is an array of [lon, lat] points)
+      const coords = seg.coords.map(line => line.map(pt => [pt[1], pt[0]]));
       L.polyline(coords, {
         color: "#0284c7",
         weight: seg.weight,
