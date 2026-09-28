@@ -55,10 +55,12 @@
 5. [x] Verified USBR / USGS reservoir endpoints for Lake Powell (Glen Canyon) and Lake Mead (Hoover Dam).
 6. [x] Unified Python data pipeline implemented in `src/fetch_water_data.py`.
 7. [x] Live automated data snapshot successfully exported to `data/latest_metrics.json`.
+8. [x] Interactive web dashboard built in `web/` (Leaflet + OpenTopoMap shaded relief + floating callout badges + telemetry table).
+9. [x] Local live server running at `http://localhost:8088`.
 
 ## 5. Immediate Next Steps
-1. [ ] Build the interactive web dashboard (HTML/JS or React + MapLibre) that consumes `data/latest_metrics.json`.
-2. [ ] Add vector GeoJSON lines for the Continental Divide and the 3 trans-mountain tunnel paths.
-3. [ ] Design the floating callout cards (matching the user's mockup: Lees Ferry flow badge, Lake Mead capacity bar).
-4. [ ] Compile analytical narrative and data science calculations into the final Jupyter Notebook for DAT1001 submission.
+1. [ ] Test and explore the dashboard in your browser (`http://localhost:8088`).
+2. [ ] Review design adjustments (colors, layout, zoom levels, additional gauges if desired).
+3. [ ] Compile analytical narrative and data science calculations into the final Jupyter Notebook for DAT1001 submission.
+
 
