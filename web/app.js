@@ -1,4 +1,4 @@
-// Colorado River Basin Hydrology & Plumbing Dashboard
+// Colorado River Basin Water Infrastructure & Hydrology Dashboard
 // Powered by MapLibre GL JS with 3D DEM Terrain Option & Top-Down 2D Default
 
 let map;
@@ -344,13 +344,13 @@ function renderGeography(geo, riverNetwork, lakes) {
       filter: ['!=', ['get', 'category'], 'minor_tributary'],
       paint: {
         'line-color': '#38bdf8',
-        'line-width': ['+', ['get', 'weight'], 3.5],
-        'line-blur': 2.5,
-        'line-opacity': 0.75
+        'line-width': ['+', ['get', 'weight'], 2.0],
+        'line-blur': 1.5,
+        'line-opacity': 0.60
       }
     });
 
-    // 4b. Mainstem & Major Tributaries - Core Flowline
+    // 4b. Mainstem & Major Tributaries - Core Flowline (Unified River Blue)
     map.addLayer({
       id: 'rivers-main-core',
       type: 'line',
@@ -361,19 +361,13 @@ function renderGeography(geo, riverNetwork, lakes) {
         'line-join': 'round'
       },
       paint: {
-        'line-color': [
-          'match',
-          ['get', 'category'],
-          'mainstem', '#0369a1',
-          'major_tributary', '#0284c7',
-          '#0284c7'
-        ],
+        'line-color': '#0284c7',
         'line-width': ['get', 'weight'],
         'line-opacity': 0.95
       }
     });
 
-    // 4c. Secondary Minor Tributaries - Outer Glow
+    // 4c. Secondary Minor Tributaries - Outer Glow (Subtle & Tight)
     map.addLayer({
       id: 'rivers-minor-glow',
       type: 'line',
@@ -381,13 +375,13 @@ function renderGeography(geo, riverNetwork, lakes) {
       filter: ['==', ['get', 'category'], 'minor_tributary'],
       paint: {
         'line-color': '#38bdf8',
-        'line-width': ['+', ['get', 'weight'], 2.5],
-        'line-blur': 2.0,
-        'line-opacity': 0.65
+        'line-width': ['+', ['get', 'weight'], 0.8],
+        'line-blur': 0.8,
+        'line-opacity': 0.35
       }
     });
 
-    // 4d. Secondary Minor Tributaries - Core Flowline
+    // 4d. Secondary Minor Tributaries - Core Flowline (Same Unified River Blue, Leaner Width)
     map.addLayer({
       id: 'rivers-minor-core',
       type: 'line',
@@ -413,7 +407,7 @@ function renderGeography(geo, riverNetwork, lakes) {
         const catBadge = p.category === 'mainstem'
           ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:4px;">Mainstem Reach</span>'
           : (p.category === 'major_tributary'
-              ? '<span style="font-size:10px;font-weight:700;color:#0369a1;background:#f0f9ff;padding:1px 5px;border-radius:4px;">Major Tributary</span>'
+              ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:1px 5px;border-radius:4px;">Major Tributary</span>'
               : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:1px 5px;border-radius:4px;">Tributary Reach</span>');
 
         const notesHtml = p.notes ? `<div style="font-size:11px;color:#64748b;margin-top:3px;line-height:1.3;">${p.notes}</div>` : '';
@@ -424,7 +418,7 @@ function renderGeography(geo, riverNetwork, lakes) {
             <strong style="font-size:12px;color:#0f172a;">${p.name}</strong><br>
             <div style="font-size:11px;color:#334155;margin-top:2px;">
               Estimated Discharge: <strong>${Number(p.flow_cfs).toLocaleString()} cfs</strong><br>
-              <span style="font-size:10px;color:#64748b;">Hydraulic Width: ${p.weight}px (w &sim; Q<sup>0.5</sup>)</span>
+              <span style="font-size:10px;color:#64748b;">Flow Bracket: ${Number(p.flow_cfs) >= 5000 ? '> 5,000 cfs (High)' : (Number(p.flow_cfs) >= 1000 ? '1,000 - 5,000 cfs (Moderate)' : '< 1,000 cfs (Minor)')} • Width: ${p.weight}px</span>
             </div>
             ${notesHtml}
           </div>
@@ -615,7 +609,7 @@ function renderMetrics(metrics) {
   // 2. Trans-Mountain Tunnels & Diversion Badges
   metrics.tunnels.forEach(t => {
     const isFrontRange = t.id.endsWith("TUNCO");
-    const siphonText = isFrontRange ? "Eastbound Siphon" : "Aqueduct Diversion";
+    const diversionBadge = isFrontRange ? "Trans-Mountain Diversion Tunnel" : "Major Conveyance Canal";
     const lengthText = isFrontRange ? `${t.length_miles} miles under Divide` : `${t.length_miles} miles`;
     const fromText = isFrontRange ? `<strong>West Portal:</strong> ${t.from}` : `<strong>Intake:</strong> ${t.from}`;
     const toText = isFrontRange ? `<strong>East Portal:</strong> ${t.to}` : `<strong>Terminus:</strong> ${t.to}`;
@@ -627,7 +621,7 @@ function renderMetrics(metrics) {
     const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
       <div style="font-family:'Inter',sans-serif; min-width: 220px; padding: 2px;">
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <span style="font-size:10px; font-weight:700; color:#7e22ce; background:#f3e8ff; padding:2px 6px; border-radius:4px;">${siphonText}</span>
+          <span style="font-size:10px; font-weight:700; color:#7e22ce; background:#f3e8ff; padding:2px 6px; border-radius:4px;">${diversionBadge}</span>
         </div>
         <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${t.name}</strong>
         <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:6px;">${t.operator || ''}</div>

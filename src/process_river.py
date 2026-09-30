@@ -23,15 +23,35 @@ import os
 from shapely.geometry import shape, Point, MultiLineString, LineString
 from shapely.ops import linemerge
 
-def compute_weight(flow_cfs):
+def compute_weight(flow_cfs, category="mainstem"):
     """
-    Computes cartographic polyline pixel width using hydraulic geometry scaling:
-    w = 1.4 + 0.11 * (flow_cfs ^ 0.5)
-    Derived from Leopold & Maddock's classic USGS empirical river hydraulic geometry equation w = a * Q^b.
+    Computes cartographic polyline pixel width.
+    The Colorado River mainstem serves as the dominant hydrologic trunk,
+    while major and secondary tributaries are calibrated leaner for visual clarity.
     """
-    if flow_cfs <= 0:
-        return 1.8
-    return round(1.4 + 0.11 * (flow_cfs ** 0.5), 1)
+    if category == "mainstem":
+        if flow_cfs >= 6000:
+            return 7.5
+        elif flow_cfs >= 3000:
+            return 6.0
+        elif flow_cfs >= 1000:
+            return 4.6
+        else:
+            return 3.4
+    elif category == "major_tributary":
+        if flow_cfs >= 2500: # Green River (2850 cfs), San Juan (2800 cfs)
+            return 3.2
+        elif flow_cfs >= 1000: # Gunnison (1140 cfs)
+            return 2.5
+        else: # Yampa (305 cfs), White (520 cfs), Gila (550 cfs), Salt (640 cfs), Dolores (280 cfs)
+            return 2.0
+    else: # minor_tributary (Eagle, Roaring Fork, Blue, Fraser, Paria, Escalante, Virgin, etc.)
+        if flow_cfs >= 400: # Roaring Fork (480 cfs), Verde (420 cfs), Animas (620 cfs)
+            return 1.6
+        elif flow_cfs >= 150: # Eagle (320 cfs), Blue (210 cfs), Fryingpan (180 cfs)
+            return 1.3
+        else: # Fraser (65 cfs), Paria (15 cfs), Escalante (15 cfs), etc.
+            return 1.0
 
 # ── Colorado River mainstem reaches with cumulative hydrologic mass balance ──
 REACHES = {
@@ -91,7 +111,7 @@ REACHES = {
         "pt": Point(-114.600, 34.800),
         "notes": "Lake Mohave & Lake Havasu; CRA & CAP municipal intake pools"
     },
-    "Colorado River - Agricultural Siphon to Mexico (Tapering)": {
+    "Colorado River - Imperial Dam & Canals to Mexico (Tapering)": {
         "id": "lower_basin_taper",
         "cfs": 1200,
         "category": "mainstem",
@@ -215,11 +235,11 @@ def process():
             "name": "Green River",
             "reach": "green_river",
             "flow_cfs": cfs,
-            "weight": compute_weight(cfs),
+            "weight": compute_weight(cfs, "major_tributary"),
             "category": "major_tributary",
             "coords": green_lines
         }
-        print(f"  ✓ {len(green_lines)} segments (flow={cfs} cfs, weight={compute_weight(cfs)})")
+        print(f"  ✓ {len(green_lines)} segments (flow={cfs} cfs, weight={compute_weight(cfs, 'major_tributary')})")
     
     # ── 2. Colorado River mainstem (reach-split with cumulative mass balance) ──
     print("Processing Colorado River mainstem...")
@@ -250,12 +270,13 @@ def process():
             
             if reach_name not in reach_groups:
                 cfs = reach_data["cfs"]
+                cat = reach_data["category"]
                 reach_groups[reach_name] = {
                     "name": reach_name,
                     "reach": reach_data["id"],
                     "flow_cfs": cfs,
-                    "weight": compute_weight(cfs),
-                    "category": reach_data["category"],
+                    "weight": compute_weight(cfs, cat),
+                    "category": cat,
                     "notes": reach_data.get("notes", ""),
                     "coords": []
                 }
@@ -273,11 +294,11 @@ def process():
                 "name": name,
                 "reach": reach_id,
                 "flow_cfs": cfs,
-                "weight": compute_weight(cfs),
+                "weight": compute_weight(cfs, category),
                 "category": category,
                 "coords": lines
             }
-            print(f"  ✓ {len(lines)} segments (flow={cfs} cfs, weight={compute_weight(cfs)})")
+            print(f"  ✓ {len(lines)} segments (flow={cfs} cfs, weight={compute_weight(cfs, category)})")
     
     # ── 4. All Basin Tributaries (Primary + Secondary) ──
     print("\nProcessing all basin tributaries from web/data/tributaries/...")
@@ -289,11 +310,11 @@ def process():
                 "name": display_name,
                 "reach": reach_id,
                 "flow_cfs": cfs,
-                "weight": compute_weight(cfs),
+                "weight": compute_weight(cfs, category),
                 "category": category,
                 "coords": lines
             }
-            print(f"  ✓ {display_name:25s}: {len(lines):4d} segments (flow={cfs:4d} cfs, weight={compute_weight(cfs):4.1f})")
+            print(f"  ✓ {display_name:25s}: {len(lines):4d} segments (flow={cfs:4d} cfs, weight={compute_weight(cfs, category):4.1f})")
     # ── Merge connected flowlines into continuous unbroken paths ──
     print("\nMerging connected flowlines into continuous unbroken paths (eliminating joint artifacts)...")
     before_segs = sum(len(r["coords"]) for r in reach_groups.values())

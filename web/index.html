@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Colorado River Basin Hydrology & Plumbing Dashboard</title>
+  <title>Colorado River Basin Water Infrastructure & Hydrology Dashboard</title>
   
   <!-- MapLibre GL CSS -->
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css"/>
@@ -24,7 +24,7 @@
         </svg>
       </div>
       <div class="title-group">
-        <h1>Colorado River Basin <span class="highlight">Plumbing & Hydrology</span></h1>
+        <h1>Colorado River Basin <span class="highlight">Water Infrastructure & Hydrology</span></h1>
         <p class="subtitle">DAT1001 Project • Real-Time Streamflow, Trans-Mountain Diversions & Reservoir Storage</p>
       </div>
     </div>
@@ -60,16 +60,20 @@
     <div id="map-container">
       <div id="map"></div>
 
-      <!-- Quick Legend on Map -->
+      <!-- Map Legend -->
       <div class="map-legend">
-        <h4>Plumbing Legend</h4>
-        <div class="legend-item"><span class="legend-line river" style="height: 5px;"></span> Mainstem (Width &sim; Q<sup>0.5</sup>)</div>
-        <div class="legend-item"><span class="legend-line" style="background:#38bdf8; height: 2.5px;"></span> Tributaries (Width &sim; CFS)</div>
-        <div class="legend-item"><span class="legend-box" style="background:#0284c7; width:14px; height:10px; border-radius:2px;"></span> Reservoirs & Lakes (20)</div>
-        <div class="legend-item"><span style="display:inline-block; width:11px; height:11px; background:#1e293b; border:1px solid #fff; border-radius:2px; margin-right:6px; vertical-align:middle;"></span> Major Dams (16)</div>
+        <h4>Map Legend</h4>
+        <div class="legend-section-title">STREAMFLOW VOLUME (CFS)</div>
+        <div class="legend-item"><span class="legend-line river" style="background:#0284c7; height: 6px;"></span> High Flow Mainstem (&gt; 5,000 cfs)</div>
+        <div class="legend-item"><span class="legend-line river" style="background:#0284c7; height: 3.5px;"></span> Major Rivers &amp; Tributaries (1,000 &ndash; 5,000 cfs)</div>
+        <div class="legend-item"><span class="legend-line river" style="background:#0284c7; height: 1.5px;"></span> Secondary Streams &amp; Headwaters (&lt; 1,000 cfs)</div>
+
+        <div class="legend-section-title" style="margin-top: 8px;">WATER INFRASTRUCTURE</div>
+        <div class="legend-item"><span class="legend-box" style="background:#0284c7; width:14px; height:10px; border-radius:2px;"></span> Reservoirs &amp; Lakes (20)</div>
+        <div class="legend-item"><span style="display:inline-block; width:11px; height:11px; background:#1e293b; border:1px solid #fff; border-radius:2px; margin-right:6px; vertical-align:middle;"></span> Major Storage Dams (16)</div>
         <div class="legend-item"><span class="legend-line divide"></span> Continental Divide</div>
-        <div class="legend-item"><span class="legend-line tunnel"></span> Trans-Mountain Siphon</div>
-        <div class="legend-item"><span class="legend-dot gauge"></span> Streamflow Badge (cfs)</div>
+        <div class="legend-item"><span class="legend-line tunnel"></span> Trans-Mountain Diversions &amp; Canals</div>
+        <div class="legend-item"><span class="legend-dot gauge"></span> Real-Time Streamflow Gauge</div>
       </div>
     </div>
 
@@ -142,13 +146,13 @@
       <section class="card stat-card highlight-card">
         <div class="card-header">
           <h3>Trans-Mountain Diversions</h3>
-          <span class="badge purple">West Slope Siphon</span>
+          <span class="badge purple">Continental Divide Export</span>
         </div>
         <div class="big-metric">
           <span class="metric-val" id="total-diverted-val">681.9</span>
           <span class="metric-unit">cfs</span>
         </div>
-        <p class="metric-desc">Water currently siphoned backwards under the Continental Divide to Denver & the Front Range.</p>
+        <p class="metric-desc">Water currently diverted under the Continental Divide through tunnels and canals to Denver & the Front Range.</p>
         <div class="comparison-bar">
           <div class="comp-label">
             <span>Diverted Under Mountains</span>
@@ -254,6 +258,6 @@
 
   <!-- MapLibre GL JS -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=9.0"></script>
+  <script src="app.js?v=10.0"></script>
 </body>
 </html>
