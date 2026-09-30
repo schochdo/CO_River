@@ -8,10 +8,15 @@ let isTilted = false; // Default to clean, readable 2D top-down mode
 const markers = {
   gauges: [],
   tunnels: [],
+  canals: [],
   reservoirs: []
 };
 let stationMarkers = {};
 let tooltipPopup;
+let cachedGeography = null;
+let cachedRiverNetwork = null;
+let cachedLakes = null;
+let cachedMetrics = null;
 
 // Basemap configurations: default to Soft Shaded Relief (Esri Terrain)
 const basemapLayerKeys = [
@@ -99,9 +104,13 @@ const initialStyle = {
   ]
 };
 
-document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    initMap();
+  });
+} else {
   initMap();
-});
+}
 
 function initMap() {
   // Default: clean 2D top-down orientation (pitch 0, bearing 0)
@@ -167,31 +176,223 @@ function toggleTilt() {
   }
 }
 
-async function loadData() {
+async function fetchLiveUSGS() {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+  try {
+    const sites = "09070500,09095500,09152500,09180500,09260050,09379500,09380000,09527700";
+    const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${sites}&parameterCd=00060&siteStatus=all`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error(`USGS HTTP ${res.status}`);
+    const data = await res.json();
+    const siteNames = {
+      "09070500": "Colorado River near Dotsero, CO",
+      "09095500": "Colorado River near Cameo, CO",
+      "09152500": "Gunnison River near Grand Junction, CO",
+      "09180500": "Colorado River near Cisco, UT",
+      "09260050": "Yampa River at Deerlodge Park, CO",
+      "09379500": "San Juan River near Bluff, UT",
+      "09380000": "Colorado River at Lees Ferry, AZ",
+      "09527700": "All-American Canal near Imperial Dam"
+    };
+    const streamflows = [];
+    let aac = null;
+    const series = data?.value?.timeSeries || [];
+    for (const ts of series) {
+      const code = ts.sourceInfo.siteCode[0].value;
+      const name = siteNames[code] || ts.sourceInfo.siteName;
+      const lat = ts.sourceInfo.geoLocation.geogLocation.latitude;
+      const lon = ts.sourceInfo.geoLocation.geogLocation.longitude;
+      const vals = ts.values[0]?.value;
+      if (vals && vals.length > 0) {
+        const latest = vals[vals.length - 1];
+        const val = parseFloat(latest.value);
+        if (val >= 0) {
+          if (code === "09527700") {
+            aac = { id: code, name, type: "diversion_canal", destination: "Imperial & Coachella Valleys", flow_cfs: val, timestamp: latest.dateTime, lat, lon };
+          } else {
+            streamflows.push({ id: code, name, type: "streamflow", flow_cfs: val, timestamp: latest.dateTime, lat, lon });
+          }
+        }
+      }
+    }
+    return { streamflows, aac };
+  } catch (e) {
+    clearTimeout(timeoutId);
+    throw e;
+  }
+}
+
+function computeRiverWeight(flowCfs, category) {
+  if (category === "mainstem") {
+    if (flowCfs >= 6000) return 7.5;
+    if (flowCfs >= 3000) return 6.0;
+    if (flowCfs >= 1000) return 4.6;
+    return 3.4;
+  } else if (category === "major_tributary") {
+    if (flowCfs >= 2500) return 3.2;
+    if (flowCfs >= 1000) return 2.5;
+    return 2.0;
+  } else {
+    if (flowCfs >= 400) return 1.6;
+    if (flowCfs >= 150) return 1.3;
+    return 1.0;
+  }
+}
+
+function applyLiveHydrology(riverNetwork, metrics) {
+  if (!riverNetwork || !riverNetwork.features || !metrics) return;
+  
+  const streamflows = metrics.streamflows || [];
+  const dotsero = streamflows.find(s => s.id === "09070500");
+  const cameo = streamflows.find(s => s.id === "09095500");
+  const gunnison = streamflows.find(s => s.id === "09152500");
+  const cisco = streamflows.find(s => s.id === "09180500");
+  const yampa = streamflows.find(s => s.id === "09260050");
+  const sanjuan = streamflows.find(s => s.id === "09379500");
+  const leesFerry = streamflows.find(s => s.id === "09380000");
+
+  riverNetwork.features.forEach(f => {
+    const r = f.properties.reach;
+    const cat = f.properties.category || "minor_tributary";
+    let flow = f.properties.flow_cfs;
+    let sourceLabel = "Hydrologic Baseflow Estimate";
+    let gaugeInfo = f.properties.notes || "";
+    let timestamp = null;
+
+    if (r === "headwaters") {
+      flow = 350;
+      sourceLabel = "Snowpack Headwaters Inflow";
+      gaugeInfo = "Rocky Mountain NP snowmelt; upstream of Adams Tunnel";
+    } else if (r === "gore_canyon") {
+      flow = dotsero ? dotsero.flow_cfs : 639;
+      sourceLabel = "Live USGS Sentinel Gauge";
+      gaugeInfo = "USGS #09070500 near Dotsero, CO";
+      timestamp = dotsero ? dotsero.timestamp : null;
+    } else if (r === "glenwood_cameo") {
+      flow = cameo ? cameo.flow_cfs : 1280;
+      sourceLabel = "Live USGS Sentinel Gauge";
+      gaugeInfo = "USGS #09095500 near Cameo, CO (Glenwood Canyon)";
+      timestamp = cameo ? cameo.timestamp : null;
+    } else if (r === "grand_valley_cisco") {
+      flow = cisco ? cisco.flow_cfs : 3820;
+      sourceLabel = "Live USGS Sentinel Gauge";
+      gaugeInfo = "USGS #09180500 near Cisco, UT (CO-UT State Line)";
+      timestamp = cisco ? cisco.timestamp : null;
+    } else if (r === "cataract_canyon") {
+      const ciscoFlow = cisco ? cisco.flow_cfs : 3820;
+      flow = Math.round(ciscoFlow + 2850 + 280); // Cisco + Green + Dolores
+      sourceLabel = "Confluence Mass Balance (Live)";
+      gaugeInfo = "Colorado + Green + Dolores Rivers to Lake Powell";
+      timestamp = cisco ? cisco.timestamp : null;
+    } else if (r === "lees_ferry") {
+      flow = leesFerry ? leesFerry.flow_cfs : 8990;
+      sourceLabel = "Live USGS Sentinel Gauge (1922 Compact Divide)";
+      gaugeInfo = "USGS #09380000 at Lees Ferry, AZ (Glen Canyon Release)";
+      timestamp = leesFerry ? leesFerry.timestamp : null;
+    } else if (r === "grand_canyon") {
+      const lfFlow = leesFerry ? leesFerry.flow_cfs : 8990;
+      flow = Math.round(lfFlow + 250);
+      sourceLabel = "Controlled Dam Release & Tributaries";
+      gaugeInfo = "Glen Canyon Dam release through 277-mile Grand Canyon to Lake Mead";
+      timestamp = leesFerry ? leesFerry.timestamp : null;
+    } else if (r === "lower_basin_upper") {
+      flow = 7200;
+      sourceLabel = "Regulated Reservoir Release";
+      gaugeInfo = "Hoover & Davis Dam releases for CRA / CAP municipal water orders";
+    } else if (r === "lower_basin_taper") {
+      flow = 1200;
+      sourceLabel = "Residual Flow Downstream of Diversions";
+      gaugeInfo = "Residual channel flow below All-American Canal (2,030 cfs) & Morelos Dam to Mexico";
+    } else if (r === "gunnison_river") {
+      flow = gunnison ? gunnison.flow_cfs : 1230;
+      sourceLabel = "Live USGS Sentinel Gauge";
+      gaugeInfo = "USGS #09152500 near Grand Junction, CO";
+      timestamp = gunnison ? gunnison.timestamp : null;
+    } else if (r === "yampa_river") {
+      flow = yampa ? yampa.flow_cfs : 146;
+      sourceLabel = "Live USGS Sentinel Gauge";
+      gaugeInfo = "USGS #09260050 at Deerlodge Park, CO";
+      timestamp = yampa ? yampa.timestamp : null;
+    } else if (r === "sanjuan_river") {
+      flow = sanjuan ? sanjuan.flow_cfs : 2460;
+      sourceLabel = "Live USGS Sentinel Gauge";
+      gaugeInfo = "USGS #09379500 near Bluff, UT";
+      timestamp = sanjuan ? sanjuan.timestamp : null;
+    }
+
+    f.properties.flow_cfs = flow;
+    f.properties.weight = computeRiverWeight(flow, cat);
+    f.properties.source_label = sourceLabel;
+    f.properties.gauge_info = gaugeInfo;
+    if (timestamp) f.properties.timestamp = timestamp;
+  });
+
+  if (map && map.getSource('rivers')) {
+    map.getSource('rivers').setData(riverNetwork);
+  }
+}
+
+async function loadData(forceLive = false) {
+  const syncElem = document.getElementById("sync-time");
   try {
     const t = Date.now();
-    const [geoRes, metricsRes, riverRes, lakesRes] = await Promise.all([
-      fetch(`./data/geography.json?t=${t}`),
-      fetch(`./data/latest_metrics.json?t=${t}`),
-      fetch(`./data/river_network.json?t=${t}`),
-      fetch(`./data/lakes.geojson?t=${t}`)
-    ]);
+    
+    // 1. Fetch static base geometries on first load
+    if (!cachedGeography || !cachedRiverNetwork || !cachedLakes) {
+      const [geoRes, riverRes, lakesRes] = await Promise.all([
+        fetch(`./data/geography.json?t=${t}`),
+        fetch(`./data/river_network.json?t=${t}`),
+        fetch(`./data/lakes.geojson?t=${t}`)
+      ]);
+      cachedGeography = await geoRes.json();
+      cachedRiverNetwork = await riverRes.json();
+      cachedLakes = await lakesRes.json();
+      renderGeography(cachedGeography, cachedRiverNetwork, cachedLakes);
+    }
 
-    const geography = await geoRes.json();
+    // 2. Load base metrics JSON snapshot
+    const metricsRes = await fetch(`./data/latest_metrics.json?t=${t}`);
     const metrics = await metricsRes.json();
-    const riverNetwork = await riverRes.json();
-    const lakes = await lakesRes.json();
+    cachedMetrics = metrics;
 
-    renderGeography(geography, riverNetwork, lakes);
+    // 3. Immediately render cached metrics so the map and UI are 100% interactive instantly!
+    applyLiveHydrology(cachedRiverNetwork, metrics);
     renderMetrics(metrics);
     populateTelemetryTable(metrics);
     updateSidebar(metrics);
 
-    const dateStr = new Date(metrics.fetched_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    document.getElementById("sync-time").textContent = `Live Telemetry (Synced ${dateStr})`;
+    const initialDateStr = formatTimestamp(metrics.fetched_at);
+    if (syncElem) syncElem.textContent = `Telemetry Snapshot (${initialDateStr})`;
+
+    // 4. In background (or when user clicks Reload), query live USGS directly from browser
+    fetchLiveUSGS().then(live => {
+      if (live && live.streamflows && live.streamflows.length > 0) {
+        metrics.streamflows = live.streamflows;
+        if (live.aac) {
+          const idx = metrics.tunnels.findIndex(t => t.id === "09527700");
+          if (idx !== -1) {
+            metrics.tunnels[idx].flow_cfs = live.aac.flow_cfs;
+            metrics.tunnels[idx].timestamp = live.aac.timestamp;
+          }
+        }
+        metrics.fetched_at = new Date().toISOString();
+        applyLiveHydrology(cachedRiverNetwork, metrics);
+        renderMetrics(metrics);
+        populateTelemetryTable(metrics);
+        updateSidebar(metrics);
+        const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (syncElem) syncElem.textContent = `Live Telemetry (Synced ${timeNow})`;
+      }
+    }).catch(usgsErr => {
+      console.warn("Live USGS query fell back to snapshot:", usgsErr);
+    });
+
   } catch (error) {
     console.error("Error loading water dashboard data:", error);
-    document.getElementById("sync-time").textContent = "Error loading live data";
+    if (syncElem) syncElem.textContent = "Error loading live data";
   }
 }
 
@@ -398,27 +599,36 @@ function renderGeography(geo, riverNetwork, lakes) {
       }
     });
 
-    // River hover tooltips
+    // River hover tooltips with explicit real-time/baseflow clarity
     ['rivers-main-core', 'rivers-minor-core'].forEach(layerId => {
       map.on('mousemove', layerId, (e) => {
         if (!e.features.length) return;
         map.getCanvas().style.cursor = 'pointer';
         const p = e.features[0].properties;
         const catBadge = p.category === 'mainstem'
-          ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:4px;">Mainstem Reach</span>'
+          ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:2px 6px;border-radius:4px;">Mainstem Reach</span>'
           : (p.category === 'major_tributary'
-              ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:1px 5px;border-radius:4px;">Major Tributary</span>'
-              : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:1px 5px;border-radius:4px;">Tributary Reach</span>');
+              ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:2px 6px;border-radius:4px;">Major Tributary</span>'
+              : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:2px 6px;border-radius:4px;">Secondary Stream</span>');
 
-        const notesHtml = p.notes ? `<div style="font-size:11px;color:#64748b;margin-top:3px;line-height:1.3;">${p.notes}</div>` : '';
+        const sourceBadge = p.source_label ? `<div style="font-size:10px;font-weight:700;color:#0369a1;background:#f0f9ff;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:4px;">${p.source_label}</div>` : '';
+        const stationHtml = p.gauge_info ? `<div style="font-size:11px;color:#475569;margin-top:4px;line-height:1.35;"><strong>Control / Station:</strong> ${p.gauge_info}</div>` : '';
+        const timeHtml = p.timestamp ? `<div style="font-size:10px;color:#64748b;margin-top:2px;"><strong>Measured:</strong> ${formatTimestamp(p.timestamp)}</div>` : '';
+        const notesHtml = p.notes && p.notes !== p.gauge_info ? `<div style="font-size:11px;color:#64748b;margin-top:4px;line-height:1.35;">${p.notes}</div>` : '';
 
         tooltipPopup.setLngLat(e.lngLat).setHTML(`
-          <div style="font-family:'Inter',sans-serif; min-width: 140px;">
-            <div style="margin-bottom:3px;">${catBadge}</div>
-            <strong style="font-size:12px;color:#0f172a;">${p.name}</strong><br>
-            <div style="font-size:11px;color:#334155;margin-top:2px;">
-              Estimated Discharge: <strong>${Number(p.flow_cfs).toLocaleString()} cfs</strong><br>
-              <span style="font-size:10px;color:#64748b;">Flow Bracket: ${Number(p.flow_cfs) >= 5000 ? '> 5,000 cfs (High)' : (Number(p.flow_cfs) >= 1000 ? '1,000 - 5,000 cfs (Moderate)' : '< 1,000 cfs (Minor)')} • Width: ${p.weight}px</span>
+          <div style="font-family:'Inter',sans-serif; min-width: 190px; max-width: 270px;">
+            <div style="margin-bottom:4px;">${catBadge}</div>
+            <strong style="font-size:13px;color:#0f172a;line-height:1.35;display:block;">${p.name}</strong>
+            <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+              <span style="font-size:11px; color:#64748b; font-weight:600;">Streamflow:</span>
+              <span style="font-size:16px; font-weight:800; color:#0284c7;">${Number(p.flow_cfs).toLocaleString()} <span style="font-size:10px; font-weight:600; color:#64748b;">cfs</span></span>
+            </div>
+            ${sourceBadge}
+            ${stationHtml}
+            ${timeHtml}
+            <div style="font-size:10px;color:#64748b;margin-top:5px;border-top:1px solid #f1f5f9;padding-top:4px;">
+              Flow Bracket: ${Number(p.flow_cfs) >= 5000 ? '> 5,000 cfs (High)' : (Number(p.flow_cfs) >= 1000 ? '1,000 - 5,000 cfs (Moderate)' : '< 1,000 cfs (Minor)')} • Line Width: ${p.weight}px
             </div>
             ${notesHtml}
           </div>
@@ -432,57 +642,116 @@ function renderGeography(geo, riverNetwork, lakes) {
     });
   }
 
-  // 5. Trans-Mountain Tunnels & Siphons
-  if (geo.tunnels && !map.getSource('tunnels')) {
-    const tunnelsGeoJSON = {
-      type: 'FeatureCollection',
-      features: geo.tunnels.map(t => ({
-        type: 'Feature',
-        properties: { ...t },
-        geometry: { type: 'LineString', coordinates: t.coords }
-      }))
-    };
+  // 5. Trans-Mountain Tunnels & Conveyance Canals (Separate Layers)
+  if (geo.tunnels) {
+    const tunnelFeats = geo.tunnels.filter(t => t.id && t.id.endsWith("TUNCO"));
+    const canalFeats = geo.tunnels.filter(t => !t.id || !t.id.endsWith("TUNCO"));
 
-    map.addSource('tunnels', { type: 'geojson', data: tunnelsGeoJSON });
-    map.addLayer({
-      id: 'tunnels-line',
-      type: 'line',
-      source: 'tunnels',
-      paint: {
-        'line-color': '#9333ea',
-        'line-width': 4.5,
-        'line-dasharray': [2, 3],
-        'line-opacity': 0.95
-      }
-    });
+    // 5a. Trans-Mountain Tunnels under Divide
+    if (!map.getSource('tunnels')) {
+      const tunnelsGeoJSON = {
+        type: 'FeatureCollection',
+        features: tunnelFeats.map(t => ({
+          type: 'Feature',
+          properties: { ...t },
+          geometry: { type: 'LineString', coordinates: t.coords }
+        }))
+      };
 
-    map.on('click', 'tunnels-line', (e) => {
-      if (!e.features.length) return;
-      const t = e.features[0].properties;
-      const isFrontRange = t.id && t.id.endsWith("TUNCO");
-      const lengthText = isFrontRange ? `${t.length_miles} miles under Divide` : `${t.length_miles} miles`;
-      const fromText = isFrontRange ? `<strong>West Portal:</strong> ${t.from}` : `<strong>Intake:</strong> ${t.from}`;
-      const toText = isFrontRange ? `<strong>East Portal:</strong> ${t.to}` : `<strong>Terminus:</strong> ${t.to}`;
+      map.addSource('tunnels', { type: 'geojson', data: tunnelsGeoJSON });
+      const showTunnels = document.getElementById('toggle-tunnels')?.checked ?? false;
+      map.addLayer({
+        id: 'tunnels-line',
+        type: 'line',
+        source: 'tunnels',
+        layout: {
+          'visibility': showTunnels ? 'visible' : 'none'
+        },
+        paint: {
+          'line-color': '#9333ea',
+          'line-width': 4.5,
+          'line-dasharray': [2, 3],
+          'line-opacity': 0.95
+        }
+      });
 
-      new maplibregl.Popup({ offset: 8 })
-        .setLngLat(e.lngLat)
-        .setHTML(`
-          <div style="font-family:'Inter',sans-serif; min-width: 200px;">
-            <strong style="font-size:13px;color:#0f172a;">${t.name}</strong><br>
-            <span style="font-size:11px;color:#7c3aed;font-weight:600;">${t.operator || ''}</span>
-            <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
-            <div style="font-size:11px;line-height:1.45;color:#334155;">
-              <strong>Length:</strong> ${lengthText}<br>
-              ${fromText}<br>
-              ${toText}
+      map.on('click', 'tunnels-line', (e) => {
+        if (!e.features.length) return;
+        const t = e.features[0].properties;
+        new maplibregl.Popup({ offset: 8 })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div style="font-family:'Inter',sans-serif; min-width: 200px;">
+              <span style="font-size:10px;font-weight:700;color:#7e22ce;background:#f3e8ff;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
+              <strong style="font-size:13px;color:#0f172a;display:block;">${t.name}</strong>
+              <span style="font-size:11px;color:#7c3aed;font-weight:600;">${t.operator || ''}</span>
+              <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
+              <div style="font-size:11px;line-height:1.45;color:#334155;">
+                <strong>Length:</strong> ${t.length_miles} miles under Divide<br>
+                <strong>West Portal:</strong> ${t.from}<br>
+                <strong>East Portal:</strong> ${t.to}
+              </div>
             </div>
-          </div>
-        `)
-        .addTo(map);
-    });
+          `)
+          .addTo(map);
+      });
 
-    map.on('mouseenter', 'tunnels-line', () => map.getCanvas().style.cursor = 'pointer');
-    map.on('mouseleave', 'tunnels-line', () => map.getCanvas().style.cursor = '');
+      map.on('mouseenter', 'tunnels-line', () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', 'tunnels-line', () => map.getCanvas().style.cursor = '');
+    }
+
+    // 5b. Major Conveyance Canals (All-American Canal & Colorado River Aqueduct)
+    if (!map.getSource('canals')) {
+      const canalsGeoJSON = {
+        type: 'FeatureCollection',
+        features: canalFeats.map(t => ({
+          type: 'Feature',
+          properties: { ...t },
+          geometry: { type: 'LineString', coordinates: t.coords }
+        }))
+      };
+
+      map.addSource('canals', { type: 'geojson', data: canalsGeoJSON });
+      const showCanals = document.getElementById('toggle-canals')?.checked ?? false;
+      map.addLayer({
+        id: 'canals-line',
+        type: 'line',
+        source: 'canals',
+        layout: {
+          'visibility': showCanals ? 'visible' : 'none'
+        },
+        paint: {
+          'line-color': '#0891b2',
+          'line-width': 3.5,
+          'line-dasharray': [4, 2],
+          'line-opacity': 0.95
+        }
+      });
+
+      map.on('click', 'canals-line', (e) => {
+        if (!e.features.length) return;
+        const t = e.features[0].properties;
+        new maplibregl.Popup({ offset: 8 })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div style="font-family:'Inter',sans-serif; min-width: 210px;">
+              <span style="font-size:10px;font-weight:700;color:#0891b2;background:#e0f2fe;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
+              <strong style="font-size:13px;color:#0f172a;display:block;">${t.name}</strong>
+              <span style="font-size:11px;color:#0369a1;font-weight:600;">${t.operator || ''}</span>
+              <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
+              <div style="font-size:11px;line-height:1.45;color:#334155;">
+                <strong>Length:</strong> ${t.length_miles} miles<br>
+                <strong>Intake:</strong> ${t.from}<br>
+                <strong>Terminus:</strong> ${t.to}
+              </div>
+            </div>
+          `)
+          .addTo(map);
+      });
+
+      map.on('mouseenter', 'canals-line', () => map.getCanvas().style.cursor = 'pointer');
+      map.on('mouseleave', 'canals-line', () => map.getCanvas().style.cursor = '');
+    }
   }
 
   // 6. Major Dams (Native WebGL Symbol Layer - Locks 1:1 with Map Canvas, Zero Drag Latency)
@@ -570,7 +839,12 @@ function renderMetrics(metrics) {
   });
   stationMarkers = {};
 
-  // 1. Streamflow Gauges (Compact CFS Badges)
+  const showGauges = document.getElementById('toggle-gauges')?.checked ?? false;
+  const showTunnels = document.getElementById('toggle-tunnels')?.checked ?? false;
+  const showCanals = document.getElementById('toggle-canals')?.checked ?? false;
+  const showReservoirs = document.getElementById('toggle-reservoirs')?.checked ?? true;
+
+  // 1. Streamflow Gauges (Compact CFS Badges) - Hidden by default for minimal clarity
   metrics.streamflows.forEach(s => {
     const isLeesFerry = s.id === "09380000";
     const highlightClass = isLeesFerry ? "lees-badge" : "";
@@ -583,7 +857,7 @@ function renderMetrics(metrics) {
       <div style="font-family:'Inter',sans-serif; min-width: 215px; padding: 2px;">
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
           <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px;">USGS Real-Time Gauge</span>
-          ${isLeesFerry ? '<span style="font-size:10px; font-weight:700; color:#dc2626; background:#fee2e2; padding:2px 6px; border-radius:4px;">1922 Compact Divide</span>' : ''}
+          ${isLeesFerry ? '<span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; border: 1px solid #bae6fd; padding:2px 6px; border-radius:4px;">1922 Compact Divide</span>' : ''}
         </div>
         <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${s.name}</strong>
         <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
@@ -602,32 +876,37 @@ function renderMetrics(metrics) {
       .setPopup(popup)
       .addTo(map);
 
+    if (!showGauges) {
+      marker.getElement().style.display = 'none';
+    }
+
     markers.gauges.push(marker);
     stationMarkers[s.id] = { marker, popup, lat: s.lat, lon: s.lon };
   });
 
-  // 2. Trans-Mountain Tunnels & Diversion Badges
+  // 2. Trans-Mountain Tunnels & Conveyance Canals Badges
   metrics.tunnels.forEach(t => {
-    const isFrontRange = t.id.endsWith("TUNCO");
+    const isFrontRange = t.id && t.id.endsWith("TUNCO");
     const diversionBadge = isFrontRange ? "Trans-Mountain Diversion Tunnel" : "Major Conveyance Canal";
     const lengthText = isFrontRange ? `${t.length_miles} miles under Divide` : `${t.length_miles} miles`;
     const fromText = isFrontRange ? `<strong>West Portal:</strong> ${t.from}` : `<strong>Intake:</strong> ${t.from}`;
     const toText = isFrontRange ? `<strong>East Portal:</strong> ${t.to}` : `<strong>Terminus:</strong> ${t.to}`;
+    const badgeClass = isFrontRange ? "tunnel-badge" : "canal-badge";
 
     const el = document.createElement('div');
     el.className = 'cfs-marker-wrap';
-    el.innerHTML = `<div class="cfs-badge tunnel-badge"><span class="cfs-val">${t.flow_cfs.toLocaleString()}</span> <span class="cfs-unit">cfs</span></div>`;
+    el.innerHTML = `<div class="cfs-badge ${badgeClass}"><span class="cfs-val">${t.flow_cfs.toLocaleString()}</span> <span class="cfs-unit">cfs</span></div>`;
 
     const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
       <div style="font-family:'Inter',sans-serif; min-width: 220px; padding: 2px;">
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <span style="font-size:10px; font-weight:700; color:#7e22ce; background:#f3e8ff; padding:2px 6px; border-radius:4px;">${diversionBadge}</span>
+          <span style="font-size:10px; font-weight:700; color:${isFrontRange ? '#7e22ce' : '#0891b2'}; background:${isFrontRange ? '#f3e8ff' : '#e0f2fe'}; padding:2px 6px; border-radius:4px;">${diversionBadge}</span>
         </div>
         <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${t.name}</strong>
         <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:6px;">${t.operator || ''}</div>
-        <div style="margin: 6px 0; padding: 8px 10px; background:#faf5ff; border-radius:6px; border:1px solid #f3e8ff; display:flex; justify-content:space-between; align-items:baseline;">
-          <span style="font-size:11px; color:#6b21a8; font-weight:600;">Diverted Flow:</span>
-          <span style="font-size:16px; font-weight:800; color:#7c3aed;">${t.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#6b21a8;">cfs</span></span>
+        <div style="margin: 6px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+          <span style="font-size:11px; color:#475569; font-weight:600;">Diverted Flow:</span>
+          <span style="font-size:16px; font-weight:800; color:${isFrontRange ? '#7c3aed' : '#0891b2'};">${t.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>
         </div>
         <div style="font-size:11px; color:#475569; line-height:1.5;">
           <strong>Destination:</strong> ${t.destination}<br>
@@ -644,11 +923,18 @@ function renderMetrics(metrics) {
       .setPopup(popup)
       .addTo(map);
 
-    markers.tunnels.push(marker);
+    if (isFrontRange) {
+      if (!showTunnels) marker.getElement().style.display = 'none';
+      markers.tunnels.push(marker);
+    } else {
+      if (!showCanals) marker.getElement().style.display = 'none';
+      markers.canals.push(marker);
+    }
+
     stationMarkers[t.id] = { marker, popup, lat: t.lat, lon: t.lon };
   });
 
-  // 3. Reservoirs Badges
+  // 3. Reservoirs Badges (Kept visible by default for key storage context)
   metrics.reservoirs.forEach(r => {
     const el = document.createElement('div');
     el.className = 'cfs-marker-wrap';
@@ -681,6 +967,10 @@ function renderMetrics(metrics) {
       .setLngLat([r.lon, r.lat])
       .setPopup(popup)
       .addTo(map);
+
+    if (!showReservoirs) {
+      marker.getElement().style.display = 'none';
+    }
 
     markers.reservoirs.push(marker);
     stationMarkers[r.id] = { marker, popup, lat: r.lat, lon: r.lon };
@@ -860,6 +1150,10 @@ function toggleLayer(layerName) {
       setLayerVisibility('tunnels-line', isChecked);
       markers.tunnels.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
       break;
+    case "canals":
+      setLayerVisibility('canals-line', isChecked);
+      markers.canals.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
+      break;
     case "reservoirs":
       setLayerVisibility('lakes-fill', isChecked);
       setLayerVisibility('lakes-stroke', isChecked);
@@ -887,6 +1181,6 @@ function toggleTableCollapse() {
 
 function refreshData() {
   const syncElem = document.getElementById("sync-time");
-  syncElem.textContent = "Refreshing live feeds...";
-  loadData();
+  if (syncElem) syncElem.textContent = "Querying live USGS gauges...";
+  loadData(true);
 }

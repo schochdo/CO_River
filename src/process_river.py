@@ -225,7 +225,33 @@ def process_geojson_file(filepath, simplify_tolerance=0.0005):
 
 def process():
     reach_groups = {}
-    
+
+    # Load live metrics if available to calibrate baseline flows
+    live_streamflows = {}
+    if os.path.exists("web/data/latest_metrics.json"):
+        try:
+            with open("web/data/latest_metrics.json") as f:
+                lm = json.load(f)
+                for s in lm.get("streamflows", []):
+                    live_streamflows[s["id"]] = s
+            print(f"Loaded {len(live_streamflows)} live streamflow stations from latest_metrics.json")
+        except Exception as e:
+            print(f"Notice: could not load latest_metrics.json: {e}")
+
+    # Calibrate Colorado River mainstem reaches with live NWIS flows
+    if "09070500" in live_streamflows:
+        REACHES["Colorado River - Kremmling & Gore Canyon to Dotsero"]["cfs"] = int(live_streamflows["09070500"]["flow_cfs"])
+    if "09095500" in live_streamflows:
+        REACHES["Colorado River - Glenwood Canyon to Cameo"]["cfs"] = int(live_streamflows["09095500"]["flow_cfs"])
+    if "09180500" in live_streamflows:
+        cisco_val = int(live_streamflows["09180500"]["flow_cfs"])
+        REACHES["Colorado River - Grand Valley to Cisco (State Line)"]["cfs"] = cisco_val
+        REACHES["Colorado River - Confluence through Cataract Canyon to Lake Powell"]["cfs"] = int(cisco_val + 2850 + 280)
+    if "09380000" in live_streamflows:
+        lf_val = int(live_streamflows["09380000"]["flow_cfs"])
+        REACHES["Colorado River - Glen Canyon to Lees Ferry"]["cfs"] = lf_val
+        REACHES["Colorado River - Grand Canyon to Lake Mead"]["cfs"] = int(lf_val + 250)
+
     # ── 1. Green River (single reach) ──
     print("Processing Green River...")
     green_lines = process_geojson_file("web/data/green_river_raw.geojson")
@@ -287,7 +313,14 @@ def process():
     
     # ── 3. Major tributaries (Yampa, San Juan, Gunnison) ──
     for name, raw_file, reach_id, cfs, category in MAJOR_TRIBUTARIES[1:]:
-        print(f"Processing {name}...")
+        if reach_id == "gunnison_river" and "09152500" in live_streamflows:
+            cfs = int(live_streamflows["09152500"]["flow_cfs"])
+        elif reach_id == "yampa_river" and "09260050" in live_streamflows:
+            cfs = int(live_streamflows["09260050"]["flow_cfs"])
+        elif reach_id == "sanjuan_river" and "09379500" in live_streamflows:
+            cfs = int(live_streamflows["09379500"]["flow_cfs"])
+
+        print(f"Processing {name} (flow={cfs} cfs)...")
         lines = process_geojson_file(raw_file)
         if lines:
             reach_groups[name] = {

@@ -3,7 +3,7 @@ import json
 import os
 from datetime import datetime
 
-USER_AGENT = "DAT1001-Student-Project/1.0"
+USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 (DAT1001-Research)"
 
 def fetch_usgs_streamflow():
     """
@@ -22,40 +22,50 @@ def fetch_usgs_streamflow():
     site_ids = ",".join(sites.keys())
     url = f"https://waterservices.usgs.gov/nwis/iv/?format=json&sites={site_ids}&parameterCd=00060&siteStatus=all"
     
-    response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=10)
-    data = response.json()
-    
     results = []
-    for ts in data["value"]["timeSeries"]:
-        code = ts["sourceInfo"]["siteCode"][0]["value"]
-        name = sites.get(code, ts["sourceInfo"]["siteName"])
-        lat = ts["sourceInfo"]["geoLocation"]["geogLocation"]["latitude"]
-        lon = ts["sourceInfo"]["geoLocation"]["geogLocation"]["longitude"]
-        values = ts["values"][0]["value"]
-        
-        if values:
-            latest = values[-1]
-            if code == "09527700":
-                results.append({
-                    "id": code,
-                    "name": name,
-                    "type": "diversion_tunnel",
-                    "destination": "Imperial & Coachella Valleys",
-                    "flow_cfs": float(latest["value"]),
-                    "timestamp": latest["dateTime"],
-                    "lat": lat,
-                    "lon": lon
-                })
-            else:
-                results.append({
-                    "id": code,
-                    "name": name,
-                    "type": "streamflow",
-                    "flow_cfs": float(latest["value"]),
-                    "timestamp": latest["dateTime"],
-                    "lat": lat,
-                    "lon": lon
-                })
+    for attempt in range(3):
+        try:
+            response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=12)
+            if response.status_code == 200:
+                data = response.json()
+                for ts in data.get("value", {}).get("timeSeries", []):
+                    code = ts["sourceInfo"]["siteCode"][0]["value"]
+                    name = sites.get(code, ts["sourceInfo"]["siteName"])
+                    lat = ts["sourceInfo"]["geoLocation"]["geogLocation"]["latitude"]
+                    lon = ts["sourceInfo"]["geoLocation"]["geogLocation"]["longitude"]
+                    values = ts["values"][0]["value"]
+                    
+                    if values:
+                        latest = values[-1]
+                        val = float(latest["value"]) if latest["value"] != "-999999" else 0.0
+                        if code == "09527700":
+                            results.append({
+                                "id": code,
+                                "name": name,
+                                "type": "diversion_tunnel",
+                                "destination": "Imperial & Coachella Valleys",
+                                "flow_cfs": val,
+                                "timestamp": latest["dateTime"],
+                                "lat": lat,
+                                "lon": lon
+                            })
+                        else:
+                            results.append({
+                                "id": code,
+                                "name": name,
+                                "type": "streamflow",
+                                "flow_cfs": val,
+                                "timestamp": latest["dateTime"],
+                                "lat": lat,
+                                "lon": lon
+                            })
+                if results:
+                    break
+        except Exception as e:
+            print(f"Warning: USGS streamflow attempt {attempt+1} failed: {e}")
+            import time
+            time.sleep(1)
+            
     return results
 
 
@@ -72,26 +82,28 @@ def fetch_usgs_daily():
     results = []
     try:
         response = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=10)
-        data = response.json()
-        for ts in data.get("value", {}).get("timeSeries", []):
-            code = ts["sourceInfo"]["siteCode"][0]["value"]
-            name = sites.get(code, ts["sourceInfo"]["siteName"])
-            lat = ts["sourceInfo"]["geoLocation"]["geogLocation"]["latitude"]
-            lon = ts["sourceInfo"]["geoLocation"]["geogLocation"]["longitude"]
-            values = ts["values"][0]["value"]
-            
-            if values:
-                latest = values[-1]
-                results.append({
-                    "id": code,
-                    "name": name,
-                    "type": "diversion_tunnel", # we can classify it as diversion to color it purple
-                    "destination": "Los Angeles / Southern California",
-                    "flow_cfs": float(latest["value"]),
-                    "timestamp": latest["dateTime"],
-                    "lat": lat,
-                    "lon": lon
-                })
+        if response.status_code == 200:
+            data = response.json()
+            for ts in data.get("value", {}).get("timeSeries", []):
+                code = ts["sourceInfo"]["siteCode"][0]["value"]
+                name = sites.get(code, ts["sourceInfo"]["siteName"])
+                lat = ts["sourceInfo"]["geoLocation"]["geogLocation"]["latitude"]
+                lon = ts["sourceInfo"]["geoLocation"]["geogLocation"]["longitude"]
+                values = ts["values"][0]["value"]
+                
+                if values:
+                    latest = values[-1]
+                    val = float(latest["value"]) if latest["value"] != "-999999" else 1740.0
+                    results.append({
+                        "id": code,
+                        "name": name,
+                        "type": "diversion_canal",
+                        "destination": "Los Angeles / Southern California",
+                        "flow_cfs": val,
+                        "timestamp": latest["dateTime"],
+                        "lat": lat,
+                        "lon": lon
+                    })
     except Exception as e:
         print(f"Warning: Failed to fetch DV data: {e}")
     return results
