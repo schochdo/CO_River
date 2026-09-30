@@ -9,7 +9,7 @@ Handles:
   5. Primary tributaries (White, Duchesne, Price, Little Snake, Dolores, Uncompahgre,
      San Rafael, Dirty Devil, Escalante, Animas, Little Colorado, Paria, Virgin, Bill Williams,
      Gila, Salt, Verde)
-  6. Secondary tributaries (Fryingpan, Muddy, San Pedro, Santa Cruz, Kanab, Havasu)
+  6. Secondary tributaries (Fryingpan, Muddy, San Pedro, Kanab, Havasu)
 
 Weighting:
   Uses USGS empirical hydraulic geometry scaling: Width = Base + k * (Flow ^ 0.5).
@@ -164,7 +164,6 @@ ALL_TRIBUTARIES = [
     ("Salt River",            "salt_river",            "salt_river",            640, "major_tributary"),
     ("Verde River",           "verde_river",           "verde_river",           420, "minor_tributary"),
     ("San Pedro River",       "san_pedro_river",       "san_pedro_river",       140, "minor_tributary"),
-    ("Santa Cruz River",      "santa_cruz_river",      "santa_cruz_river",       90, "minor_tributary"),
     # Colorado Headwaters
     ("Eagle River",           "eagle_river",           "eagle_river",           320, "minor_tributary"),
     ("Roaring Fork River",    "roaring_fork_river",    "roaring_fork_river",    480, "minor_tributary"),
