@@ -148,6 +148,14 @@ function initMap() {
     if (window.location.search.includes('expand_table=1')) {
       toggleTableCollapse();
     }
+    if (window.location.search.includes('show_tunnels=1')) {
+      const toggle = document.getElementById("toggle-tunnels");
+      if (toggle) {
+        toggle.checked = true;
+        toggleLayer("tunnels");
+      }
+      map.jumpTo({ center: [-105.9, 39.9], zoom: 9.6 });
+    }
   });
 }
 
@@ -266,6 +274,12 @@ function computeRiverWeight(flowCfs, category) {
     if (flowCfs >= 150) return 1.3;
     return 1.0;
   }
+}
+
+function computeTunnelWeight(flowCfs) {
+  // Proportional line width scaled with flow; minimum 2.5px so zero/low-flow tunnels are clearly visible and clickable
+  if (!flowCfs || flowCfs <= 0) return 2.5;
+  return Math.min(8.0, 2.5 + Math.sqrt(flowCfs) * 0.28);
 }
 
 function applyLiveHydrology(riverNetwork, metrics) {
@@ -454,6 +468,24 @@ function applyLiveHydrology(riverNetwork, metrics) {
   if (map && map.getSource('rivers')) {
     map.getSource('rivers').setData(riverNetwork);
   }
+
+  if (map && map.getSource('tunnels') && cachedGeography?.tunnels) {
+    const updatedTunnelFeats = cachedGeography.tunnels.filter(t => t.id && t.id.endsWith("TUNCO")).map(t => {
+      const metric = metrics?.tunnels?.find(m => m.id === t.id);
+      const flow = metric ? metric.flow_cfs : (t.flow_cfs || 0);
+      return {
+        type: 'Feature',
+        properties: {
+          ...t,
+          flow_cfs: flow,
+          weight: computeTunnelWeight(flow),
+          timestamp: metric ? metric.timestamp : null
+        },
+        geometry: { type: 'LineString', coordinates: t.coords }
+      };
+    });
+    map.getSource('tunnels').setData({ type: 'FeatureCollection', features: updatedTunnelFeats });
+  }
 }
 
 async function loadData(forceLive = false) {
@@ -571,12 +603,13 @@ function renderGeography(geo, riverNetwork, lakes) {
       }
     });
 
-    map.on('mousemove', 'basin-fill', (e) => {
+    // Only the perimeter boundary line itself is interactive, NOT the vast interior fill polygon
+    map.on('mousemove', 'basin-line', (e) => {
       if (!e.features.length) return;
       map.getCanvas().style.cursor = 'pointer';
-      tooltipPopup.setLngLat(e.lngLat).setHTML(`<strong>${e.features[0].properties.name}</strong>`).addTo(map);
+      tooltipPopup.setLngLat(e.lngLat).setHTML(`<strong>${e.features[0].properties.name} Boundary</strong>`).addTo(map);
     });
-    map.on('mouseleave', 'basin-fill', () => {
+    map.on('mouseleave', 'basin-line', () => {
       map.getCanvas().style.cursor = '';
       tooltipPopup.remove();
     });
@@ -720,8 +753,24 @@ function renderGeography(geo, riverNetwork, lakes) {
       }
     });
 
-    // River hover tooltips with explicit real-time/baseflow clarity
-    ['rivers-main-core', 'rivers-minor-core'].forEach(layerId => {
+    // 4e. River Hit Buffer (24px invisible hit-target layer so hovering/clicking rivers is effortless)
+    map.addLayer({
+      id: 'rivers-hit-buffer',
+      type: 'line',
+      source: 'rivers',
+      layout: {
+        'line-cap': 'round',
+        'line-join': 'round'
+      },
+      paint: {
+        'line-color': '#000000',
+        'line-width': 24,
+        'line-opacity': 0.0001
+      }
+    });
+
+    // River hover tooltips & click handlers attached to the generous hit buffer
+    ['rivers-hit-buffer', 'rivers-main-core', 'rivers-minor-core'].forEach(layerId => {
       map.on('mousemove', layerId, (e) => {
         if (!e.features.length) return;
         map.getCanvas().style.cursor = 'pointer';
@@ -772,11 +821,20 @@ function renderGeography(geo, riverNetwork, lakes) {
     if (!map.getSource('tunnels')) {
       const tunnelsGeoJSON = {
         type: 'FeatureCollection',
-        features: tunnelFeats.map(t => ({
-          type: 'Feature',
-          properties: { ...t },
-          geometry: { type: 'LineString', coordinates: t.coords }
-        }))
+        features: tunnelFeats.map(t => {
+          const metric = cachedMetrics?.tunnels?.find(m => m.id === t.id);
+          const flow = metric ? metric.flow_cfs : (t.flow_cfs || 0);
+          return {
+            type: 'Feature',
+            properties: {
+              ...t,
+              flow_cfs: flow,
+              weight: computeTunnelWeight(flow),
+              timestamp: metric ? metric.timestamp : null
+            },
+            geometry: { type: 'LineString', coordinates: t.coords }
+          };
+        })
       };
 
       map.addSource('tunnels', { type: 'geojson', data: tunnelsGeoJSON });
@@ -790,24 +848,80 @@ function renderGeography(geo, riverNetwork, lakes) {
         },
         paint: {
           'line-color': '#9333ea',
-          'line-width': 4.5,
+          'line-width': ['coalesce', ['get', 'weight'], 2.5],
           'line-dasharray': [2, 3],
           'line-opacity': 0.95
         }
       });
 
-      map.on('click', 'tunnels-line', (e) => {
+      // Generous 22px hit buffer for tunnels
+      map.addLayer({
+        id: 'tunnels-hit-buffer',
+        type: 'line',
+        source: 'tunnels',
+        layout: {
+          'visibility': showTunnels ? 'visible' : 'none'
+        },
+        paint: {
+          'line-color': '#000000',
+          'line-width': 22,
+          'line-opacity': 0.0001
+        }
+      });
+
+      map.on('mousemove', 'tunnels-hit-buffer', (e) => {
+        if (!e.features.length) return;
+        map.getCanvas().style.cursor = 'pointer';
+        const t = e.features[0].properties;
+        const flowVal = Number(t.flow_cfs || 0);
+        const flowDisplay = flowVal > 0 
+          ? `<span style="font-size:16px; font-weight:800; color:#7c3aed;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>`
+          : `<span style="font-size:14px; font-weight:700; color:#64748b;">0.0 cfs <span style="font-size:11px; font-weight:500;">(Inactive / Closed)</span></span>`;
+
+        tooltipPopup.setLngLat(e.lngLat).setHTML(`
+          <div style="font-family:'Inter',sans-serif; min-width: 210px; max-width: 280px;">
+            <span style="font-size:10px;font-weight:700;color:#7e22ce;background:#f3e8ff;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
+            <strong style="font-size:13px;color:#0f172a;display:block;">${t.name}</strong>
+            <span style="font-size:11px;color:#7c3aed;font-weight:600;">${t.operator || ''}</span>
+            <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+              <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
+              ${flowDisplay}
+            </div>
+            <div style="font-size:11px;line-height:1.45;color:#334155;">
+              <strong>Destination:</strong> ${t.destination || t.to}<br>
+              <strong>Length:</strong> ${t.length_miles} miles under Divide<br>
+              <strong>West Portal:</strong> ${t.from}<br>
+              <strong>East Portal:</strong> ${t.to}
+            </div>
+            <div style="font-size:10px;color:#64748b;margin-top:5px;border-top:1px solid #f1f5f9;padding-top:4px;">
+              Line Width: ${t.weight || 2.5}px (Proportional to flow; min 2.5px)
+            </div>
+          </div>
+        `).addTo(map);
+      });
+
+      map.on('mouseleave', 'tunnels-hit-buffer', () => {
+        map.getCanvas().style.cursor = '';
+        tooltipPopup.remove();
+      });
+
+      map.on('click', 'tunnels-hit-buffer', (e) => {
         if (!e.features.length) return;
         const t = e.features[0].properties;
+        const flowVal = Number(t.flow_cfs || 0);
         new maplibregl.Popup({ offset: 8 })
           .setLngLat(e.lngLat)
           .setHTML(`
-            <div style="font-family:'Inter',sans-serif; min-width: 200px;">
+            <div style="font-family:'Inter',sans-serif; min-width: 220px;">
               <span style="font-size:10px;font-weight:700;color:#7e22ce;background:#f3e8ff;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
-              <strong style="font-size:13px;color:#0f172a;display:block;">${t.name}</strong>
+              <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
               <span style="font-size:11px;color:#7c3aed;font-weight:600;">${t.operator || ''}</span>
-              <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
+              <div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
+                <span style="font-size:16px; font-weight:800; color:#7c3aed;">${flowVal.toLocaleString()} cfs</span>
+              </div>
               <div style="font-size:11px;line-height:1.45;color:#334155;">
+                <strong>Destination:</strong> ${t.destination || t.to}<br>
                 <strong>Length:</strong> ${t.length_miles} miles under Divide<br>
                 <strong>West Portal:</strong> ${t.from}<br>
                 <strong>East Portal:</strong> ${t.to}
@@ -816,9 +930,6 @@ function renderGeography(geo, riverNetwork, lakes) {
           `)
           .addTo(map);
       });
-
-      map.on('mouseenter', 'tunnels-line', () => map.getCanvas().style.cursor = 'pointer');
-      map.on('mouseleave', 'tunnels-line', () => map.getCanvas().style.cursor = '');
     }
 
     // 5b. Major Conveyance Canals (All-American Canal & Colorado River Aqueduct)
@@ -1045,7 +1156,9 @@ function renderMetrics(metrics) {
       .addTo(map);
 
     if (isFrontRange) {
-      if (!showTunnels) marker.getElement().style.display = 'none';
+      const showTunnels = document.getElementById('toggle-tunnels')?.checked ?? false;
+      const showTunnelBadges = document.getElementById('toggle-tunnel-badges')?.checked ?? false;
+      if (!showTunnels || !showTunnelBadges) marker.getElement().style.display = 'none';
       markers.tunnels.push(marker);
     } else {
       if (!showCanals) marker.getElement().style.display = 'none';
@@ -1264,6 +1377,7 @@ function toggleLayer(layerName) {
     case "river":
       setLayerVisibility('rivers-main-glow', isChecked);
       setLayerVisibility('rivers-main-core', isChecked);
+      setLayerVisibility('rivers-hit-buffer', isChecked);
       break;
     case "minorRivers":
       setLayerVisibility('rivers-minor-glow', isChecked);
@@ -1274,7 +1388,14 @@ function toggleLayer(layerName) {
       break;
     case "tunnels":
       setLayerVisibility('tunnels-line', isChecked);
-      markers.tunnels.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
+      setLayerVisibility('tunnels-hit-buffer', isChecked);
+      // Tunnels toggled on: labels stay hidden by default unless tunnelBadges is explicitly checked!
+      const showBadges = document.getElementById('toggle-tunnel-badges')?.checked ?? false;
+      markers.tunnels.forEach(m => m.getElement().style.display = (isChecked && showBadges) ? '' : 'none');
+      break;
+    case "tunnelBadges":
+      const tunnelsOn = document.getElementById('toggle-tunnels')?.checked ?? false;
+      markers.tunnels.forEach(m => m.getElement().style.display = (tunnelsOn && isChecked) ? '' : 'none');
       break;
     case "canals":
       setLayerVisibility('canals-line', isChecked);
