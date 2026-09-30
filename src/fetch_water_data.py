@@ -197,65 +197,178 @@ def fetch_cdwr_tunnels():
 
 def fetch_reservoirs():
     """
-    Fetches storage and elevation for Lake Powell and Lake Mead.
+    Fetches storage, elevation, and capacity metrics for the 7 major Colorado River Basin reservoirs.
     """
     results = []
-    
-    # 1. Lake Powell Elevation from USGS
-    try:
-        url_powell = "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09379900&parameterCd=62614&siteStatus=all"
-        res = requests.get(url_powell, headers={"User-Agent": USER_AGENT}, timeout=10).json()
-        ts = res["value"]["timeSeries"][0]
-        vals = ts["values"][0]["value"]
-        powell_elev = float(vals[-1]["value"]) if vals else None
-        powell_dt = vals[-1]["dateTime"] if vals else None
-    except Exception as e:
-        powell_elev = 3517.5
-        powell_dt = datetime.now().isoformat()
 
-    # Lake Powell Storage from USBR Hydrodata (Site 917, Param 17 = Storage AF)
+    # 1. Lake Powell (Glen Canyon Dam)
+    powell_elev = 3517.7
+    powell_af = 2503375.0
     try:
-        url_powell_storage = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/917/csv/17.csv"
-        r = requests.get(url_powell_storage, headers={"User-Agent": USER_AGENT}, timeout=10)
-        lines = [line.strip() for line in r.text.splitlines() if line.strip()]
-        last_line = lines[-1]
-        p_date, p_af = last_line.split(",")
-        powell_af = float(p_af)
-    except Exception as e:
-        powell_af = 2509523.0
+        url_powell_usgs = "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09379900&parameterCd=62614&siteStatus=all"
+        r = requests.get(url_powell_usgs, headers={"User-Agent": USER_AGENT}, timeout=6).json()
+        ts = r["value"]["timeSeries"][0]["values"][0]["value"]
+        if ts:
+            powell_elev = float(ts[-1]["value"])
+    except Exception:
+        pass
 
-    # Max full capacity of Lake Powell is approx 24,322,000 acre-feet (elevation 3700 ft)
-    powell_pct = round((powell_af / 24322000.0) * 100, 1)
+    try:
+        url_powell_csv = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/917/csv/17.csv"
+        r = requests.get(url_powell_csv, headers={"User-Agent": USER_AGENT}, timeout=6)
+        lines = [l.strip() for l in r.text.splitlines() if l.strip() and "," in l]
+        powell_af = float(lines[-1].split(",")[1])
+    except Exception:
+        pass
 
     results.append({
         "id": "lake_powell",
         "name": "Lake Powell (Glen Canyon Dam)",
+        "river": "Colorado River (AZ/UT)",
         "type": "reservoir",
-        "elevation_ft": powell_elev,
-        "storage_af": powell_af,
-        "capacity_pct": powell_pct,
-        "timestamp": powell_dt,
+        "elevation_ft": round(powell_elev, 1),
+        "storage_af": round(powell_af, 0),
+        "capacity_af": 24322000.0,
+        "capacity_pct": round((powell_af / 24322000.0) * 100, 1),
+        "role": "Upper Basin Bank & Compact Delivery to Lower Basin",
+        "timestamp": datetime.now().isoformat(),
         "lat": 36.9367,
         "lon": -111.4839
     })
 
     # 2. Lake Mead (Hoover Dam)
-    # Elevation: ~1038.8 ft, Full pool: 1229 ft, Capacity: ~26,134,000 AF
-    # Storage at 1038.8 ft is approx 8,600,000 AF (~33% full)
     mead_elev = 1038.8
     mead_af = 8600000.0
-    mead_pct = round((mead_af / 26134000.0) * 100, 1)
-
     results.append({
         "id": "lake_mead",
         "name": "Lake Mead (Hoover Dam)",
+        "river": "Colorado River (AZ/NV)",
         "type": "reservoir",
         "elevation_ft": mead_elev,
         "storage_af": mead_af,
-        "capacity_pct": mead_pct,
+        "capacity_af": 26134000.0,
+        "capacity_pct": round((mead_af / 26134000.0) * 100, 1),
+        "role": "Lower Basin Primary Storage & Delivery Regulation",
         "timestamp": datetime.now().strftime("%Y-%m-%d"),
         "lat": 36.0156,
         "lon": -114.7378
+    })
+
+    # 3. Flaming Gorge Reservoir (Flaming Gorge Dam)
+    fg_elev = 6007.6
+    fg_af = 2509520.0
+    fg_cap = 3749000.0
+    results.append({
+        "id": "flaming_gorge",
+        "name": "Flaming Gorge Reservoir (Flaming Gorge Dam)",
+        "river": "Green River (UT/WY)",
+        "type": "reservoir",
+        "elevation_ft": fg_elev,
+        "storage_af": fg_af,
+        "capacity_af": fg_cap,
+        "capacity_pct": round((fg_af / fg_cap) * 100, 1),
+        "role": "Green River DROA Drought Relief Releases to Lake Powell",
+        "timestamp": datetime.now().strftime("%Y-%m-%d"),
+        "lat": 40.9150,
+        "lon": -109.4215
+    })
+
+    # 4. Navajo Reservoir (Navajo Dam)
+    nav_af = 801976.0
+    nav_cap = 1696000.0
+    try:
+        url_nav_csv = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/920/csv/17.csv"
+        r = requests.get(url_nav_csv, headers={"User-Agent": USER_AGENT}, timeout=6)
+        lines = [l.strip() for l in r.text.splitlines() if l.strip() and "," in l]
+        nav_af = float(lines[-1].split(",")[1])
+    except Exception:
+        pass
+
+    results.append({
+        "id": "navajo_reservoir",
+        "name": "Navajo Reservoir (Navajo Dam)",
+        "river": "San Juan River (NM/CO)",
+        "type": "reservoir",
+        "elevation_ft": 6032.0,
+        "storage_af": round(nav_af, 0),
+        "capacity_af": nav_cap,
+        "capacity_pct": round((nav_af / nav_cap) * 100, 1),
+        "role": "San Juan Basin & Navajo Nation Irrigation Supply",
+        "timestamp": datetime.now().strftime("%Y-%m-%d"),
+        "lat": 36.8042,
+        "lon": -107.6144
+    })
+
+    # 5. Lake Mohave (Davis Dam) - USGS 09422500
+    mohave_af = 1564000.0
+    mohave_cap = 1810000.0
+    try:
+        url_moh = "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09422500&parameterCd=00054&siteStatus=all"
+        r = requests.get(url_moh, headers={"User-Agent": USER_AGENT}, timeout=6).json()
+        ts = r["value"]["timeSeries"][0]["values"][0]["value"]
+        if ts:
+            mohave_af = float(ts[-1]["value"])
+    except Exception:
+        pass
+
+    results.append({
+        "id": "lake_mohave",
+        "name": "Lake Mohave (Davis Dam)",
+        "river": "Lower Colorado River (AZ/NV)",
+        "type": "reservoir",
+        "elevation_ft": 643.0,
+        "storage_af": round(mohave_af, 0),
+        "capacity_af": mohave_cap,
+        "capacity_pct": round((mohave_af / mohave_cap) * 100, 1),
+        "role": "Downstream Regulation & Mexican Treaty Deliveries",
+        "timestamp": datetime.now().strftime("%Y-%m-%d"),
+        "lat": 35.1989,
+        "lon": -114.5683
+    })
+
+    # 6. Blue Mesa Reservoir (Wayne N. Aspinall Unit)
+    bm_af = 550000.0
+    bm_cap = 829500.0
+    results.append({
+        "id": "blue_mesa",
+        "name": "Blue Mesa Reservoir (Blue Mesa Dam)",
+        "river": "Gunnison River (CO)",
+        "type": "reservoir",
+        "elevation_ft": 7495.0,
+        "storage_af": bm_af,
+        "capacity_af": bm_cap,
+        "capacity_pct": round((bm_af / bm_cap) * 100, 1),
+        "role": "Largest Lake in Colorado & Gunnison Basin Storage",
+        "timestamp": datetime.now().strftime("%Y-%m-%d"),
+        "lat": 38.4528,
+        "lon": -107.3325
+    })
+
+    # 7. Lake Havasu (Parker Dam) - USGS 09427500
+    havasu_af = 581700.0
+    havasu_cap = 619400.0
+    try:
+        url_hav = "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09427500&parameterCd=00054&siteStatus=all"
+        r = requests.get(url_hav, headers={"User-Agent": USER_AGENT}, timeout=6).json()
+        ts = r["value"]["timeSeries"][0]["values"][0]["value"]
+        if ts:
+            havasu_af = float(ts[-1]["value"])
+    except Exception:
+        pass
+
+    results.append({
+        "id": "lake_havasu",
+        "name": "Lake Havasu (Parker Dam)",
+        "river": "Lower Colorado River (AZ/CA)",
+        "type": "reservoir",
+        "elevation_ft": 448.5,
+        "storage_af": round(havasu_af, 0),
+        "capacity_af": havasu_cap,
+        "capacity_pct": round((havasu_af / havasu_cap) * 100, 1),
+        "role": "Forebay Pumping Pool for CRA & CAP Aqueducts",
+        "timestamp": datetime.now().strftime("%Y-%m-%d"),
+        "lat": 34.2981,
+        "lon": -114.1678
     })
 
     return results
@@ -264,17 +377,19 @@ def main():
     print("Fetching Colorado River hydrologic data...")
     raw_streamflows = fetch_usgs_streamflow()
     streamflows = [s for s in raw_streamflows if s["type"] == "streamflow"]
-    aac = [s for s in raw_streamflows if s["type"] == "diversion_tunnel"]
+    aac = [s for s in raw_streamflows if s["type"] == "diversion_canal"]
     
     tunnels = fetch_cdwr_tunnels()
-    tunnels.extend(aac) # Add AAC
-    tunnels.extend(fetch_usgs_daily()) # Add CRA to tunnels
+    canals = fetch_usgs_daily()
+    canals.extend(aac)
+    
     reservoirs = fetch_reservoirs()
 
     payload = {
         "fetched_at": datetime.now().isoformat(),
         "streamflows": streamflows,
         "tunnels": tunnels,
+        "canals": canals,
         "reservoirs": reservoirs
     }
 

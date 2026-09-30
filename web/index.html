@@ -36,6 +36,7 @@
         <button class="nav-btn" onclick="zoomToPreset('lees_ferry')">Lees Ferry</button>
         <button class="nav-btn" onclick="zoomToPreset('reservoirs')">Powell & Mead</button>
         <button class="nav-btn" onclick="toggleTilt()" id="tilt-toggle-btn" title="Toggle 3D Elevation Relief & Camera Tilt">3D Tilt: OFF (Flat 2D)</button>
+        <button class="nav-btn law-btn" onclick="openLegalModal()" title="View Law of the River & Compact Framework">⚖️ Law of the River</button>
       </div>
     </div>
 
@@ -72,7 +73,8 @@
         <div class="legend-item"><span class="legend-box" style="background:#0284c7; width:14px; height:10px; border-radius:2px;"></span> Reservoirs &amp; Lakes (20)</div>
         <div class="legend-item"><span style="display:inline-block; width:11px; height:11px; background:#1e293b; border:1px solid #fff; border-radius:2px; margin-right:6px; vertical-align:middle;"></span> Major Storage Dams (16)</div>
         <div class="legend-item"><span class="legend-line divide"></span> Continental Divide</div>
-        <div class="legend-item"><span class="legend-line tunnel"></span> Trans-Mountain Diversions &amp; Canals</div>
+        <div class="legend-item"><span class="legend-line" style="display:inline-block; width:22px; height:3px; background:repeating-linear-gradient(90deg, #d97706, #d97706 4px, transparent 4px, transparent 8px); margin-right:6px; vertical-align:middle;"></span> Trans-Mountain Tunnels (Front Range)</div>
+        <div class="legend-item"><span class="legend-line" style="display:inline-block; width:22px; height:3.5px; background:repeating-linear-gradient(90deg, #059669, #059669 4px, transparent 4px, transparent 8px); margin-right:6px; vertical-align:middle;"></span> Conveyance Canals (AAC / CRA)</div>
         <div class="legend-item"><span class="legend-dot gauge"></span> Real-Time Streamflow Gauge</div>
       </div>
     </div>
@@ -136,7 +138,7 @@
           </label>
           <label class="toggle-label">
             <span>Trans-Mountain Tunnels</span>
-            <input type="checkbox" id="toggle-tunnels" onchange="toggleLayer('tunnels')">
+            <input type="checkbox" id="toggle-tunnels" checked onchange="toggleLayer('tunnels')">
             <span class="slider"></span>
           </label>
           <label class="toggle-label" style="padding-left: 16px; font-size: 11px; color: var(--text-muted);">
@@ -146,35 +148,96 @@
           </label>
           <label class="toggle-label">
             <span>Conveyance Canals (AAC / CRA)</span>
-            <input type="checkbox" id="toggle-canals" onchange="toggleLayer('canals')">
+            <input type="checkbox" id="toggle-canals" checked onchange="toggleLayer('canals')">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle-label" style="padding-left: 16px; font-size: 11px; color: var(--text-muted);">
+            <span>↳ Canal Flow Badges</span>
+            <input type="checkbox" id="toggle-canal-badges" onchange="toggleLayer('canalBadges')">
             <span class="slider"></span>
           </label>
         </div>
       </section>
 
-      <!-- Key Trans-Basin Metrics -->
+      <!-- Where Is the Water Going? (Major Basin Outflows & Diversions) -->
       <section class="card stat-card highlight-card">
         <div class="card-header">
-          <h3>Trans-Mountain Diversions</h3>
-          <span class="badge purple">Continental Divide Export</span>
+          <h3>Where Is the Water Going?</h3>
+          <span class="badge blue">System Allocation</span>
         </div>
-        <div class="big-metric">
-          <span class="metric-val" id="total-diverted-val">681.9</span>
-          <span class="metric-unit">cfs</span>
+        <p class="metric-desc" style="margin-top: 4px; margin-bottom: 8px;">Real-time snapshot of out-of-basin diversions and primary interstate compact deliveries:</p>
+        
+        <div class="flow-dest-list" id="flow-dest-list">
+          <div class="flow-dest-item">
+            <div class="dest-header">
+              <div class="dest-title-wrap">
+                <span class="dest-dot amber"></span>
+                <span class="dest-name">Front Range Tunnels</span>
+              </div>
+              <span class="dest-flow amber" id="flow-tunnels-val">5.7 cfs</span>
+            </div>
+            <div class="dest-meta">
+              <span>Continental Divide Export</span>
+              <span>Denver &amp; Northern Water</span>
+            </div>
+          </div>
+
+          <div class="flow-dest-item">
+            <div class="dest-header">
+              <div class="dest-title-wrap">
+                <span class="dest-dot emerald"></span>
+                <span class="dest-name">All-American Canal</span>
+              </div>
+              <span class="dest-flow emerald" id="flow-aac-val">4,800 cfs</span>
+            </div>
+            <div class="dest-meta">
+              <span>Imperial &amp; Coachella Valleys</span>
+              <span>Agriculture (Alfalfa/Crops)</span>
+            </div>
+          </div>
+
+          <div class="flow-dest-item">
+            <div class="dest-header">
+              <div class="dest-title-wrap">
+                <span class="dest-dot emerald"></span>
+                <span class="dest-name">Colorado River Aqueduct</span>
+              </div>
+              <span class="dest-flow emerald" id="flow-cra-val">1,350 cfs</span>
+            </div>
+            <div class="dest-meta">
+              <span>Southern California (MWD)</span>
+              <span>19M Urban Residents</span>
+            </div>
+          </div>
+
+          <div class="flow-dest-item">
+            <div class="dest-header">
+              <div class="dest-title-wrap">
+                <span class="dest-dot blue"></span>
+                <span class="dest-name">Lees Ferry Compact Flow</span>
+              </div>
+              <span class="dest-flow blue" id="flow-lees-val">9,770 cfs</span>
+            </div>
+            <div class="dest-meta">
+              <span>Upper &rarr; Lower Basin Delivery</span>
+              <span>Lake Powell / Glen Canyon</span>
+            </div>
+          </div>
         </div>
-        <p class="metric-desc">Water currently diverted under the Continental Divide through tunnels and canals to Denver & the Front Range.</p>
-        <div class="comparison-bar">
-          <div class="comp-label">
-            <span>Diverted Under Mountains</span>
-            <span id="diverted-comp">682 cfs</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill purple" style="width: 48%;"></div>
-          </div>
-          <div class="comp-label">
-            <span>Flow Remaining at Dotsero</span>
-            <span id="dotsero-comp">718 cfs</span>
-          </div>
+      </section>
+
+      <!-- Major Storage Reservoirs -->
+      <section class="card stat-card">
+        <div class="card-header">
+          <h3>Major Storage Reservoirs</h3>
+          <span class="badge" id="basin-storage-badge" style="background:#fef3c7; color:#b45309; font-weight:700;">28.9% Full</span>
+        </div>
+        <div id="basin-storage-summary" style="font-size: 11px; color: var(--text-muted); margin: 4px 0 8px 0; font-weight: 500;">
+          System Total: <strong>17.11M AF</strong> of 59.16M AF Total Capacity
+        </div>
+        
+        <div class="res-list-container" id="reservoir-list">
+          <!-- Dynamically populated by updateSidebar() -->
         </div>
       </section>
 
@@ -182,7 +245,7 @@
       <section class="card stat-card">
         <div class="card-header">
           <h3>Water Use by Sector</h3>
-          <span class="badge">Colorado Basin</span>
+          <span class="badge">Basin Consumption</span>
         </div>
         <div class="sector-chart-wrap">
           <div class="donut-chart" style="background: conic-gradient(#059669 0% 78%, #0284c7 78% 92%, #eab308 92% 100%);">
@@ -193,44 +256,10 @@
           </div>
           <div class="sector-legend">
             <div class="sec-item"><span class="sec-box ag"></span> Agriculture (Alfalfa, Hay, Crops): <strong>78%</strong></div>
-            <div class="sec-item"><span class="sec-box mun"></span> Municipal & Industrial: <strong>14%</strong></div>
-            <div class="sec-item"><span class="sec-box evap"></span> Reservoir Evaporation & Loss: <strong>8%</strong></div>
+            <div class="sec-item"><span class="sec-box mun"></span> Municipal &amp; Industrial: <strong>14%</strong></div>
+            <div class="sec-item"><span class="sec-box evap"></span> Reservoir Evaporation &amp; Loss: <strong>8%</strong></div>
           </div>
         </div>
-      </section>
-
-      <!-- Reservoir Health Card -->
-      <section class="card stat-card">
-        <div class="card-header">
-          <h3>Mega-Reservoir Storage</h3>
-          <span class="badge red">Structural Deficit</span>
-        </div>
-        
-        <div class="res-item">
-          <div class="res-info">
-            <span class="res-name">Lake Powell (Glen Canyon)</span>
-            <span class="res-val" id="powell-storage-text">10.3% (2.51M AF)</span>
-          </div>
-          <div class="progress-track">
-            <div id="powell-meter" class="progress-fill warning" style="width: 10.3%;"></div>
-          </div>
-        </div>
-
-        <div class="res-item">
-          <div class="res-info">
-            <span class="res-name">Lake Mead (Hoover Dam)</span>
-            <span class="res-val" id="mead-storage-text">32.9% (8.60M AF)</span>
-          </div>
-          <div class="progress-track">
-            <div id="mead-meter" class="progress-fill warning" style="width: 32.9%;"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Domain Note Card -->
-      <section class="card text-card">
-        <h4>Hydrologic & Legal Context</h4>
-        <p>The 1922 Compact allocated <strong>15.0 to 16.5 million acre-feet</strong> of "paper water" during an anomalously wet decade. In reality, the 21st-century average runoff is only <strong>~12.3 million acre-feet</strong>, creating the persistent basin-wide structural deficit documented in <em>Cadillac Desert</em>.</p>
       </section>
     </aside>
   </main>
@@ -240,12 +269,12 @@
     <div class="panel-resizer" id="table-resizer" title="Drag up or down to resize table panel">
       <div class="resizer-handle"></div>
     </div>
-    <div class="table-header" onclick="toggleTableCollapse()">
+    <div class="table-header" id="table-header">
       <div class="table-title">
-        <h3>ACTIVE TELEMETRY NODES (<span id="node-count">15</span>)</h3>
+        <h3>ACTIVE TELEMETRY NODES (<span id="node-count">30</span>)</h3>
         <span class="table-sub" id="table-hint">Hidden by default • Click to expand table &amp; click any row to fly to gauge</span>
       </div>
-      <button class="collapse-btn" onclick="event.stopPropagation(); toggleTableCollapse()" title="Toggle telemetry table">
+      <button class="collapse-btn" id="collapse-btn" title="Toggle telemetry table">
         <span id="collapse-icon">▲</span>
       </button>
     </div>
@@ -269,8 +298,107 @@
     </div>
   </footer>
 
+  <!-- Law of the River & Institutional Framework Modal -->
+  <div class="modal-overlay" id="legal-modal" onclick="closeLegalModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2>⚖️ The Law of the River &amp; Legal Framework</h2>
+          <p>The treaties, interstate compacts, statutes, and court decrees governing the Colorado River</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeLegalModal()" title="Close dialog">✕</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- 1. The 1922 Compact -->
+        <div class="law-section">
+          <div class="law-section-header">
+            <h3 class="law-section-title">1. The 1922 Colorado River Compact</h3>
+            <span class="law-tag primary">Foundation</span>
+          </div>
+          <p class="law-text">
+            Negotiated in Santa Fe, New Mexico and signed by representatives of the seven basin states and Herbert Hoover, the Compact fundamentally divided the river at <strong>Lees Ferry, Arizona</strong> into the <strong>Upper Basin</strong> (Colorado, Wyoming, Utah, New Mexico) and <strong>Lower Basin</strong> (Arizona, California, Nevada).
+          </p>
+          <div class="law-stats-grid">
+            <div class="law-stat-box">
+              <div class="law-stat-label">Upper Basin Apportionment</div>
+              <div class="law-stat-val">7.5 MAF / yr</div>
+            </div>
+            <div class="law-stat-box">
+              <div class="law-stat-label">Lower Basin Apportionment</div>
+              <div class="law-stat-val">7.5 MAF / yr</div>
+            </div>
+            <div class="law-stat-box">
+              <div class="law-stat-label">Estimated River Runoff</div>
+              <div class="law-stat-val">~16.5 MAF / yr</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. The Structural Deficit -->
+        <div class="law-section">
+          <div class="law-section-header">
+            <h3 class="law-section-title">2. The "Paper Water" Structural Deficit</h3>
+            <span class="law-tag danger">Core Dilemma</span>
+          </div>
+          <p class="law-text">
+            The Compact's fatal flaw was its reliance on gauge records from the anomalously wet period of 1905–1922. Modern tree-ring reconstructions and 21st-century USGS hydrologic records demonstrate that the long-term natural flow of the Colorado River is only <strong>~12.3 to 13.5 million acre-feet</strong>. Allocating 15.0 MAF to the states plus 1.5 MAF to Mexico created an institutional <strong>structural deficit</strong> of over 2.0 MAF annually, steadily depleting Lake Mead and Lake Powell.
+          </p>
+          <div class="law-stats-grid">
+            <div class="law-stat-box">
+              <div class="law-stat-label">21st-Century Inflow Avg</div>
+              <div class="law-stat-val" style="color:#dc2626;">~12.3 MAF / yr</div>
+            </div>
+            <div class="law-stat-box">
+              <div class="law-stat-label">Total Legal Allocations</div>
+              <div class="law-stat-val" style="color:#0284c7;">16.5 MAF / yr</div>
+            </div>
+            <div class="law-stat-box">
+              <div class="law-stat-label">Chronic Annual Shortfall</div>
+              <div class="law-stat-val" style="color:#dc2626;">~2.5 MAF / yr</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Mexican Treaty of 1944 -->
+        <div class="law-section">
+          <div class="law-section-header">
+            <h3 class="law-section-title">3. The 1944 Mexican Water Treaty</h3>
+            <span class="law-tag emerald">International</span>
+          </div>
+          <p class="law-text">
+            Guaranteed Mexico a minimum annual delivery of <strong>1.5 million acre-feet</strong> of Colorado River water across the international boundary, delivered primarily at Morelos Dam near Yuma, Arizona. Under Minutes 319 and 323, the U.S. and Mexico established shared shortage guidelines and binational environmental restoration flows for the Colorado River Delta.
+          </p>
+        </div>
+
+        <!-- 4. Prior Appropriation & The 1902 Shoshone Call -->
+        <div class="law-section">
+          <div class="law-section-header">
+            <h3 class="law-section-title">4. Prior Appropriation &amp; Senior Rights (The Shoshone Call)</h3>
+            <span class="law-tag warning">Western Doctrine</span>
+          </div>
+          <p class="law-text">
+            Western water law operates strictly on <em>"first in time, first in right."</em> Located in Glenwood Canyon, the <strong>Shoshone Hydroelectric Power Plant</strong> holds a 1902 senior water right for <strong>1,250 cfs</strong>. Although non-consumptive (the water passes through the turbines back into the river), when Shoshone places a "call" on the river, junior trans-mountain diverters upstream (including Denver Water's Moffat and Roberts Tunnels) are legally forced to halt or curtail their diversions to let wet water stay in the riverbed.
+          </p>
+        </div>
+
+        <!-- 5. Post-2026 Operations Negotiations -->
+        <div class="law-section">
+          <div class="law-section-header">
+            <h3 class="law-section-title">5. Post-2026 Operations Negotiations</h3>
+            <span class="law-tag purple">Current Horizon</span>
+          </div>
+          <p class="law-text">
+            The 2007 Interim Guidelines and the 2019 Drought Contingency Plans (DCP) governing operations at Lake Powell and Lake Mead expire on <strong>December 31, 2026</strong>. The seven basin states (divided between the Upper Division and Lower Division alternative proposals) along with 30 sovereign Native American Tribal Nations and the federal government are currently negotiating permanent, binding annual reductions of 2 to 4 million acre-feet to prevent the system from hitting dead pool.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- MapLibre GL JS -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=11.0"></script>
+  <script src="app.js?v=12.0"></script>
 </body>
 </html>

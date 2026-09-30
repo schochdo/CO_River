@@ -677,13 +677,73 @@ function renderGeography(geo, riverNetwork, lakes) {
       if (!e.features.length) return;
       map.getCanvas().style.cursor = 'pointer';
       const p = e.features[0].properties;
-      const name = p.GNIS_NAME || "Reservoir";
-      const area = p.AREASQKM ? `${Math.round(p.AREASQKM)} sq km` : "";
-      tooltipPopup.setLngLat(e.lngLat).setHTML(`<strong>${name}</strong><br><span style="font-size:11px;color:#64748b;">USGS NHD Shoreline (${area})</span>`).addTo(map);
+      const name = p.GNIS_NAME || p.name || "Reservoir";
+      const matchRes = activeMetrics?.reservoirs?.find(r => 
+        r.name.toLowerCase().includes(name.toLowerCase()) || 
+        name.toLowerCase().includes(r.name.split('(')[0].trim().toLowerCase())
+      );
+      if (matchRes) {
+        tooltipPopup.setLngLat(e.lngLat).setHTML(`
+          <div style="font-family:'Inter',sans-serif; min-width:200px;">
+            <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">Major Storage Reservoir</span>
+            <strong style="font-size:13px; color:#0f172a; display:block;">${matchRes.name}</strong>
+            <div style="margin: 6px 0; padding: 6px 8px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+              <span style="font-size:11px; color:#475569; font-weight:600;">Current Storage:</span>
+              <span style="font-size:15px; font-weight:800; color:#0284c7;">${matchRes.capacity_pct}% <span style="font-size:11px; font-weight:600; color:#64748b;">Full</span></span>
+            </div>
+            <div style="font-size:11px; color:#475569; line-height:1.4;">
+              <strong>Storage:</strong> ${(matchRes.storage_af / 1e6).toFixed(2)}M Acre-Feet<br>
+              <strong>Elevation:</strong> ${matchRes.elevation_ft ? matchRes.elevation_ft.toLocaleString() + ' ft' : 'USBR Telemetry'}<br>
+              <strong>Role:</strong> ${matchRes.role || 'Basin Storage'}
+            </div>
+          </div>
+        `).addTo(map);
+      } else {
+        const area = p.AREASQKM ? `${Math.round(p.AREASQKM)} sq km` : "";
+        tooltipPopup.setLngLat(e.lngLat).setHTML(`<strong>${name}</strong><br><span style="font-size:11px;color:#64748b;">USGS NHD Shoreline (${area})</span>`).addTo(map);
+      }
     });
+
     map.on('mouseleave', 'lakes-fill', () => {
       map.getCanvas().style.cursor = '';
       tooltipPopup.remove();
+    });
+
+    map.on('click', 'lakes-fill', (e) => {
+      if (!e.features.length) return;
+      const p = e.features[0].properties;
+      const name = p.GNIS_NAME || p.name || "Reservoir";
+      const matchRes = activeMetrics?.reservoirs?.find(r => 
+        r.name.toLowerCase().includes(name.toLowerCase()) || 
+        name.toLowerCase().includes(r.name.split('(')[0].trim().toLowerCase())
+      );
+      if (matchRes) {
+        new maplibregl.Popup({ offset: 8 })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div style="font-family:'Inter',sans-serif; min-width:220px; padding:2px;">
+              <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">Major Storage Reservoir</span>
+              <strong style="font-size:14px; color:#0f172a; display:block;">${matchRes.name}</strong>
+              <span style="font-size:11px; color:#64748b; font-weight:600;">${matchRes.river || ''}</span>
+              <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                  <span style="font-size:11px; color:#475569; font-weight:600;">Current Storage:</span>
+                  <span style="font-size:16px; font-weight:800; color:#0284c7;">${matchRes.capacity_pct}% <span style="font-size:11px; font-weight:600; color:#64748b;">Full</span></span>
+                </div>
+                <div style="height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
+                  <div style="width:${Math.min(100, matchRes.capacity_pct)}%; height:100%; background:${matchRes.capacity_pct < 25 ? '#ef4444' : (matchRes.capacity_pct < 50 ? '#f59e0b' : '#0891b2')};"></div>
+                </div>
+              </div>
+              <div style="font-size:11.5px; color:#334155; line-height:1.5;">
+                <strong>Elevation:</strong> ${matchRes.elevation_ft ? matchRes.elevation_ft.toLocaleString() + ' ft' : 'USBR'}<br>
+                <strong>Volume Stored:</strong> ${Math.round(matchRes.storage_af).toLocaleString()} Acre-Feet<br>
+                <strong>Active Capacity:</strong> ${Math.round(matchRes.capacity_af || 0).toLocaleString()} Acre-Feet<br>
+                <strong>Operational Role:</strong> ${matchRes.role || 'Basin Storage'}
+              </div>
+            </div>
+          `)
+          .addTo(map);
+      }
     });
   }
 
@@ -838,7 +898,7 @@ function renderGeography(geo, riverNetwork, lakes) {
       };
 
       map.addSource('tunnels', { type: 'geojson', data: tunnelsGeoJSON });
-      const showTunnels = document.getElementById('toggle-tunnels')?.checked ?? false;
+      const showTunnels = document.getElementById('toggle-tunnels')?.checked ?? true;
       map.addLayer({
         id: 'tunnels-line',
         type: 'line',
@@ -847,7 +907,7 @@ function renderGeography(geo, riverNetwork, lakes) {
           'visibility': showTunnels ? 'visible' : 'none'
         },
         paint: {
-          'line-color': '#9333ea',
+          'line-color': '#d97706',
           'line-width': ['coalesce', ['get', 'weight'], 2.5],
           'line-dasharray': [2, 3],
           'line-opacity': 0.95
@@ -875,14 +935,14 @@ function renderGeography(geo, riverNetwork, lakes) {
         const t = e.features[0].properties;
         const flowVal = Number(t.flow_cfs || 0);
         const flowDisplay = flowVal > 0 
-          ? `<span style="font-size:16px; font-weight:800; color:#7c3aed;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>`
+          ? `<span style="font-size:16px; font-weight:800; color:#d97706;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>`
           : `<span style="font-size:14px; font-weight:700; color:#64748b;">0.0 cfs <span style="font-size:11px; font-weight:500;">(Inactive / Closed)</span></span>`;
 
         tooltipPopup.setLngLat(e.lngLat).setHTML(`
           <div style="font-family:'Inter',sans-serif; min-width: 210px; max-width: 280px;">
-            <span style="font-size:10px;font-weight:700;color:#7e22ce;background:#f3e8ff;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
+            <span style="font-size:10px;font-weight:700;color:#b45309;background:#fffbeb;border:1px solid #fde68a;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
             <strong style="font-size:13px;color:#0f172a;display:block;">${t.name}</strong>
-            <span style="font-size:11px;color:#7c3aed;font-weight:600;">${t.operator || ''}</span>
+            <span style="font-size:11px;color:#d97706;font-weight:600;">${t.operator || ''}</span>
             <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
               <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
               ${flowDisplay}
@@ -913,12 +973,12 @@ function renderGeography(geo, riverNetwork, lakes) {
           .setLngLat(e.lngLat)
           .setHTML(`
             <div style="font-family:'Inter',sans-serif; min-width: 220px;">
-              <span style="font-size:10px;font-weight:700;color:#7e22ce;background:#f3e8ff;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
+              <span style="font-size:10px;font-weight:700;color:#b45309;background:#fffbeb;border:1px solid #fde68a;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
               <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
-              <span style="font-size:11px;color:#7c3aed;font-weight:600;">${t.operator || ''}</span>
+              <span style="font-size:11px;color:#d97706;font-weight:600;">${t.operator || ''}</span>
               <div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
                 <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
-                <span style="font-size:16px; font-weight:800; color:#7c3aed;">${flowVal.toLocaleString()} cfs</span>
+                <span style="font-size:16px; font-weight:800; color:#d97706;">${flowVal.toLocaleString()} cfs</span>
               </div>
               <div style="font-size:11px;line-height:1.45;color:#334155;">
                 <strong>Destination:</strong> ${t.destination || t.to}<br>
@@ -944,7 +1004,7 @@ function renderGeography(geo, riverNetwork, lakes) {
       };
 
       map.addSource('canals', { type: 'geojson', data: canalsGeoJSON });
-      const showCanals = document.getElementById('toggle-canals')?.checked ?? false;
+      const showCanals = document.getElementById('toggle-canals')?.checked ?? true;
       map.addLayer({
         id: 'canals-line',
         type: 'line',
@@ -953,25 +1013,79 @@ function renderGeography(geo, riverNetwork, lakes) {
           'visibility': showCanals ? 'visible' : 'none'
         },
         paint: {
-          'line-color': '#0891b2',
-          'line-width': 3.5,
+          'line-color': '#059669',
+          'line-width': 4.0,
           'line-dasharray': [4, 2],
           'line-opacity': 0.95
         }
       });
 
-      map.on('click', 'canals-line', (e) => {
+      // Generous 22px hit buffer for canals
+      map.addLayer({
+        id: 'canals-hit-buffer',
+        type: 'line',
+        source: 'canals',
+        layout: {
+          'visibility': showCanals ? 'visible' : 'none'
+        },
+        paint: {
+          'line-color': '#000000',
+          'line-width': 22,
+          'line-opacity': 0.0001
+        }
+      });
+
+      map.on('mousemove', 'canals-hit-buffer', (e) => {
+        if (!e.features.length) return;
+        map.getCanvas().style.cursor = 'pointer';
+        const t = e.features[0].properties;
+        const flowVal = Number(t.flow_cfs || 0);
+        const flowDisplay = flowVal > 0 
+          ? `<span style="font-size:16px; font-weight:800; color:#059669;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>`
+          : `<span style="font-size:14px; font-weight:700; color:#64748b;">Active Conveyance</span>`;
+
+        tooltipPopup.setLngLat(e.lngLat).setHTML(`
+          <div style="font-family:'Inter',sans-serif; min-width: 220px; max-width: 290px;">
+            <span style="font-size:10px;font-weight:700;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
+            <strong style="font-size:13px;color:#0f172a;display:block;">${t.name}</strong>
+            <span style="font-size:11px;color:#059669;font-weight:600;">${t.operator || ''}</span>
+            <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+              <span style="font-size:11px; color:#475569; font-weight:600;">Estimated Flow:</span>
+              ${flowDisplay}
+            </div>
+            <div style="font-size:11px;line-height:1.45;color:#334155;">
+              <strong>Destination:</strong> ${t.destination || t.to}<br>
+              <strong>Length:</strong> ${t.length_miles} miles<br>
+              <strong>Intake:</strong> ${t.from}<br>
+              <strong>Terminus:</strong> ${t.to}
+            </div>
+          </div>
+        `).addTo(map);
+      });
+
+      map.on('mouseleave', 'canals-hit-buffer', () => {
+        map.getCanvas().style.cursor = '';
+        tooltipPopup.remove();
+      });
+
+      map.on('click', 'canals-hit-buffer', (e) => {
         if (!e.features.length) return;
         const t = e.features[0].properties;
+        const flowVal = Number(t.flow_cfs || 0);
         new maplibregl.Popup({ offset: 8 })
           .setLngLat(e.lngLat)
           .setHTML(`
-            <div style="font-family:'Inter',sans-serif; min-width: 210px;">
-              <span style="font-size:10px;font-weight:700;color:#0891b2;background:#e0f2fe;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
-              <strong style="font-size:13px;color:#0f172a;display:block;">${t.name}</strong>
-              <span style="font-size:11px;color:#0369a1;font-weight:600;">${t.operator || ''}</span>
-              <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
-              <div style="font-size:11px;line-height:1.45;color:#334155;">
+            <div style="font-family:'Inter',sans-serif; min-width: 220px;">
+              <span style="font-size:10px;font-weight:700;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
+              <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
+              <span style="font-size:11px;color:#059669;font-weight:600;">${t.operator || ''}</span>
+              ${flowVal > 0 ? `
+              <div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:11px; color:#475569; font-weight:600;">Estimated Flow:</span>
+                <span style="font-size:16px; font-weight:800; color:#059669;">${flowVal.toLocaleString()} cfs</span>
+              </div>` : ''}
+              <div style="font-size:11px;line-height:1.45;color:#334155;margin-top:6px;">
+                <strong>Destination:</strong> ${t.destination || t.to}<br>
                 <strong>Length:</strong> ${t.length_miles} miles<br>
                 <strong>Intake:</strong> ${t.from}<br>
                 <strong>Terminus:</strong> ${t.to}
@@ -980,9 +1094,6 @@ function renderGeography(geo, riverNetwork, lakes) {
           `)
           .addTo(map);
       });
-
-      map.on('mouseenter', 'canals-line', () => map.getCanvas().style.cursor = 'pointer');
-      map.on('mouseleave', 'canals-line', () => map.getCanvas().style.cursor = '');
     }
   }
 
@@ -1156,86 +1267,110 @@ function renderMetrics(metrics) {
       .addTo(map);
 
     if (isFrontRange) {
-      const showTunnels = document.getElementById('toggle-tunnels')?.checked ?? false;
+      const showTunnels = document.getElementById('toggle-tunnels')?.checked ?? true;
       const showTunnelBadges = document.getElementById('toggle-tunnel-badges')?.checked ?? false;
       if (!showTunnels || !showTunnelBadges) marker.getElement().style.display = 'none';
       markers.tunnels.push(marker);
     } else {
-      if (!showCanals) marker.getElement().style.display = 'none';
+      const showCanals = document.getElementById('toggle-canals')?.checked ?? true;
+      const showCanalBadges = document.getElementById('toggle-canal-badges')?.checked ?? false;
+      if (!showCanals || !showCanalBadges) marker.getElement().style.display = 'none';
       markers.canals.push(marker);
     }
 
     stationMarkers[t.id] = { marker, popup, lat: t.lat, lon: t.lon };
   });
 
-  // 3. Reservoirs Badges (Kept visible by default for key storage context)
-  metrics.reservoirs.forEach(r => {
-    const el = document.createElement('div');
-    el.className = 'cfs-marker-wrap';
-    el.innerHTML = `<div class="cfs-badge res-badge"><span class="cfs-val">${r.capacity_pct}%</span></div>`;
-
-    const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
-      <div style="font-family:'Inter',sans-serif; min-width: 215px; padding: 2px;">
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px;">Mega-Reservoir Storage</span>
-        </div>
-        <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${r.name}</strong>
-        <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;">
-          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
-            <span style="font-size:11px; color:#64748b; font-weight:600;">Current Storage:</span>
-            <span style="font-size:16px; font-weight:800; color:#0284c7;">${r.capacity_pct}% <span style="font-size:11px; font-weight:600; color:#64748b;">Full</span></span>
-          </div>
-          <div style="height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
-            <div style="width:${r.capacity_pct}%; height:100%; background:#0284c7;"></div>
-          </div>
-        </div>
-        <div style="font-size:11px; color:#475569; line-height:1.5;">
-          <strong>Elevation:</strong> ${r.elevation_ft.toLocaleString()} ft<br>
-          <strong>Total Volume:</strong> ${Math.round(r.storage_af).toLocaleString()} Acre-Feet<br>
-          <strong>Last Measured:</strong> ${formatTimestamp(r.timestamp)}
-        </div>
-      </div>
-    `);
-
-    const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-      .setLngLat([r.lon, r.lat])
-      .setPopup(popup)
-      .addTo(map);
-
-    if (!showReservoirs) {
-      marker.getElement().style.display = 'none';
-    }
-
-    markers.reservoirs.push(marker);
-    stationMarkers[r.id] = { marker, popup, lat: r.lat, lon: r.lon };
-  });
+  // 3. Reservoirs: Floating labels on the map are eliminated to keep the waterbodies clean;
+  // all detailed telemetry is showcased in the dedicated sidebar panel and via polygon hover/click.
 }
 
 function updateSidebar(metrics) {
-  // 1. Total Siphoned Under Divide (Front Range only)
-  const totalDiverted = metrics.tunnels
-    .filter(t => t.id.endsWith("TUNCO"))
-    .reduce((sum, t) => sum + t.flow_cfs, 0);
-  document.getElementById("total-diverted-val").textContent = totalDiverted.toFixed(1);
-  document.getElementById("diverted-comp").textContent = `${Math.round(totalDiverted)} cfs`;
+  // 1. Where Is the Water Going? (Major Basin Outflows & Diversions)
+  const tunnelsExport = (metrics.tunnels || [])
+    .filter(t => t.id && t.id.endsWith("TUNCO"))
+    .reduce((sum, t) => sum + (t.flow_cfs || 0), 0);
+  
+  const aacFlow = (metrics.canals || []).find(c => c.id === "09527700")?.flow_cfs 
+    || (metrics.streamflows || []).find(s => s.id === "09527700")?.flow_cfs 
+    || 4800;
+  
+  const craFlow = (metrics.canals || []).find(c => c.id === "09424150")?.flow_cfs 
+    || 1350;
 
-  // 2. Dotsero comparison
-  const dotsero = metrics.streamflows.find(s => s.id === "09070500");
-  if (dotsero) {
-    document.getElementById("dotsero-comp").textContent = `${Math.round(dotsero.flow_cfs)} cfs`;
+  const leesFlow = (metrics.streamflows || []).find(s => s.id === "09380000")?.flow_cfs || 9770;
+
+  const tunnelsElem = document.getElementById("flow-tunnels-val");
+  if (tunnelsElem) tunnelsElem.textContent = `${tunnelsExport.toFixed(1)} cfs`;
+
+  const aacElem = document.getElementById("flow-aac-val");
+  if (aacElem) aacElem.textContent = `${Math.round(aacFlow).toLocaleString()} cfs`;
+
+  const craElem = document.getElementById("flow-cra-val");
+  if (craElem) craElem.textContent = `${Math.round(craFlow).toLocaleString()} cfs`;
+
+  const leesElem = document.getElementById("flow-lees-val");
+  if (leesElem) leesElem.textContent = `${Math.round(leesFlow).toLocaleString()} cfs`;
+
+  // 2. Major Storage Reservoirs Panel (7 Key Facilities)
+  const resList = metrics.reservoirs || [];
+  const totalCap = resList.reduce((sum, r) => sum + (r.capacity_af || (r.storage_af / (r.capacity_pct / 100))), 0);
+  const totalStorage = resList.reduce((sum, r) => sum + (r.storage_af || 0), 0);
+  const systemPct = totalCap > 0 ? ((totalStorage / totalCap) * 100).toFixed(1) : "28.9";
+
+  const badgeElem = document.getElementById("basin-storage-badge");
+  if (badgeElem) {
+    badgeElem.textContent = `${systemPct}% Full`;
+    if (systemPct < 25) {
+      badgeElem.style.background = "#fef2f2";
+      badgeElem.style.color = "#dc2626";
+    } else if (systemPct < 50) {
+      badgeElem.style.background = "#fef3c7";
+      badgeElem.style.color = "#b45309";
+    } else {
+      badgeElem.style.background = "#ecfeff";
+      badgeElem.style.color = "#0891b2";
+    }
   }
 
-  // 3. Reservoir storage
-  const powell = metrics.reservoirs.find(r => r.id === "lake_powell");
-  if (powell) {
-    document.getElementById("powell-storage-text").textContent = `${powell.capacity_pct}% (${(powell.storage_af / 1e6).toFixed(2)}M AF)`;
-    document.getElementById("powell-meter").style.width = `${powell.capacity_pct}%`;
+  const summaryElem = document.getElementById("basin-storage-summary");
+  if (summaryElem) {
+    summaryElem.innerHTML = `System Total: <strong>${(totalStorage / 1e6).toFixed(2)}M AF</strong> of ${(totalCap / 1e6).toFixed(2)}M AF Total Capacity`;
   }
 
-  const mead = metrics.reservoirs.find(r => r.id === "lake_mead");
-  if (mead) {
-    document.getElementById("mead-storage-text").textContent = `${mead.capacity_pct}% (${(mead.storage_af / 1e6).toFixed(2)}M AF)`;
-    document.getElementById("mead-meter").style.width = `${mead.capacity_pct}%`;
+  const resContainer = document.getElementById("reservoir-list");
+  if (resContainer) {
+    resContainer.innerHTML = "";
+    resList.forEach(r => {
+      const pct = Number(r.capacity_pct) || 0;
+      const statusClass = pct < 25 ? 'crit' : (pct < 50 ? 'warn' : 'good');
+      const row = document.createElement("div");
+      row.className = "res-row";
+      row.title = `Click to fly to ${r.name}`;
+      
+      const cleanName = r.name.split('(')[0].trim();
+      const subLabel = r.river || (r.name.match(/\(([^)]+)\)/)?.[1] || 'Major Storage');
+
+      row.innerHTML = `
+        <div class="res-row-head">
+          <span class="res-row-name">${cleanName}</span>
+          <span class="res-row-val ${statusClass}">${pct}% (${(r.storage_af / 1e6).toFixed(2)}M AF)</span>
+        </div>
+        <div class="res-row-sub">
+          <span>${subLabel}</span>
+          <span>Elev: ${Math.round(r.elevation_ft || 0).toLocaleString()} ft</span>
+        </div>
+        <div class="progress-track" style="height: 5px;">
+          <div class="progress-fill ${statusClass}" style="width: ${Math.min(100, Math.max(2, pct))}%;"></div>
+        </div>
+      `;
+      row.onclick = () => {
+        if (r.lat && r.lon) {
+          map.flyTo({ center: [r.lon, r.lat], zoom: 9.3, duration: 1400 });
+        }
+      };
+      resContainer.appendChild(row);
+    });
   }
 }
 
@@ -1399,7 +1534,13 @@ function toggleLayer(layerName) {
       break;
     case "canals":
       setLayerVisibility('canals-line', isChecked);
-      markers.canals.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
+      setLayerVisibility('canals-hit-buffer', isChecked);
+      const showCanalBadges = document.getElementById('toggle-canal-badges')?.checked ?? false;
+      markers.canals.forEach(m => m.getElement().style.display = (isChecked && showCanalBadges) ? '' : 'none');
+      break;
+    case "canalBadges":
+      const canalsOn = document.getElementById('toggle-canals')?.checked ?? true;
+      markers.canals.forEach(m => m.getElement().style.display = (canalsOn && isChecked) ? '' : 'none');
       break;
     case "reservoirs":
       setLayerVisibility('lakes-fill', isChecked);
@@ -1444,44 +1585,143 @@ function toggleTableCollapse() {
 
 function initTableResizer() {
   const resizer = document.getElementById("table-resizer");
+  const header = document.getElementById("table-header");
   const container = document.getElementById("table-wrap");
-  if (!resizer || !container) return;
+  const collapseBtn = document.getElementById("collapse-btn");
+  if (!container) return;
 
   let isDragging = false;
   let startY = 0;
   let startHeight = 0;
+  let hasMoved = false;
 
-  resizer.addEventListener("mousedown", (e) => {
-    if (container.classList.contains("collapsed")) {
-      toggleTableCollapse();
-    }
+  const startDrag = (clientY) => {
     isDragging = true;
-    startY = e.clientY;
-    startHeight = container.getBoundingClientRect().height || tablePanelHeight;
-    resizer.classList.add("dragging");
+    hasMoved = false;
+    startY = clientY;
+    
+    if (container.classList.contains("collapsed")) {
+      container.classList.remove("collapsed");
+      const icon = document.getElementById("collapse-icon");
+      if (icon) icon.textContent = "▼";
+      const hint = document.getElementById("table-hint");
+      if (hint) hint.textContent = "Click any row to fly to its position on the map • Drag top edge to resize";
+    }
+    
+    startHeight = container.getBoundingClientRect().height || tablePanelHeight || 360;
+    container.classList.add("is-resizing");
+    if (resizer) resizer.classList.add("dragging");
     document.body.style.cursor = "row-resize";
     document.body.style.userSelect = "none";
-    e.preventDefault();
-  });
+  };
 
-  window.addEventListener("mousemove", (e) => {
+  const doDrag = (clientY) => {
     if (!isDragging) return;
-    const dy = startY - e.clientY; // dragging up increases height
-    const maxH = Math.round(window.innerHeight * 0.82);
-    const newHeight = Math.max(140, Math.min(maxH, startHeight + dy));
+    const dy = startY - clientY;
+    if (Math.abs(dy) > 4) {
+      hasMoved = true;
+    }
+    const maxH = Math.round(window.innerHeight * 0.85);
+    const newHeight = Math.max(120, Math.min(maxH, startHeight + dy));
     tablePanelHeight = newHeight;
     container.style.height = `${newHeight}px`;
+  };
+
+  const endDrag = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    container.classList.remove("is-resizing");
+    if (resizer) resizer.classList.remove("dragging");
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
+  };
+
+  // Mouse Listeners
+  if (resizer) {
+    resizer.addEventListener("mousedown", (e) => {
+      startDrag(e.clientY);
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  }
+
+  if (header) {
+    header.addEventListener("mousedown", (e) => {
+      if (e.target.closest("#collapse-btn")) return;
+      startDrag(e.clientY);
+    });
+
+    header.addEventListener("click", (e) => {
+      if (hasMoved) {
+        e.preventDefault();
+        e.stopPropagation();
+        hasMoved = false;
+      } else {
+        toggleTableCollapse();
+      }
+    });
+  }
+
+  if (collapseBtn) {
+    collapseBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleTableCollapse();
+    });
+  }
+
+  window.addEventListener("mousemove", (e) => {
+    if (isDragging) {
+      doDrag(e.clientY);
+      e.preventDefault();
+    }
   });
 
   window.addEventListener("mouseup", () => {
-    if (isDragging) {
-      isDragging = false;
-      resizer.classList.remove("dragging");
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
+    endDrag();
+  });
+
+  // Touch Event Support (iPad / Mobile / Surface)
+  if (resizer) {
+    resizer.addEventListener("touchstart", (e) => {
+      if (e.touches.length === 1) {
+        startDrag(e.touches[0].clientY);
+      }
+    }, { passive: false });
+  }
+
+  window.addEventListener("touchmove", (e) => {
+    if (isDragging && e.touches.length === 1) {
+      doDrag(e.touches[0].clientY);
+      e.preventDefault();
     }
+  }, { passive: false });
+
+  window.addEventListener("touchend", () => {
+    endDrag();
   });
 }
+
+// Law of the River Modal Handlers
+function openLegalModal() {
+  const modal = document.getElementById("legal-modal");
+  if (modal) {
+    modal.classList.add("active");
+  }
+}
+
+function closeLegalModal(e) {
+  if (e && e.target && e.target.classList.contains("modal-card")) return;
+  const modal = document.getElementById("legal-modal");
+  if (modal) {
+    modal.classList.remove("active");
+  }
+}
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeLegalModal();
+  }
+});
 
 function refreshData() {
   const syncElem = document.getElementById("sync-time");
