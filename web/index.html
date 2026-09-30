@@ -230,19 +230,22 @@
     </aside>
   </main>
 
-  <!-- Bottom Collapsible Station Table -->
-  <footer class="app-table-panel">
-    <div class="table-header">
+  <!-- Bottom Collapsible & Resizable Station Table (Hidden by Default) -->
+  <footer class="app-table-panel" id="table-panel">
+    <div class="panel-resizer" id="table-resizer" title="Drag up or down to resize table panel">
+      <div class="resizer-handle"></div>
+    </div>
+    <div class="table-header" onclick="toggleTableCollapse()">
       <div class="table-title">
-        <h3>ACTIVE TELEMETRY NODES (<span id="node-count">10</span>)</h3>
-        <span class="table-sub">Click any row to fly to its position on the map</span>
+        <h3>ACTIVE TELEMETRY NODES (<span id="node-count">15</span>)</h3>
+        <span class="table-sub" id="table-hint">Hidden by default • Click to expand table &amp; click any row to fly to gauge</span>
       </div>
-      <button class="collapse-btn" onclick="toggleTableCollapse()">
-        <span id="collapse-icon">▼</span>
+      <button class="collapse-btn" onclick="event.stopPropagation(); toggleTableCollapse()" title="Toggle telemetry table">
+        <span id="collapse-icon">▲</span>
       </button>
     </div>
     
-    <div class="table-container" id="table-wrap">
+    <div class="table-container collapsed" id="table-wrap">
       <table class="data-table">
         <thead>
           <tr>

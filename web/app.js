@@ -143,6 +143,10 @@ function initMap() {
     });
 
     loadData();
+    initTableResizer();
+    if (window.location.search.includes('expand_table=1')) {
+      toggleTableCollapse();
+    }
   });
 }
 
@@ -1172,11 +1176,68 @@ function toggleLayer(layerName) {
   }
 }
 
+let tablePanelHeight = 360;
+
 function toggleTableCollapse() {
   const container = document.getElementById("table-wrap");
   const icon = document.getElementById("collapse-icon");
+  const hint = document.getElementById("table-hint");
+  if (!container || !icon) return;
+
   container.classList.toggle("collapsed");
-  icon.textContent = container.classList.contains("collapsed") ? "▲" : "▼";
+  const isCollapsed = container.classList.contains("collapsed");
+  icon.textContent = isCollapsed ? "▲" : "▼";
+
+  if (hint) {
+    hint.textContent = isCollapsed
+      ? "Hidden by default • Click to expand table & click any row to fly to gauge"
+      : "Click any row to fly to its position on the map • Drag top edge to resize";
+  }
+
+  if (!isCollapsed) {
+    container.style.height = `${tablePanelHeight}px`;
+  }
+}
+
+function initTableResizer() {
+  const resizer = document.getElementById("table-resizer");
+  const container = document.getElementById("table-wrap");
+  if (!resizer || !container) return;
+
+  let isDragging = false;
+  let startY = 0;
+  let startHeight = 0;
+
+  resizer.addEventListener("mousedown", (e) => {
+    if (container.classList.contains("collapsed")) {
+      toggleTableCollapse();
+    }
+    isDragging = true;
+    startY = e.clientY;
+    startHeight = container.getBoundingClientRect().height || tablePanelHeight;
+    resizer.classList.add("dragging");
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
+    e.preventDefault();
+  });
+
+  window.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const dy = startY - e.clientY; // dragging up increases height
+    const maxH = Math.round(window.innerHeight * 0.82);
+    const newHeight = Math.max(140, Math.min(maxH, startHeight + dy));
+    tablePanelHeight = newHeight;
+    container.style.height = `${newHeight}px`;
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (isDragging) {
+      isDragging = false;
+      resizer.classList.remove("dragging");
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
+  });
 }
 
 function refreshData() {
