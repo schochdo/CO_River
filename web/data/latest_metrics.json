@@ -1,21 +1,48 @@
 {
-  "fetched_at": "2026-09-29T20:09:22.953150",
+  "fetched_at": "2026-09-29T20:38:03.344171",
   "streamflows": [
+    {
+      "id": "09057500",
+      "name": "Blue River below Green Mtn Reservoir, CO",
+      "type": "streamflow",
+      "flow_cfs": 133.0,
+      "timestamp": "2026-09-29T20:00:00.000-06:00",
+      "lat": 39.88026354,
+      "lon": -106.3339175
+    },
+    {
+      "id": "09070000",
+      "name": "Eagle River below Gypsum, CO",
+      "type": "streamflow",
+      "flow_cfs": 133.0,
+      "timestamp": "2026-09-29T20:15:00.000-06:00",
+      "lat": 39.64942954,
+      "lon": -106.9536554
+    },
     {
       "id": "09070500",
       "name": "Colorado River near Dotsero, CO",
       "type": "streamflow",
-      "flow_cfs": 639.0,
-      "timestamp": "2026-09-29T19:00:00.000-06:00",
+      "flow_cfs": 632.0,
+      "timestamp": "2026-09-29T20:00:00.000-06:00",
       "lat": 39.6446111,
       "lon": -107.0780139
+    },
+    {
+      "id": "09085000",
+      "name": "Roaring Fork River at Glenwood Springs, CO",
+      "type": "streamflow",
+      "flow_cfs": 449.0,
+      "timestamp": "2026-09-29T19:45:00.000-06:00",
+      "lat": 39.54666667,
+      "lon": -107.33083333
     },
     {
       "id": "09095500",
       "name": "Colorado River near Cameo, CO",
       "type": "streamflow",
       "flow_cfs": 1280.0,
-      "timestamp": "2026-09-29T19:45:00.000-06:00",
+      "timestamp": "2026-09-29T20:15:00.000-06:00",
       "lat": 39.2391463,
       "lon": -108.2661946
     },
@@ -29,11 +56,20 @@
       "lon": -108.4506446
     },
     {
+      "id": "09180000",
+      "name": "Dolores River near Cisco, UT",
+      "type": "streamflow",
+      "flow_cfs": 187.0,
+      "timestamp": "2026-09-29T20:15:00.000-06:00",
+      "lat": 38.79720805,
+      "lon": -109.1951142
+    },
+    {
       "id": "09180500",
       "name": "Colorado River near Cisco, UT",
       "type": "streamflow",
-      "flow_cfs": 3820.0,
-      "timestamp": "2026-09-29T19:00:00.000-06:00",
+      "flow_cfs": 3210.0,
+      "timestamp": "2026-09-29T20:00:00.000-06:00",
       "lat": 38.81054095,
       "lon": -109.2934493
     },
@@ -42,16 +78,52 @@
       "name": "Yampa River at Deerlodge Park, CO",
       "type": "streamflow",
       "flow_cfs": 146.0,
-      "timestamp": "2026-09-29T19:15:00.000-06:00",
+      "timestamp": "2026-09-29T20:15:00.000-06:00",
       "lat": 40.45161747,
       "lon": -108.52512937
+    },
+    {
+      "id": "09302000",
+      "name": "Duchesne River near Randlett, UT",
+      "type": "streamflow",
+      "flow_cfs": 247.0,
+      "timestamp": "2026-09-29T20:00:00.000-06:00",
+      "lat": 40.21027778,
+      "lon": -109.7813889
+    },
+    {
+      "id": "09306500",
+      "name": "White River near Watson, UT",
+      "type": "streamflow",
+      "flow_cfs": 293.0,
+      "timestamp": "2026-09-29T19:45:00.000-06:00",
+      "lat": 39.97885629,
+      "lon": -109.1787269
+    },
+    {
+      "id": "09315000",
+      "name": "Green River at Green River, UT",
+      "type": "streamflow",
+      "flow_cfs": 3350.0,
+      "timestamp": "2026-09-29T20:15:00.000-06:00",
+      "lat": 38.98886944,
+      "lon": -110.15035556
+    },
+    {
+      "id": "09364500",
+      "name": "Animas River at Farmington, NM",
+      "type": "streamflow",
+      "flow_cfs": 2120.0,
+      "timestamp": "2026-09-29T19:30:00.000-06:00",
+      "lat": 36.7225,
+      "lon": -108.20175
     },
     {
       "id": "09379500",
       "name": "San Juan River near Bluff, UT",
       "type": "streamflow",
       "flow_cfs": 2460.0,
-      "timestamp": "2026-09-29T19:45:00.000-06:00",
+      "timestamp": "2026-09-29T20:15:00.000-06:00",
       "lat": 37.15067778,
       "lon": -109.8666889
     },
@@ -59,10 +131,82 @@
       "id": "09380000",
       "name": "Colorado River at Lees Ferry, AZ",
       "type": "streamflow",
-      "flow_cfs": 8990.0,
-      "timestamp": "2026-09-29T18:00:00.000-07:00",
+      "flow_cfs": 9470.0,
+      "timestamp": "2026-09-29T19:00:00.000-07:00",
       "lat": 36.86433333,
       "lon": -111.58787222
+    },
+    {
+      "id": "09402000",
+      "name": "Little Colorado River near Cameron, AZ",
+      "type": "streamflow",
+      "flow_cfs": 274.0,
+      "timestamp": "2026-09-29T18:45:00.000-07:00",
+      "lat": 35.9263819,
+      "lon": -111.5673682
+    },
+    {
+      "id": "09415000",
+      "name": "Virgin River at Littlefield, AZ",
+      "type": "streamflow",
+      "flow_cfs": 757.0,
+      "timestamp": "2026-09-29T19:05:00.000-07:00",
+      "lat": 36.8916437,
+      "lon": -113.9244098
+    },
+    {
+      "id": "09426000",
+      "name": "Bill Williams River below Alamo Dam, AZ",
+      "type": "streamflow",
+      "flow_cfs": 7.9,
+      "timestamp": "2026-09-29T18:30:00.000-07:00",
+      "lat": 34.2310833,
+      "lon": -113.6099306
+    },
+    {
+      "id": "09429100",
+      "name": "Colorado River below Palo Verde Dam, AZ-CA",
+      "type": "streamflow",
+      "flow_cfs": 4540.0,
+      "timestamp": "2026-09-29T18:30:00.000-07:00",
+      "lat": 33.7191361,
+      "lon": -114.4975389
+    },
+    {
+      "id": "09474000",
+      "name": "Gila River at Kelvin, AZ",
+      "type": "streamflow",
+      "flow_cfs": 883.0,
+      "timestamp": "2026-09-29T18:30:00.000-07:00",
+      "lat": 33.1028564,
+      "lon": -110.9765231
+    },
+    {
+      "id": "09498500",
+      "name": "Salt River near Roosevelt, AZ",
+      "type": "streamflow",
+      "flow_cfs": 1020.0,
+      "timestamp": "2026-09-29T18:30:00.000-07:00",
+      "lat": 33.61916667,
+      "lon": -110.92208333
+    },
+    {
+      "id": "09511300",
+      "name": "Verde River near Scottsdale, AZ",
+      "type": "streamflow",
+      "flow_cfs": 131.0,
+      "timestamp": "2026-09-29T19:00:00.000-07:00",
+      "lat": 33.5586557,
+      "lon": -111.6693043
+    },
+    {
+      "id": "09520500",
+      "name": "Gila River near Dome, AZ",
+      "type": "streamflow",
+      "flow_cfs": 7.36,
+      "timestamp": "2026-09-29T18:30:00.000-07:00",
+      "lat": 32.7608789,
+      "lon": -114.4205019
     }
   ],
   "tunnels": [
@@ -71,8 +215,8 @@
       "name": "Alva B. Adams Tunnel",
       "destination": "Grand Lake -> Estes Park / Northern Water",
       "type": "diversion_tunnel",
-      "flow_cfs": 395.0,
-      "timestamp": "2025-09-29T00:00:00",
+      "flow_cfs": 3.5,
+      "timestamp": "2026-09-28T00:00:00",
       "lat": 40.3283,
       "lon": -105.5786
     },
@@ -81,8 +225,8 @@
       "name": "Moffat Water Tunnel",
       "destination": "Fraser River -> Gross Reservoir / Denver Water",
       "type": "diversion_tunnel",
-      "flow_cfs": 66.3,
-      "timestamp": "2025-09-29T00:00:00",
+      "flow_cfs": 0.5,
+      "timestamp": "2026-09-28T00:00:00",
       "lat": 39.9022,
       "lon": -105.6433
     },
@@ -91,8 +235,8 @@
       "name": "Harold D. Roberts Tunnel",
       "destination": "Dillon Reservoir -> South Platte / Denver Water",
       "type": "diversion_tunnel",
-      "flow_cfs": 167.0,
-      "timestamp": "2025-09-29T00:00:00",
+      "flow_cfs": 1.7,
+      "timestamp": "2026-09-28T00:00:00",
       "lat": 39.4633,
       "lon": -105.6797
     },
@@ -101,28 +245,18 @@
       "name": "Charles H. Boustead Tunnel",
       "destination": "Fryingpan -> Arkansas Basin / Aurora",
       "type": "diversion_tunnel",
-      "flow_cfs": 2.48,
-      "timestamp": "2025-09-29T00:00:00",
+      "flow_cfs": 0.0,
+      "timestamp": "2026-09-28T00:00:00",
       "lat": 39.2619,
       "lon": -106.5297
-    },
-    {
-      "id": "09527700",
-      "name": "All-American Canal near Imperial Dam",
-      "type": "diversion_tunnel",
-      "destination": "Imperial & Coachella Valleys",
-      "flow_cfs": 2030.0,
-      "timestamp": "2026-09-29T18:30:00.000-07:00",
-      "lat": 32.70425,
-      "lon": -115.0481139
     },
     {
       "id": "09424150",
       "name": "Colorado River Aqueduct near Parker Dam",
       "type": "diversion_canal",
       "destination": "Los Angeles / Southern California",
-      "flow_cfs": 1740.0,
-      "timestamp": "2022-09-30T00:00:00.000",
+      "flow_cfs": 1350.0,
+      "timestamp": "2026-09-29T08:00:00.000",
       "lat": 34.31612564,
       "lon": -114.1571702
     }
