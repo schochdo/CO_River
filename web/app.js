@@ -18,10 +18,10 @@ let cachedRiverNetwork = null;
 let cachedLakes = null;
 let cachedMetrics = null;
 
-// Basemap configurations: default to Soft Shaded Relief (Esri Terrain)
+// Basemap configurations: default to National Geographic (Warm Physical Style)
 const basemapLayerKeys = [
-  'esriTerrain', 'esriNatGeo', 'esriPhysical', 'esriSatellite',
-  'esriRelief', 'cartoLight', 'usgsRelief', 'openTopo'
+  'esriNatGeo', 'esriWorldTopo', 'esriTerrain', 'esriPhysical',
+  'esriSatellite', 'esriRelief', 'openTopo'
 ];
 
 const initialStyle = {
@@ -34,17 +34,26 @@ const initialStyle = {
       encoding: 'terrarium',
       maxzoom: 15
     },
-    'basemap-esriTerrain': {
-      type: 'raster',
-      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'],
-      tileSize: 256,
-      attribution: 'Tiles &copy; Esri &mdash; USGS, Esri, NPS'
-    },
     'basemap-esriNatGeo': {
       type: 'raster',
       tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}'],
       tileSize: 256,
+      maxzoom: 16,
       attribution: 'Tiles &copy; Esri &mdash; National Geographic, USGS, NOAA'
+    },
+    'basemap-esriWorldTopo': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: 'Tiles &copy; Esri &mdash; HERE, Garmin, USGS, EPA'
+    },
+    'basemap-esriTerrain': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      maxzoom: 13,
+      attribution: 'Tiles &copy; Esri &mdash; USGS, Esri, NPS'
     },
     'basemap-esriPhysical': {
       type: 'raster',
@@ -57,30 +66,21 @@ const initialStyle = {
       type: 'raster',
       tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
       tileSize: 256,
+      maxzoom: 19,
       attribution: 'Tiles &copy; Esri'
     },
     'basemap-esriRelief': {
       type: 'raster',
-      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}'],
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}'],
       tileSize: 256,
-      attribution: 'Tiles &copy; Esri'
-    },
-    'basemap-cartoLight': {
-      type: 'raster',
-      tiles: ['https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      attribution: '&copy; CartoDB &copy; OpenStreetMap'
-    },
-    'basemap-usgsRelief': {
-      type: 'raster',
-      tiles: ['https://basemap.nationalmap.gov/arcgis/rest/services/USGSShadedReliefOnly/MapServer/tile/{z}/{y}/{x}'],
-      tileSize: 256,
-      attribution: 'Tiles courtesy USGS'
+      maxzoom: 23,
+      attribution: 'Tiles &copy; Esri &mdash; USGS, METI, NASA'
     },
     'basemap-openTopo': {
       type: 'raster',
       tiles: ['https://a.tile.opentopomap.org/{z}/{x}/{y}.png'],
       tileSize: 256,
+      maxzoom: 17,
       attribution: 'Tiles &copy; OpenTopoMap'
     },
     'basemap-labels': {
@@ -90,17 +90,16 @@ const initialStyle = {
     }
   },
   layers: [
-    // Soft Shaded Relief (Esri Terrain) active by default
-    { id: 'layer-esriTerrain', type: 'raster', source: 'basemap-esriTerrain', layout: { visibility: 'visible' } },
-    { id: 'layer-esriNatGeo', type: 'raster', source: 'basemap-esriNatGeo', layout: { visibility: 'none' } },
+    // National Geographic (Warm Physical Style) active by default
+    { id: 'layer-esriNatGeo', type: 'raster', source: 'basemap-esriNatGeo', layout: { visibility: 'visible' } },
+    { id: 'layer-esriWorldTopo', type: 'raster', source: 'basemap-esriWorldTopo', layout: { visibility: 'none' } },
+    { id: 'layer-esriTerrain', type: 'raster', source: 'basemap-esriTerrain', layout: { visibility: 'none' } },
     { id: 'layer-esriPhysical', type: 'raster', source: 'basemap-esriPhysical', layout: { visibility: 'none' } },
     { id: 'layer-esriSatellite', type: 'raster', source: 'basemap-esriSatellite', layout: { visibility: 'none' } },
     { id: 'layer-esriRelief', type: 'raster', source: 'basemap-esriRelief', layout: { visibility: 'none' } },
-    { id: 'layer-cartoLight', type: 'raster', source: 'basemap-cartoLight', layout: { visibility: 'none' } },
-    { id: 'layer-usgsRelief', type: 'raster', source: 'basemap-usgsRelief', layout: { visibility: 'none' } },
     { id: 'layer-openTopo', type: 'raster', source: 'basemap-openTopo', layout: { visibility: 'none' } },
-    // Reference labels overlay on top of terrain
-    { id: 'layer-labels', type: 'raster', source: 'basemap-labels', layout: { visibility: 'visible' }, paint: { 'raster-opacity': 0.85 } }
+    // Reference labels overlay (hidden by default since NatGeo has built-in labels)
+    { id: 'layer-labels', type: 'raster', source: 'basemap-labels', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.85 } }
   ]
 };
 
@@ -123,10 +122,10 @@ function initMap() {
     bearing: 0,
     maxPitch: 85
   });
+  window.map = map;
 
   // Pitch & orientation navigation controls
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
-  map.addControl(new maplibregl.TerrainControl({ source: 'terrain-dem', exaggeration: 1.5 }), 'top-left');
 
   // Shared hover tooltip popup
   tooltipPopup = new maplibregl.Popup({
@@ -136,11 +135,15 @@ function initMap() {
   });
 
   map.on('load', () => {
-    // Keep 3D terrain registered so toggling 3D tilt is instant
-    map.setTerrain({
-      source: 'terrain-dem',
-      exaggeration: 1.5
-    });
+    // Note: Do NOT enable 3D terrain in 2D flat mode. 3D perspective LOD causes edge tiles
+    // on wide monitors to drop to lower zoom levels, resulting in blurry screen borders.
+    // 2D orthogonal Mercator projection guarantees 100% uniform tile resolution edge-to-edge.
+    if (isTilted) {
+      map.setTerrain({
+        source: 'terrain-dem',
+        exaggeration: 1.5
+      });
+    }
 
     loadData();
     setInterval(() => loadData(true), 5 * 60 * 1000); // Continuous 5-minute live USGS sync
@@ -167,8 +170,8 @@ function changeBasemap(key) {
     }
   });
 
-  // Reference labels overlay for basemaps that lack built-in editorial labels
-  const needsLabels = ['esriTerrain', 'esriPhysical', 'esriRelief', 'usgsRelief', 'esriSatellite'].includes(key);
+  // Reference labels overlay ONLY for basemaps that lack built-in editorial labels
+  const needsLabels = ['esriTerrain', 'esriPhysical', 'esriRelief', 'esriSatellite'].includes(key);
   if (map.getLayer('layer-labels')) {
     map.setLayoutProperty('layer-labels', 'visibility', needsLabels ? 'visible' : 'none');
   }
@@ -177,13 +180,17 @@ function changeBasemap(key) {
 function toggleTilt() {
   const btn = document.getElementById("tilt-toggle-btn");
   if (isTilted) {
-    // Switch to top-down 2D mode
-    map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
+    // Switch to top-down 2D mode: remove terrain mesh to ensure 100% uniform edge-to-edge tile loading
+    map.easeTo({ pitch: 0, bearing: 0, duration: 800 });
+    setTimeout(() => {
+      if (!isTilted && map) map.setTerrain(null);
+    }, 850);
     isTilted = false;
     if (btn) btn.textContent = "3D Tilt: OFF (Flat 2D)";
   } else {
-    // Switch to panoramic 3D tilted relief
-    map.easeTo({ pitch: 42, bearing: -10, duration: 1000 });
+    // Switch to panoramic 3D tilted relief: activate DEM mesh
+    map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+    map.easeTo({ pitch: 42, bearing: -10, duration: 800 });
     isTilted = true;
     if (btn) btn.textContent = "3D Tilt: ON (42°)";
   }

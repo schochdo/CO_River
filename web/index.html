@@ -89,14 +89,13 @@
         <div class="basemap-select-wrap">
           <label for="basemap-select" style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">BASEMAP STYLE</label>
           <select id="basemap-select" onchange="changeBasemap(this.value)" class="custom-select">
-            <option value="esriTerrain" selected>Soft Shaded Relief (Esri Terrain)</option>
-            <option value="esriNatGeo">National Geographic (Warm Physical Style)</option>
-            <option value="esriPhysical">World Physical (Clean Mountain Relief)</option>
+            <option value="esriNatGeo" selected>National Geographic (Warm Physical Style)</option>
+            <option value="esriWorldTopo">High-Res Topographic &amp; Physical (Esri Topo)</option>
+            <option value="esriTerrain">Soft Shaded Relief (Esri Terrain Base)</option>
+            <option value="esriPhysical">World Physical (Classic NPS / Max Z8)</option>
             <option value="esriSatellite">Satellite Imagery (Esri World Imagery)</option>
-            <option value="esriRelief">Pure Hillshade (Esri Relief)</option>
-            <option value="cartoLight">Clean Light (Carto Positron)</option>
-            <option value="usgsRelief">USGS National Map Relief</option>
-            <option value="openTopo">OpenTopoMap (High Contrast)</option>
+            <option value="esriRelief">Pure Hillshade (High-Res Elevation)</option>
+            <option value="openTopo">OpenTopoMap (High Contrast Contours)</option>
           </select>
         </div>
         <hr style="border: none; border-top: 1px solid var(--border-color); margin: 10px 0;">
@@ -160,7 +159,7 @@
       </section>
 
       <!-- Where Is the Water Going? (Major Basin Outflows & Diversions) -->
-      <section class="card stat-card highlight-card">
+      <section class="card stat-card outflows-card">
         <div class="card-header">
           <h3>Where Is the Water Going?</h3>
           <span class="badge blue">System Allocation</span>
@@ -227,7 +226,7 @@
       </section>
 
       <!-- Major Storage Reservoirs -->
-      <section class="card stat-card">
+      <section class="card stat-card reservoirs-card">
         <div class="card-header">
           <h3>Major Storage Reservoirs</h3>
           <span class="badge" id="basin-storage-badge" style="background:#fef3c7; color:#b45309; font-weight:700;">28.9% Full</span>
@@ -242,7 +241,7 @@
       </section>
 
       <!-- Water Allocation Breakdown -->
-      <section class="card stat-card">
+      <section class="card stat-card sectors-card">
         <div class="card-header">
           <h3>Water Use by Sector</h3>
           <span class="badge">Basin Consumption</span>
@@ -386,7 +385,7 @@
         <div class="law-section">
           <div class="law-section-header">
             <h3 class="law-section-title">5. Post-2026 Operations Negotiations</h3>
-            <span class="law-tag purple">Current Horizon</span>
+            <span class="law-tag primary">Current Horizon</span>
           </div>
           <p class="law-text">
             The 2007 Interim Guidelines and the 2019 Drought Contingency Plans (DCP) governing operations at Lake Powell and Lake Mead expire on <strong>December 31, 2026</strong>. The seven basin states (divided between the Upper Division and Lower Division alternative proposals) along with 30 sovereign Native American Tribal Nations and the federal government are currently negotiating permanent, binding annual reductions of 2 to 4 million acre-feet to prevent the system from hitting dead pool.

@@ -1,28 +1,39 @@
 :root {
-  --bg-primary: #f8fafc;
-  --bg-surface: #ffffff;
-  --bg-panel: rgba(255, 255, 255, 0.96);
-  --border-color: #e2e8f0;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --color-primary: #0284c7;
-  --color-purple: #7c3aed;
-  --color-purple-bg: #f5f3ff;
-  --color-amber: #d97706;
+  /* Hydrologic light grayish-blue theme */
+  --bg-primary: #edf3f8;          /* Soft light grayish-blue app backing */
+  --bg-surface: #f4f8fb;          /* Header and sidebar panel surface */
+  --bg-card: #fbfdfe;             /* Card surface (clean light tint, ultra readable) */
+  --bg-panel: rgba(244, 248, 252, 0.95); /* Frosted floating panels (legend, tooltips) */
+  --border-color: #cfe0ed;        /* Soft grayish-blue border */
+  --border-subtle: #e2edf5;       /* Internal subtle dividers */
+  
+  --text-main: #0c2340;           /* Deep navy-slate (crisp, water theme) */
+  --text-muted: #516d89;          /* Balanced grayish-blue secondary text */
+  --text-dim: #7d96af;            /* Dim helper text */
+
+  --color-primary: #0284c7;        /* Hydrologic blue */
+  --color-primary-hover: #0369a1;
+  --color-primary-light: #e0f2fe;
+
+  --color-amber: #d97706;          /* Continental Divide tunnels & out-of-basin diversions */
   --color-amber-bg: #fffbeb;
   --color-amber-border: #fde68a;
-  --color-emerald: #059669;
+
+  --color-emerald: #059669;        /* Conveyance canals & agriculture */
   --color-emerald-bg: #ecfdf5;
   --color-emerald-border: #a7f3d0;
-  --color-cyan: #0891b2;
+
+  --color-cyan: #0891b2;           /* Storage reservoirs & lakes */
   --color-cyan-bg: #ecfeff;
   --color-cyan-border: #a5f3fc;
+
   --color-success: #059669;
   --color-warning: #d97706;
   --color-danger: #dc2626;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 25px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+
+  --shadow-sm: 0 1px 3px 0 rgba(12, 35, 64, 0.04);
+  --shadow-md: 0 4px 14px -1px rgba(12, 35, 64, 0.07), 0 2px 4px -2px rgba(12, 35, 64, 0.04);
+  --shadow-lg: 0 10px 25px -3px rgba(12, 35, 64, 0.10), 0 4px 6px -4px rgba(12, 35, 64, 0.04);
   --radius-md: 10px;
   --radius-lg: 14px;
 }
@@ -91,10 +102,11 @@ body {
 
 .header-center .quick-nav {
   display: flex;
-  background: #f1f5f9;
+  background: #e2edf5;
   padding: 3px;
   border-radius: 8px;
   gap: 4px;
+  border: 1px solid var(--border-subtle);
 }
 
 .nav-btn {
@@ -111,12 +123,13 @@ body {
 
 .nav-btn:hover {
   color: var(--text-main);
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .nav-btn.active {
-  background: white;
+  background: #ffffff;
   color: var(--color-primary);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(12, 35, 64, 0.08);
 }
 
 .header-right {
@@ -131,7 +144,7 @@ body {
   gap: 6px;
   font-size: 12px;
   color: var(--text-muted);
-  background: #f8fafc;
+  background: #e8f1f7;
   padding: 5px 10px;
   border-radius: 6px;
   border: 1px solid var(--border-color);
@@ -146,7 +159,7 @@ body {
 }
 
 .icon-btn {
-  background: white;
+  background: #ffffff;
   border: 1px solid var(--border-color);
   width: 32px;
   height: 32px;
@@ -160,7 +173,7 @@ body {
 }
 
 .icon-btn:hover {
-  background: #f1f5f9;
+  background: #edf4fa;
   color: var(--text-main);
 }
 
@@ -239,7 +252,7 @@ body {
 
 .legend-line.river { background: #0284c7; }
 .legend-line.divide { background: #d97706; border-top: 1px dashed white; }
-.legend-line.tunnel { background: #9333ea; border-top: 1px dotted white; }
+.legend-line.tunnel { background: #d97706; border-top: 1px dotted white; }
 
 .legend-dot {
   width: 10px;
@@ -265,11 +278,36 @@ body {
 }
 
 .card {
-  background: var(--bg-surface);
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 14px;
   box-shadow: var(--shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Subtle, Non-Obnoxious Panel Outlines & Category Accents */
+.card.layer-card {
+  border: 1px solid var(--border-color);
+  border-top: 3px solid #516d89;
+}
+
+.card.outflows-card {
+  border: 1.5px solid #fed7aa;
+  border-left: 3.5px solid var(--color-amber);
+  background: var(--bg-card);
+}
+
+.card.reservoirs-card {
+  border: 1.5px solid #bae6fd;
+  border-left: 3.5px solid var(--color-primary);
+  background: var(--bg-card);
+}
+
+.card.sectors-card {
+  border: 1.5px solid #bbf7d0;
+  border-left: 3.5px solid var(--color-emerald);
+  background: var(--bg-card);
 }
 
 .card-header {
@@ -292,10 +330,9 @@ body {
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 4px;
-  background: #f1f5f9;
+  background: #e8f1f7;
   color: var(--text-muted);
 }
-.badge.purple { background: var(--color-purple-bg); color: var(--color-purple); }
 .badge.amber { background: var(--color-amber-bg); color: var(--color-amber); border: 1px solid var(--color-amber-border); }
 .badge.emerald { background: var(--color-emerald-bg); color: var(--color-emerald); border: 1px solid var(--color-emerald-border); }
 .badge.cyan { background: var(--color-cyan-bg); color: var(--color-cyan); border: 1px solid var(--color-cyan-border); }
@@ -359,7 +396,7 @@ input:checked + .slider:before {
   font-family: inherit;
   font-weight: 500;
   color: var(--text-main);
-  background-color: #f8fafc;
+  background-color: #f0f5fa;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   outline: none;
@@ -368,7 +405,7 @@ input:checked + .slider:before {
 }
 
 .custom-select:hover {
-  background-color: #f1f5f9;
+  background-color: #e4edf5;
 }
 
 .custom-select:focus {
@@ -377,11 +414,6 @@ input:checked + .slider:before {
 }
 
 /* Metric Cards */
-.highlight-card {
-  background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%);
-  border-color: #e9d5ff;
-}
-
 .big-metric {
   display: flex;
   align-items: baseline;
@@ -393,7 +425,7 @@ input:checked + .slider:before {
   font-size: 28px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--color-purple);
+  color: var(--color-primary);
 }
 
 .metric-unit {
@@ -437,7 +469,6 @@ input:checked + .slider:before {
   border-radius: 4px;
   transition: width 0.4s ease;
 }
-.progress-fill.purple { background: var(--color-purple); }
 .progress-fill.amber { background: var(--color-amber); }
 .progress-fill.emerald { background: var(--color-emerald); }
 .progress-fill.cyan { background: var(--color-cyan); }
@@ -461,7 +492,7 @@ input:checked + .slider:before {
   flex-direction: column;
   gap: 4px;
   padding: 8px 10px;
-  background: #f8fafc;
+  background: #f4f8fb;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   transition: background 0.15s ease, border-color 0.15s ease;
@@ -469,7 +500,7 @@ input:checked + .slider:before {
 
 .flow-dest-item:hover {
   background: #ffffff;
-  border-color: #cbd5e1;
+  border-color: #93c5fd;
   box-shadow: var(--shadow-sm);
 }
 
@@ -528,7 +559,7 @@ input:checked + .slider:before {
 
 .res-row {
   padding: 7px 10px;
-  background: #f8fafc;
+  background: #f4f8fb;
   border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;
@@ -721,14 +752,14 @@ input:checked + .slider:before {
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  background: #f8fafc;
+  background: #edf4fa;
   border-bottom: 1px solid var(--border-color);
   cursor: pointer;
   user-select: none;
 }
 
 .table-header:hover {
-  background: #f1f5f9;
+  background: #e2edf5;
 }
 
 .table-title {
@@ -759,7 +790,7 @@ input:checked + .slider:before {
   border-radius: 4px;
 }
 .collapse-btn:hover {
-  background: #e2e8f0;
+  background: #e2edf5;
 }
 
 .table-container {
@@ -787,9 +818,9 @@ input:checked + .slider:before {
 }
 
 .data-table th {
-  background: #f8fafc;
-  color: var(--text-muted);
-  font-weight: 600;
+  background: #e8f1f7;
+  color: var(--text-main);
+  font-weight: 700;
   font-size: 11px;
   text-transform: uppercase;
   padding: 8px 16px;
@@ -800,7 +831,7 @@ input:checked + .slider:before {
 
 .data-table td {
   padding: 10px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-subtle);
   color: var(--text-main);
 }
 
@@ -810,7 +841,7 @@ input:checked + .slider:before {
 }
 
 .data-table tbody tr:hover {
-  background: #f8fafc;
+  background: #edf4fa;
 }
 
 .type-pill {
@@ -822,7 +853,7 @@ input:checked + .slider:before {
   text-transform: capitalize;
 }
 .type-pill.streamflow { background: #e0f2fe; color: #0369a1; }
-.type-pill.diversion_tunnel { background: #f3e8ff; color: #7e22ce; }
+.type-pill.diversion_tunnel { background: #fef3c7; color: #b45309; }
 .type-pill.reservoir { background: #fee2e2; color: #b91c1c; }
 
 /* Custom Leaflet Map Callout Badges */
@@ -884,8 +915,8 @@ input:checked + .slider:before {
 }
 
 .custom-callout.highlight-tunnel {
-  border: 1.5px solid var(--color-purple);
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.2);
+  border: 1.5px solid var(--color-amber);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.2);
 }
 
 .callout-title {
@@ -973,6 +1004,8 @@ input:checked + .slider:before {
   font-weight: 600;
   opacity: 0.9;
   text-transform: lowercase;
+}
+
 .cfs-badge.lees-badge {
   background: #0369a1;
   border-color: #38bdf8;
@@ -980,12 +1013,12 @@ input:checked + .slider:before {
 }
 
 .cfs-badge.tunnel-badge {
-  background: #7c3aed;
+  background: #d97706;
   border-color: #ffffff;
 }
 
 .cfs-badge.canal-badge {
-  background: #0891b2;
+  background: #059669;
   border-color: #ffffff;
 }
 
@@ -1226,7 +1259,7 @@ input:checked + .slider:before {
 .law-tag.primary { background: #e0f2fe; color: #0369a1; }
 .law-tag.warning { background: #fef3c7; color: #b45309; }
 .law-tag.danger { background: #fee2e2; color: #b91c1c; }
-.law-tag.purple { background: #f3e8ff; color: #7e22ce; }
+.law-tag.amber { background: #fef3c7; color: #b45309; }
 .law-tag.emerald { background: #d1fae5; color: #047857; }
 
 .law-text {
