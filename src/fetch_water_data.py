@@ -146,24 +146,28 @@ def fetch_cdwr_tunnels():
         "ADATUNCO": {
             "name": "Alva B. Adams Tunnel",
             "destination": "Grand Lake -> Estes Park / Northern Water",
+            "capacity_cfs": 1020,
             "lat": 40.3283,
             "lon": -105.5786
         },
         "MOFTUNCO": {
             "name": "Moffat Water Tunnel",
             "destination": "Fraser River -> Gross Reservoir / Denver Water",
+            "capacity_cfs": 1280,
             "lat": 39.9022,
             "lon": -105.6433
         },
         "ROBTUNCO": {
             "name": "Harold D. Roberts Tunnel",
             "destination": "Dillon Reservoir -> South Platte / Denver Water",
+            "capacity_cfs": 1020,
             "lat": 39.4633,
             "lon": -105.6797
         },
         "BOUTUNCO": {
             "name": "Charles H. Boustead Tunnel",
             "destination": "Fryingpan -> Arkansas Basin / Aurora",
+            "capacity_cfs": 945,
             "lat": 39.2619,
             "lon": -106.5297
         }
@@ -185,6 +189,7 @@ def fetch_cdwr_tunnels():
                     "name": meta["name"],
                     "destination": meta["destination"],
                     "type": "diversion_tunnel",
+                    "capacity_cfs": meta.get("capacity_cfs"),
                     "flow_cfs": round(meas_val, 1),
                     "timestamp": latest.get("measDate"),
                     "lat": meta["lat"],

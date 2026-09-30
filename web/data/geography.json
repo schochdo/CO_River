@@ -11057,6 +11057,7 @@
     {
       "id": "ADATUNCO",
       "name": "Alva B. Adams Tunnel (C-BT)",
+      "capacity_cfs": 1020,
       "length_miles": 13.1,
       "operator": "Northern Water / USBR",
       "from": "Grand Lake / Shadow Mountain Reservoir (West Slope)",
@@ -11075,6 +11076,7 @@
     {
       "id": "MOFTUNCO",
       "name": "Moffat Water Tunnel",
+      "capacity_cfs": 1280,
       "length_miles": 6.2,
       "operator": "Denver Water",
       "from": "Fraser River Collection System / Winter Park (West Slope)",
@@ -11093,6 +11095,7 @@
     {
       "id": "ROBTUNCO",
       "name": "Harold D. Roberts Tunnel",
+      "capacity_cfs": 1020,
       "length_miles": 23.3,
       "operator": "Denver Water",
       "from": "Dillon Reservoir (West Slope)",
@@ -11111,6 +11114,7 @@
     {
       "id": "BOUTUNCO",
       "name": "Charles H. Boustead Tunnel",
+      "capacity_cfs": 945,
       "length_miles": 5.4,
       "operator": "Southeastern Colorado Water / USBR",
       "from": "Fryingpan River Collection System (West Slope)",
