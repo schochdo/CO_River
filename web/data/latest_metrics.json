@@ -1,5 +1,5 @@
 {
-  "fetched_at": "2026-10-13T15:05:47.362640",
+  "fetched_at": "2026-10-13T15:16:19.970826",
   "streamflows": [
     {
       "id": "09057500",
@@ -24,7 +24,7 @@
       "name": "Colorado River near Dotsero, CO",
       "type": "streamflow",
       "flow_cfs": 604.0,
-      "timestamp": "2026-10-13T14:00:00.000-06:00",
+      "timestamp": "2026-10-13T15:00:00.000-06:00",
       "lat": 39.6446111,
       "lon": -107.0780139
     },
@@ -41,8 +41,8 @@
       "id": "09095500",
       "name": "Colorado River near Cameo, CO",
       "type": "streamflow",
-      "flow_cfs": 1690.0,
-      "timestamp": "2026-10-13T14:45:00.000-06:00",
+      "flow_cfs": 1680.0,
+      "timestamp": "2026-10-13T15:00:00.000-06:00",
       "lat": 39.2391463,
       "lon": -108.2661946
     },
@@ -60,7 +60,7 @@
       "name": "Dolores River near Cisco, UT",
       "type": "streamflow",
       "flow_cfs": 226.0,
-      "timestamp": "2026-10-13T14:45:00.000-06:00",
+      "timestamp": "2026-10-13T15:00:00.000-06:00",
       "lat": 38.79720805,
       "lon": -109.1951142
     },
@@ -68,8 +68,8 @@
       "id": "09180500",
       "name": "Colorado River near Cisco, UT",
       "type": "streamflow",
-      "flow_cfs": 3270.0,
-      "timestamp": "2026-10-13T14:00:00.000-06:00",
+      "flow_cfs": 3310.0,
+      "timestamp": "2026-10-13T15:00:00.000-06:00",
       "lat": 38.81054095,
       "lon": -109.2934493
     },
@@ -105,7 +105,7 @@
       "name": "Green River at Green River, UT",
       "type": "streamflow",
       "flow_cfs": 3460.0,
-      "timestamp": "2026-10-13T14:45:00.000-06:00",
+      "timestamp": "2026-10-13T15:00:00.000-06:00",
       "lat": 38.98886944,
       "lon": -110.15035556
     },
@@ -123,7 +123,7 @@
       "name": "San Juan River near Bluff, UT",
       "type": "streamflow",
       "flow_cfs": 712.0,
-      "timestamp": "2026-10-13T14:45:00.000-06:00",
+      "timestamp": "2026-10-13T15:00:00.000-06:00",
       "lat": 37.15067778,
       "lon": -109.8666889
     },
@@ -131,8 +131,8 @@
       "id": "09380000",
       "name": "Colorado River at Lees Ferry, AZ",
       "type": "streamflow",
-      "flow_cfs": 7500.0,
-      "timestamp": "2026-10-13T13:00:00.000-07:00",
+      "flow_cfs": 7800.0,
+      "timestamp": "2026-10-13T14:00:00.000-07:00",
       "lat": 36.86433333,
       "lon": -111.58787222
     },
@@ -149,8 +149,8 @@
       "id": "09415000",
       "name": "Virgin River at Littlefield, AZ",
       "type": "streamflow",
-      "flow_cfs": 693.0,
-      "timestamp": "2026-10-13T13:05:00.000-07:00",
+      "flow_cfs": 645.0,
+      "timestamp": "2026-10-13T14:05:00.000-07:00",
       "lat": 36.8916437,
       "lon": -113.9244098
     },
@@ -217,7 +217,7 @@
       "type": "diversion_tunnel",
       "capacity_cfs": 1020,
       "flow_cfs": 54.8,
-      "timestamp": "2026-10-13T14:00:00",
+      "timestamp": "2026-10-13T15:00:00",
       "lat": 40.3283,
       "lon": -105.5786
     },
@@ -283,12 +283,12 @@
       "name": "Lake Powell (Glen Canyon Dam)",
       "river": "Colorado River (AZ/UT)",
       "type": "reservoir",
-      "elevation_ft": 3518.1,
-      "storage_af": 5205889.0,
+      "elevation_ft": 3518.9,
+      "storage_af": 5155018.0,
       "capacity_af": 24322000.0,
-      "capacity_pct": 21.4,
+      "capacity_pct": 21.2,
       "role": "Upper Basin Bank & Compact Delivery to Lower Basin",
-      "timestamp": "2026-10-13T15:05:01.840991",
+      "timestamp": "2026-10-13T13:45:00.000-07:00",
       "lat": 36.9367,
       "lon": -111.4839,
       "category": "system"
@@ -328,7 +328,7 @@
       "name": "Navajo Reservoir (Navajo Dam)",
       "river": "San Juan River (NM/CO)",
       "type": "reservoir",
-      "elevation_ft": 6017.2,
+      "elevation_ft": 6015.2,
       "storage_af": 841808.0,
       "capacity_af": 1696000.0,
       "capacity_pct": 49.6,
@@ -358,12 +358,12 @@
       "name": "Blue Mesa Reservoir (Blue Mesa Dam)",
       "river": "Gunnison River (CO)",
       "type": "reservoir",
-      "elevation_ft": 7412.2,
-      "storage_af": 140346.0,
+      "elevation_ft": 7413.1,
+      "storage_af": 143498.0,
       "capacity_af": 829500.0,
-      "capacity_pct": 16.9,
+      "capacity_pct": 17.3,
       "role": "Largest Lake in Colorado & Gunnison Basin Storage",
-      "timestamp": "2026-10-12",
+      "timestamp": "2026-10-13",
       "lat": 38.4528,
       "lon": -107.3325,
       "category": "system"

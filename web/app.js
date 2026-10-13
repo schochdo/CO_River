@@ -145,7 +145,7 @@ function initMap() {
     }
 
     loadData();
-    setInterval(() => loadData(true), 5 * 60 * 1000); // Continuous 5-minute live USGS sync
+
     initTableResizer();
     if (window.location.search.includes('expand_table=1')) {
       toggleTableCollapse();
