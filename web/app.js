@@ -2010,9 +2010,9 @@ function populateTelemetryTable(metrics) {
       id: r.id,
       name: r.name,
       type: "reservoir",
-      basin: r.id === "lake_powell" ? "Upper Basin Storage" : "Lower Basin Storage",
-      reading: `${r.capacity_pct}% (${Math.round(r.storage_af / 1000).toLocaleString()}k AF)`,
-      notes: `Elevation: ${r.elevation_ft} ft`,
+      basin: r.category === "front_range" ? "Front Range Storage" : (["lake_powell", "flaming_gorge", "navajo", "blue_mesa"].includes(r.id) ? "Upper Basin Storage" : "Lower Basin Storage"),
+      reading: `${(r.capacity_pct !== undefined && r.capacity_pct !== null) ? r.capacity_pct : ((r.storage_af / r.capacity_af) * 100).toFixed(1)}% (${Math.round(r.storage_af / 1000).toLocaleString()}k AF)`,
+      notes: r.feet_below_full ? `${r.feet_below_full} ft down (Elev: ${r.elevation_ft ? r.elevation_ft.toLocaleString() : 'N/A'} ft)` : `Elevation: ${r.elevation_ft ? r.elevation_ft.toLocaleString() : 'N/A'} ft`,
       timestamp: r.timestamp,
       lat: r.lat,
       lon: r.lon
