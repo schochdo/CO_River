@@ -170,6 +170,12 @@ function initMap() {
     if (window.location.search.includes('open_menu=1')) {
       toggleMapMenu();
     }
+    if (window.location.search.includes('zoom_to=socal')) {
+      map.jumpTo({ center: [-115.0, 33.1], zoom: 7.2 });
+    }
+    if (window.location.search.includes('zoom_to=lees_ferry')) {
+      map.jumpTo({ center: [-111.588, 36.864], zoom: 7.8 });
+    }
   });
 
   map.on('move', queueBadgePlacements);
@@ -1397,18 +1403,39 @@ function renderGeography(geo, riverNetwork, lakes) {
 
       map.addSource('canals', { type: 'geojson', data: canalsGeoJSON });
       const showCanals = document.getElementById('toggle-canals')?.checked ?? true;
+      // 1. High-contrast dark casing for canal dotted line
+      map.addLayer({
+        id: 'canals-casing',
+        type: 'line',
+        source: 'canals',
+        layout: {
+          'visibility': showCanals ? 'visible' : 'none',
+          'line-join': 'round',
+          'line-cap': 'round'
+        },
+        paint: {
+          'line-color': '#0f172a',
+          'line-width': 5.5,
+          'line-dasharray': [2, 2.5],
+          'line-opacity': 0.45
+        }
+      });
+
+      // 2. Crisp blue dotted line representing engineered open water conveyance
       map.addLayer({
         id: 'canals-line',
         type: 'line',
         source: 'canals',
         layout: {
-          'visibility': showCanals ? 'visible' : 'none'
+          'visibility': showCanals ? 'visible' : 'none',
+          'line-join': 'round',
+          'line-cap': 'round'
         },
         paint: {
-          'line-color': '#059669',
-          'line-width': 4.0,
-          'line-dasharray': [4, 2],
-          'line-opacity': 0.95
+          'line-color': '#0284c7',
+          'line-width': 3.5,
+          'line-dasharray': [2, 2.5],
+          'line-opacity': 1.0
         }
       });
 
@@ -1433,14 +1460,14 @@ function renderGeography(geo, riverNetwork, lakes) {
         const t = e.features[0].properties;
         const flowVal = Number(t.flow_cfs || 0);
         const flowDisplay = flowVal > 0 
-          ? `<span style="font-size:16px; font-weight:800; color:#059669;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>`
+          ? `<span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>`
           : `<span style="font-size:14px; font-weight:700; color:#64748b;">Active Conveyance</span>`;
 
         tooltipPopup.setLngLat(e.lngLat).setHTML(`
           <div style="font-family:'Inter',sans-serif; min-width: 220px; max-width: 290px;">
-            <span style="font-size:10px;font-weight:700;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
+            <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
             <strong style="font-size:13px;color:#0f172a;display:block;">${t.name}</strong>
-            <span style="font-size:11px;color:#059669;font-weight:600;">${t.operator || ''}</span>
+            <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
             <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
               <span style="font-size:11px; color:#475569; font-weight:600;">Estimated Flow:</span>
               ${flowDisplay}
@@ -1472,13 +1499,13 @@ function renderGeography(geo, riverNetwork, lakes) {
           .setLngLat(e.lngLat)
           .setHTML(`
             <div style="font-family:'Inter',sans-serif; min-width: 220px;">
-              <span style="font-size:10px;font-weight:700;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
+              <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
               <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
-              <span style="font-size:11px;color:#059669;font-weight:600;">${t.operator || ''}</span>
+              <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
               ${flowVal > 0 ? `
               <div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
                 <span style="font-size:11px; color:#475569; font-weight:600;">Estimated Flow:</span>
-                <span style="font-size:16px; font-weight:800; color:#059669;">${flowVal.toLocaleString()} cfs</span>
+                <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} cfs</span>
               </div>` : ''}
               <div style="font-size:11px;line-height:1.45;color:#334155;margin-top:6px;">
                 <strong>Destination:</strong> ${t.destination || t.to}<br>
@@ -1767,6 +1794,120 @@ function renderMetrics(metrics) {
     stationMarkers[s.id] = { marker, popup, lat: s.lat, lon: s.lon };
   });
 
+  // 1b. Native WebGL Point Layer for USGS Streamflow Gauges (Station Dots matching the Legend)
+  if (metrics.streamflows && metrics.streamflows.length > 0) {
+    const gaugesGeoJSON = {
+      type: 'FeatureCollection',
+      features: metrics.streamflows.map(s => ({
+        type: 'Feature',
+        properties: {
+          id: s.id,
+          name: s.name,
+          flow_cfs: s.flow_cfs,
+          timestamp: s.timestamp
+        },
+        geometry: { type: 'Point', coordinates: [s.lon, s.lat] }
+      }))
+    };
+
+    if (!map.getSource('streamflow-gauges')) {
+      map.addSource('streamflow-gauges', { type: 'geojson', data: gaugesGeoJSON });
+
+      const showGauges = document.getElementById('toggle-streamflow-gauges')?.checked ?? true;
+
+      // 1. Casing / border circle
+      map.addLayer({
+        id: 'streamflow-gauges-casing',
+        type: 'circle',
+        source: 'streamflow-gauges',
+        layout: {
+          'visibility': showGauges ? 'visible' : 'none'
+        },
+        paint: {
+          'circle-color': '#ffffff',
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            4, 4.5,
+            7, 6.0,
+            10, 7.5,
+            13, 9.5
+          ],
+          'circle-stroke-color': '#0f172a',
+          'circle-stroke-width': 1.0,
+          'circle-opacity': 0.95
+        }
+      });
+
+      // 2. Core blue dot matching the legend
+      map.addLayer({
+        id: 'streamflow-gauges-circle',
+        type: 'circle',
+        source: 'streamflow-gauges',
+        layout: {
+          'visibility': showGauges ? 'visible' : 'none'
+        },
+        paint: {
+          'circle-color': '#0284c7',
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            4, 3.0,
+            7, 4.2,
+            10, 5.5,
+            13, 7.5
+          ],
+          'circle-opacity': 1.0
+        }
+      });
+
+      // 3. Generous hit buffer for interactive hover & click
+      map.addLayer({
+        id: 'streamflow-gauges-hit-buffer',
+        type: 'circle',
+        source: 'streamflow-gauges',
+        layout: {
+          'visibility': showGauges ? 'visible' : 'none'
+        },
+        paint: {
+          'circle-radius': 18,
+          'circle-opacity': 0.0001
+        }
+      });
+
+      map.on('mousemove', 'streamflow-gauges-hit-buffer', (e) => {
+        if (!e.features.length) return;
+        map.getCanvas().style.cursor = 'pointer';
+        const g = e.features[0].properties;
+        tooltipPopup.setLngLat(e.lngLat).setHTML(`
+          <div style="font-family:'Inter',sans-serif; min-width: 190px;">
+            <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">USGS Real-Time Gauge</span>
+            <strong style="font-size:13px; color:#0f172a; display:block;">${g.name}</strong>
+            <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+              <span style="font-size:11px; color:#64748b; font-weight:600;">Discharge:</span>
+              <span style="font-size:15px; font-weight:800; color:#0284c7;">${Number(g.flow_cfs).toLocaleString()} cfs</span>
+            </div>
+            <div style="font-size:10.5px; color:#64748b;">USGS Station ID: #${g.id}</div>
+          </div>
+        `).addTo(map);
+      });
+
+      map.on('mouseleave', 'streamflow-gauges-hit-buffer', () => {
+        map.getCanvas().style.cursor = '';
+        tooltipPopup.remove();
+      });
+
+      map.on('click', 'streamflow-gauges-hit-buffer', (e) => {
+        if (!e.features.length) return;
+        const g = e.features[0].properties;
+        const entry = stationMarkers[g.id];
+        if (entry && entry.popup) {
+          entry.popup.setLngLat([e.lngLat.lng, e.lngLat.lat]).addTo(map);
+        }
+      });
+    } else {
+      map.getSource('streamflow-gauges').setData(gaugesGeoJSON);
+    }
+  }
+
   // 2. Trans-Mountain Tunnels & Conveyance Canals Badges
   metrics.tunnels.forEach(t => {
     const isFrontRange = t.id && t.id.endsWith("TUNCO");
@@ -1783,13 +1924,13 @@ function renderMetrics(metrics) {
     const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
       <div style="font-family:'Inter',sans-serif; min-width: 220px; padding: 2px;">
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <span style="font-size:10px; font-weight:700; color:${isFrontRange ? '#b45309' : '#047857'}; background:${isFrontRange ? '#fffbeb' : '#ecfdf5'}; border:1px solid ${isFrontRange ? '#fde68a' : '#a7f3d0'}; padding:2px 6px; border-radius:4px;">${diversionBadge}</span>
+          <span style="font-size:10px; font-weight:700; color:${isFrontRange ? '#b45309' : '#0369a1'}; background:${isFrontRange ? '#fffbeb' : '#e0f2fe'}; border:1px solid ${isFrontRange ? '#fde68a' : '#bae6fd'}; padding:2px 6px; border-radius:4px;">${diversionBadge}</span>
         </div>
         <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${t.name}</strong>
         <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:6px;">${t.operator || ''}</div>
         <div style="margin: 6px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
           <span style="font-size:11px; color:#475569; font-weight:600;">Diverted Flow:</span>
-          <span style="font-size:16px; font-weight:800; color:${isFrontRange ? '#d97706' : '#059669'};">${t.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>
+          <span style="font-size:16px; font-weight:800; color:${isFrontRange ? '#d97706' : '#0284c7'};">${t.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>
         </div>
         <div style="font-size:11px; color:#475569; line-height:1.5;">
           <strong>Destination:</strong> ${t.destination}<br>
@@ -2489,10 +2630,17 @@ function toggleLayer(layerName) {
       queueBadgePlacements();
       break;
     case "canals":
+      setLayerVisibility('canals-casing', isChecked);
       setLayerVisibility('canals-line', isChecked);
       setLayerVisibility('canals-hit-buffer', isChecked);
       markers.canals.forEach(m => m.getElement().style.display = (isChecked && showAllBadges) ? '' : 'none');
       queueBadgePlacements();
+      break;
+    case "streamflowGauges":
+    case "streamflow-gauges":
+      setLayerVisibility('streamflow-gauges-casing', isChecked);
+      setLayerVisibility('streamflow-gauges-circle', isChecked);
+      setLayerVisibility('streamflow-gauges-hit-buffer', isChecked);
       break;
     case "reservoirs":
       setLayerVisibility('lakes-fill', isChecked);
