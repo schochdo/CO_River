@@ -15,3 +15,10 @@ dist/
 # SQLite temporary files
 *.db-shm
 *.db-wal
+
+# Local server runtime
+server.log
+server.pid
+updater.log
+updater.pid
+patch_rivers.js

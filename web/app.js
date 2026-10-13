@@ -16,6 +16,7 @@ let tooltipPopup;
 let cachedGeography = null;
 let cachedRiverNetwork = null;
 let cachedLakes = null;
+let cachedNormals = null;
 let cachedMetrics = null;
 
 // Basemap configurations: default to National Geographic (Warm Physical Style)
@@ -94,9 +95,7 @@ const initialStyle = {
     { id: 'layer-esriNatGeo', type: 'raster', source: 'basemap-esriNatGeo', layout: { visibility: 'visible' } },
     { id: 'layer-esriWorldTopo', type: 'raster', source: 'basemap-esriWorldTopo', layout: { visibility: 'none' } },
     { id: 'layer-esriTerrain', type: 'raster', source: 'basemap-esriTerrain', layout: { visibility: 'none' } },
-    { id: 'layer-esriPhysical', type: 'raster', source: 'basemap-esriPhysical', layout: { visibility: 'none' } },
     { id: 'layer-esriSatellite', type: 'raster', source: 'basemap-esriSatellite', layout: { visibility: 'none' } },
-    { id: 'layer-esriRelief', type: 'raster', source: 'basemap-esriRelief', layout: { visibility: 'none' } },
     { id: 'layer-openTopo', type: 'raster', source: 'basemap-openTopo', layout: { visibility: 'none' } },
     // Reference labels overlay (hidden by default since NatGeo has built-in labels)
     { id: 'layer-labels', type: 'raster', source: 'basemap-labels', layout: { visibility: 'none' }, paint: { 'raster-opacity': 0.85 } }
@@ -112,15 +111,15 @@ if (document.readyState === "loading") {
 }
 
 function initMap() {
-  // Default: clean 2D top-down orientation (pitch 0, bearing 0)
+  // Default: clean 2D top-down orientation fit perfectly to the Upper and Lower Basin extents
   map = new maplibregl.Map({
     container: 'map',
     style: initialStyle,
-    center: [-109.8, 38.5],
-    zoom: 6.3,
+    bounds: [[-116.65, 31.15], [-105.45, 43.65]],
+    fitBoundsOptions: { padding: { top: 45, bottom: 45, left: 45, right: 45 } },
     pitch: 0,
     bearing: 0,
-    maxPitch: 85
+    maxPitch: 65
   });
   window.map = map;
 
@@ -159,11 +158,24 @@ function initMap() {
       }
       map.jumpTo({ center: [-105.9, 39.9], zoom: 9.6 });
     }
+    if (window.location.search.includes('3d=1')) {
+      isTilted = true;
+      if (!map.getTerrain()) {
+        map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+      }
+      map.jumpTo({ pitch: 42, bearing: -8 });
+      updatePerspectiveUI();
+      zoomToPreset('basin');
+    }
+    if (window.location.search.includes('open_menu=1')) {
+      toggleMapMenu();
+    }
   });
 
   map.on('move', queueBadgePlacements);
   map.on('zoom', queueBadgePlacements);
   map.on('resize', queueBadgePlacements);
+  map.on('pitch', syncPerspectiveState);
 }
 
 function changeBasemap(key) {
@@ -179,26 +191,177 @@ function changeBasemap(key) {
   if (map.getLayer('layer-labels')) {
     map.setLayoutProperty('layer-labels', 'visibility', needsLabels ? 'visible' : 'none');
   }
+
+  // Sync floating hamburger menu items
+  document.querySelectorAll('.basemap-item-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.value === key);
+  });
+}
+
+function selectBasemap(key) {
+  changeBasemap(key);
+}
+
+function syncPerspectiveState() {
+  if (!map) return;
+  const currentPitch = map.getPitch();
+  const shouldBeTilted = currentPitch > 5;
+
+  if (shouldBeTilted !== isTilted) {
+    isTilted = shouldBeTilted;
+    if (isTilted) {
+      if (!map.getTerrain()) {
+        map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+      }
+    } else {
+      if (currentPitch === 0 && map.getTerrain()) {
+        map.setTerrain(null);
+      }
+    }
+  }
+
+  updatePerspectiveUI();
+}
+
+function updatePerspectiveUI() {
+  if (!map) return;
+  const currentPitch = Math.round(map.getPitch());
+  const tilted = currentPitch > 5;
+
+  // Perspective toggle buttons
+  const btn2d = document.getElementById("btn-perspective-2d");
+  const btn3d = document.getElementById("btn-perspective-3d");
+  if (btn2d) btn2d.classList.toggle("active", !tilted);
+  if (btn3d) btn3d.classList.toggle("active", tilted);
+
+  // On-map 3D toggle button in tilt control group
+  const map3dBtn = document.getElementById("btn-tilt-mode");
+  if (map3dBtn) map3dBtn.classList.toggle("active", tilted);
+
+  // Slider in hamburger menu
+  const slider = document.getElementById("tilt-range-slider");
+  if (slider && document.activeElement !== slider) {
+    slider.value = currentPitch;
+  }
+
+  // Tilt status badge
+  const badge = document.getElementById("tilt-status-badge");
+  if (badge) {
+    badge.textContent = tilted ? "3D Active" : "Flat 2D";
+  }
+
+  // Preset chips
+  const chipFlat = document.getElementById("chip-flat");
+  const chipLow = document.getElementById("chip-low");
+  const chipSteep = document.getElementById("chip-steep");
+  if (chipFlat) chipFlat.classList.toggle("active", currentPitch <= 5);
+  if (chipLow) chipLow.classList.toggle("active", currentPitch > 5 && currentPitch <= 45);
+  if (chipSteep) chipSteep.classList.toggle("active", currentPitch > 45);
+}
+
+function setPitchDegrees(deg) {
+  if (!map) return;
+  deg = Math.max(0, Math.min(65, deg));
+  if (deg > 0) {
+    if (!map.getTerrain()) {
+      map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+    }
+    isTilted = true;
+    map.easeTo({
+      pitch: deg,
+      bearing: map.getBearing() !== 0 ? map.getBearing() : -8,
+      duration: 600
+    });
+  } else {
+    // Return to flat 2D
+    map.easeTo({
+      pitch: 0,
+      bearing: 0,
+      duration: 600
+    });
+    setTimeout(() => {
+      if (map && map.getPitch() === 0) {
+        map.setTerrain(null);
+        isTilted = false;
+        updatePerspectiveUI();
+      }
+    }, 650);
+  }
+}
+
+function setPitchFromSlider(val) {
+  const deg = parseInt(val, 10) || 0;
+  setPitchDegrees(deg);
+}
+
+function tiltStep(delta) {
+  if (!map) return;
+  const currentPitch = map.getPitch();
+  let targetPitch;
+  if (delta > 0) {
+    // Stepping up
+    if (currentPitch < 5) {
+      targetPitch = 38;
+    } else {
+      targetPitch = Math.min(65, Math.round((currentPitch + 15) / 5) * 5);
+    }
+  } else {
+    // Stepping down
+    if (currentPitch <= 25) {
+      targetPitch = 0;
+    } else {
+      targetPitch = Math.max(0, Math.round((currentPitch - 15) / 5) * 5);
+    }
+  }
+  setPitchDegrees(targetPitch);
+}
+
+function setPerspective(mode) {
+  if (mode === '3d') {
+    setPitchDegrees(map.getPitch() > 10 ? map.getPitch() : 38);
+  } else {
+    setPitchDegrees(0);
+  }
 }
 
 function toggleTilt() {
-  const btn = document.getElementById("tilt-toggle-btn");
   if (isTilted) {
-    // Switch to top-down 2D mode: remove terrain mesh to ensure 100% uniform edge-to-edge tile loading
-    map.easeTo({ pitch: 0, bearing: 0, duration: 800 });
-    setTimeout(() => {
-      if (!isTilted && map) map.setTerrain(null);
-    }, 850);
-    isTilted = false;
-    if (btn) btn.textContent = "3D Tilt: OFF (Flat 2D)";
+    setPitchDegrees(0);
   } else {
-    // Switch to panoramic 3D tilted relief: activate DEM mesh
-    map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
-    map.easeTo({ pitch: 42, bearing: -10, duration: 800 });
-    isTilted = true;
-    if (btn) btn.textContent = "3D Tilt: ON (42°)";
+    setPitchDegrees(38);
   }
 }
+
+function toggleMapMenu(e) {
+  if (e) e.stopPropagation();
+  const dropdown = document.getElementById("map-menu-dropdown");
+  const btn = document.getElementById("map-menu-btn");
+  if (dropdown) {
+    const isShowing = dropdown.classList.contains("show");
+    dropdown.classList.toggle("show", !isShowing);
+    if (btn) btn.classList.toggle("active", !isShowing);
+  }
+}
+
+// Close map menu on click outside or escape key
+document.addEventListener("click", (e) => {
+  const container = document.getElementById("map-menu-container");
+  if (container && !container.contains(e.target)) {
+    const dropdown = document.getElementById("map-menu-dropdown");
+    const btn = document.getElementById("map-menu-btn");
+    if (dropdown) dropdown.classList.remove("show");
+    if (btn) btn.classList.remove("active");
+  }
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const dropdown = document.getElementById("map-menu-dropdown");
+    const btn = document.getElementById("map-menu-btn");
+    if (dropdown) dropdown.classList.remove("show");
+    if (btn) btn.classList.remove("active");
+  }
+});
 
 async function fetchLiveUSGS() {
   const controller = new AbortController();
@@ -539,14 +702,16 @@ async function loadData(forceLive = false) {
     
     // 1. Fetch static base geometries on first load
     if (!cachedGeography || !cachedRiverNetwork || !cachedLakes) {
-      const [geoRes, riverRes, lakesRes] = await Promise.all([
+      const [geoRes, riverRes, lakesRes, normalsRes] = await Promise.all([
         fetch(`./data/geography.json?t=${t}`),
         fetch(`./data/river_network.json?t=${t}`),
-        fetch(`./data/lakes.geojson?t=${t}`)
+        fetch(`./data/lakes.geojson?t=${t}`),
+        fetch(`./data/historical_normals.json?t=${t}`).catch(() => null)
       ]);
       cachedGeography = await geoRes.json();
       cachedRiverNetwork = await riverRes.json();
       cachedLakes = await lakesRes.json();
+      if (normalsRes) cachedNormals = await normalsRes.json();
       renderGeography(cachedGeography, cachedRiverNetwork, cachedLakes);
     }
 
@@ -558,6 +723,7 @@ async function loadData(forceLive = false) {
     // 3. Immediately render cached metrics so the map and UI are 100% interactive instantly!
     applyLiveHydrology(cachedRiverNetwork, metrics);
     renderMetrics(metrics);
+    renderFlowHealthLayer(cachedRiverNetwork, metrics);
     updateBadgePlacements();
     populateTelemetryTable(metrics);
     updateSidebar(metrics);
@@ -598,6 +764,14 @@ async function loadData(forceLive = false) {
 function formatTimestamp(isoString) {
   if (!isoString) return "Today";
   try {
+    // If it's a date-only string like "2026-09-30", parse with local midday to prevent UTC day-rollback
+    if (/^\d{4}-\d{2}-\d{2}$/.test(isoString)) {
+      const [y, m, d] = isoString.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d, 12, 0, 0);
+      return dateObj.toLocaleDateString('en-US', {
+        month: 'short', day: 'numeric', year: 'numeric'
+      }) + " (Daily Close)";
+    }
     const d = new Date(isoString);
     if (isNaN(d.getTime())) return "Today";
     return d.toLocaleString('en-US', {
@@ -630,32 +804,35 @@ function renderGeography(geo, riverNetwork, lakes) {
   if (!map.getSource('basins')) {
     map.addSource('basins', { type: 'geojson', data: basinsGeoJSON });
     map.addLayer({
-      id: 'basin-fill',
-      type: 'fill',
-      source: 'basins',
-      paint: {
-        'fill-color': ['get', 'fill'],
-        'fill-opacity': 0.07
-      }
-    });
-    map.addLayer({
       id: 'basin-line',
       type: 'line',
       source: 'basins',
       paint: {
-        'line-color': ['get', 'color'],
-        'line-width': 1.8,
-        'line-dasharray': [3, 4]
+        'line-color': '#ffffff',
+        'line-width': 2.5,
+        'line-dasharray': [3, 4],
+        'line-opacity': 0.95
+      }
+    });
+
+    map.addLayer({
+      id: 'basin-line-hit-buffer',
+      type: 'line',
+      source: 'basins',
+      paint: {
+        'line-color': '#000000',
+        'line-width': 24,
+        'line-opacity': 0.0001
       }
     });
 
     // Only the perimeter boundary line itself is interactive, NOT the vast interior fill polygon
-    map.on('mousemove', 'basin-line', (e) => {
+    map.on('mousemove', 'basin-line-hit-buffer', (e) => {
       if (!e.features.length) return;
       map.getCanvas().style.cursor = 'pointer';
       tooltipPopup.setLngLat(e.lngLat).setHTML(`<strong>${e.features[0].properties.name} Boundary</strong>`).addTo(map);
     });
-    map.on('mouseleave', 'basin-line', () => {
+    map.on('mouseleave', 'basin-line-hit-buffer', () => {
       map.getCanvas().style.cursor = '';
       tooltipPopup.remove();
     });
@@ -679,19 +856,34 @@ function renderGeography(geo, riverNetwork, lakes) {
       id: 'divide-line',
       type: 'line',
       source: 'divide',
+      layout: {
+        'line-cap': 'round',
+        'line-join': 'round'
+      },
       paint: {
         'line-color': '#b45309',
-        'line-width': 3.5,
-        'line-dasharray': [4, 3],
-        'line-opacity': 0.85
+        'line-width': 2.2,
+        'line-dasharray': [1.5, 3],
+        'line-opacity': 0.9
       }
     });
 
-    map.on('mousemove', 'divide-line', (e) => {
+    map.addLayer({
+      id: 'divide-line-hit-buffer',
+      type: 'line',
+      source: 'divide',
+      paint: {
+        'line-color': '#000000',
+        'line-width': 24,
+        'line-opacity': 0.0001
+      }
+    });
+
+    map.on('mousemove', 'divide-line-hit-buffer', (e) => {
       map.getCanvas().style.cursor = 'pointer';
       tooltipPopup.setLngLat(e.lngLat).setHTML(`<strong>Continental Divide of the Americas</strong><br><span style="font-size:11px;color:#64748b;">Hydrologic Boundary between Pacific & Atlantic Slopes</span>`).addTo(map);
     });
-    map.on('mouseleave', 'divide-line', () => {
+    map.on('mouseleave', 'divide-line-hit-buffer', () => {
       map.getCanvas().style.cursor = '';
       tooltipPopup.remove();
     });
@@ -797,38 +989,77 @@ function renderGeography(geo, riverNetwork, lakes) {
   if (riverNetwork && !map.getSource('rivers')) {
     map.addSource('rivers', { type: 'geojson', data: riverNetwork });
 
-    // 4a. Mainstem & Major Tributaries - Outer Glow
+    // 4a. Mainstem - Outer Glow
     map.addLayer({
-      id: 'rivers-main-glow',
+      id: 'rivers-mainstem-glow',
       type: 'line',
       source: 'rivers',
-      filter: ['!=', ['get', 'category'], 'minor_tributary'],
+      filter: ['==', ['get', 'category'], 'mainstem'],
       paint: {
         'line-color': '#38bdf8',
         'line-width': ['+', ['get', 'weight'], 2.0],
         'line-blur': 1.5,
-        'line-opacity': 0.60
+        'line-opacity': 0.65
       }
     });
-
-    // 4b. Mainstem & Major Tributaries - Core Flowline (Unified River Blue)
+    // 4b. Mainstem - Core Flowline
     map.addLayer({
-      id: 'rivers-main-core',
+      id: 'rivers-mainstem-core',
       type: 'line',
       source: 'rivers',
-      filter: ['!=', ['get', 'category'], 'minor_tributary'],
-      layout: {
-        'line-cap': 'round',
-        'line-join': 'round'
-      },
+      filter: ['==', ['get', 'category'], 'mainstem'],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
         'line-color': '#0284c7',
         'line-width': ['get', 'weight'],
         'line-opacity': 0.95
       }
     });
+    // Mainstem Hit Buffer
+    map.addLayer({
+      id: 'rivers-mainstem-hit',
+      type: 'line',
+      source: 'rivers',
+      filter: ['==', ['get', 'category'], 'mainstem'],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': '#000000', 'line-width': 24, 'line-opacity': 0.0001 }
+    });
 
-    // 4c. Secondary Minor Tributaries - Outer Glow (Subtle & Tight)
+    // Major Tributaries
+    map.addLayer({
+      id: 'rivers-major-glow',
+      type: 'line',
+      source: 'rivers',
+      filter: ['==', ['get', 'category'], 'major_tributary'],
+      paint: {
+        'line-color': '#38bdf8',
+        'line-width': ['+', ['get', 'weight'], 2.0],
+        'line-blur': 1.5,
+        'line-opacity': 0.65
+      }
+    });
+    map.addLayer({
+      id: 'rivers-major-core',
+      type: 'line',
+      source: 'rivers',
+      filter: ['==', ['get', 'category'], 'major_tributary'],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': '#0284c7',
+        'line-width': ['get', 'weight'],
+        'line-opacity': 0.95
+      }
+    });
+    map.addLayer({
+      id: 'rivers-major-hit',
+      type: 'line',
+      source: 'rivers',
+      filter: ['==', ['get', 'category'], 'major_tributary'],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': '#000000', 'line-width': 24, 'line-opacity': 0.0001 }
+    });
+
+    // Secondary Minor Tributaries
     map.addLayer({
       id: 'rivers-minor-glow',
       type: 'line',
@@ -841,42 +1072,29 @@ function renderGeography(geo, riverNetwork, lakes) {
         'line-opacity': 0.35
       }
     });
-
-    // 4d. Secondary Minor Tributaries - Core Flowline (Same Unified River Blue, Leaner Width)
     map.addLayer({
       id: 'rivers-minor-core',
       type: 'line',
       source: 'rivers',
       filter: ['==', ['get', 'category'], 'minor_tributary'],
-      layout: {
-        'line-cap': 'round',
-        'line-join': 'round'
-      },
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
         'line-color': '#0284c7',
         'line-width': ['get', 'weight'],
-        'line-opacity': 0.90
+        'line-opacity': 0.65
       }
     });
-
-    // 4e. River Hit Buffer (24px invisible hit-target layer so hovering/clicking rivers is effortless)
     map.addLayer({
-      id: 'rivers-hit-buffer',
+      id: 'rivers-minor-hit',
       type: 'line',
       source: 'rivers',
-      layout: {
-        'line-cap': 'round',
-        'line-join': 'round'
-      },
-      paint: {
-        'line-color': '#000000',
-        'line-width': 24,
-        'line-opacity': 0.0001
-      }
+      filter: ['==', ['get', 'category'], 'minor_tributary'],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': '#000000', 'line-width': 24, 'line-opacity': 0.0001 }
     });
 
     // River hover tooltips & click handlers attached to the generous hit buffer
-    ['rivers-hit-buffer', 'rivers-main-core', 'rivers-minor-core'].forEach(layerId => {
+    ['rivers-mainstem-hit', 'rivers-major-hit', 'rivers-minor-hit'].forEach(layerId => {
       map.on('mousemove', layerId, (e) => {
         if (!e.features.length) return;
         map.getCanvas().style.cursor = 'pointer';
@@ -892,6 +1110,21 @@ function renderGeography(geo, riverNetwork, lakes) {
         const timeHtml = p.timestamp ? `<div style="font-size:10px;color:#64748b;margin-top:2px;"><strong>Measured:</strong> ${formatTimestamp(p.timestamp)}</div>` : '';
         const notesHtml = p.notes && p.notes !== p.gauge_info ? `<div style="font-size:11px;color:#64748b;margin-top:4px;line-height:1.35;">${p.notes}</div>` : '';
 
+        // Flow health vs historical normal
+        const gaugeId = p.gauge_id;
+        const norm = gaugeId ? getHistoricalNormal(gaugeId) : null;
+        let healthHtml = '';
+        if (norm && norm > 0 && p.flow_cfs != null) {
+          const pct = Math.round((Number(p.flow_cfs) / norm) * 100);
+          const color = flowHealthColor(pct);
+          const label = flowHealthLabel(pct);
+          healthHtml = `<div style="margin-top:6px;padding:5px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;color:#64748b;font-weight:600;">vs. Hist. Daily Avg</span>
+            <span style="font-size:13px;font-weight:800;color:${color};">${pct}% <span style="font-size:10px;font-weight:600;">(${label})</span></span>
+          </div>
+          <div style="margin-top:3px;font-size:10px;color:#94a3b8;">Avg today: ${Math.round(norm).toLocaleString()} cfs (${new Date().getFullYear()-50}–${new Date().getFullYear()-1} mean)</div>`;
+        }
+
         tooltipPopup.setLngLat(e.lngLat).setHTML(`
           <div style="font-family:'Inter',sans-serif; min-width: 190px; max-width: 270px;">
             <div style="margin-bottom:4px;">${catBadge}</div>
@@ -902,6 +1135,7 @@ function renderGeography(geo, riverNetwork, lakes) {
             </div>
             ${sourceBadge}
             ${stationHtml}
+            ${healthHtml}
             <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;">
               <strong>Classification:</strong> ${Number(p.flow_cfs) >= 5000 ? 'High Flow Mainstem (> 5,000 cfs)' : (Number(p.flow_cfs) >= 1000 ? 'Major River / Tributary (1,000 – 5,000 cfs)' : 'Secondary Stream / Headwaters (< 1,000 cfs)')}
             </div>
@@ -992,18 +1226,18 @@ function renderGeography(geo, riverNetwork, lakes) {
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#78350f',
+          'line-color': '#0f172a', /* Dark slate casing */
           'line-width': [
             'interpolate', ['linear'], ['zoom'],
-            5, 6,
-            8, 8.5,
-            12, 11
+            5, ['+', ['*', ['get', 'flow_cfs'], 0.005], 3],
+            8, ['+', ['*', ['get', 'flow_cfs'], 0.008], 4],
+            12, ['+', ['*', ['get', 'flow_cfs'], 0.012], 6]
           ],
-          'line-opacity': 0.95
+          'line-opacity': 0.8
         }
       });
 
-      // 2. High-contrast vivid amber core dashed line
+      // 2. High-contrast vivid amber core solid line
       map.addLayer({
         id: 'tunnels-line',
         type: 'line',
@@ -1017,11 +1251,10 @@ function renderGeography(geo, riverNetwork, lakes) {
           'line-color': '#f59e0b',
           'line-width': [
             'interpolate', ['linear'], ['zoom'],
-            5, 3.8,
-            8, 5.5,
-            12, 7.5
+            5, ['+', ['*', ['get', 'flow_cfs'], 0.005], 1.5],
+            8, ['+', ['*', ['get', 'flow_cfs'], 0.008], 2.5],
+            12, ['+', ['*', ['get', 'flow_cfs'], 0.012], 4]
           ],
-          'line-dasharray': [3.5, 2],
           'line-opacity': 1.0
         }
       });
@@ -1341,6 +1574,126 @@ function renderGeography(geo, riverNetwork, lakes) {
   }
 }
 
+// ─── Flow Health Overlay ──────────────────────────────────────────────────────
+// Returns today's "MM-DD" key for looking up historical normals
+function todayKey() {
+  const now = new Date();
+  return `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+// Returns the historical daily-mean for a USGS site ID on today's date
+function getHistoricalNormal(siteId) {
+  if (!cachedNormals?.sites) return null;
+  const site = cachedNormals.sites[siteId];
+  if (!site) return null;
+  return site[todayKey()] ?? null;
+}
+
+// Color scale: critically low → low → below-normal → normal → abundant
+function flowHealthColor(pctOfNormal) {
+  if (pctOfNormal === null) return null;  // no data
+  if (pctOfNormal >= 150) return '#1d4ed8';  // abundant — deep blue
+  if (pctOfNormal >= 90)  return '#0ea5e9';  // normal — sky blue
+  if (pctOfNormal >= 50)  return '#f59e0b';  // below normal — amber
+  if (pctOfNormal >= 25)  return '#ef4444';  // low — red
+  return '#7f1d1d';                           // critically low — dark red
+}
+
+// Label for the health status
+function flowHealthLabel(pct) {
+  if (pct === null) return null;
+  if (pct >= 150) return 'Abundant';
+  if (pct >= 90)  return 'Normal';
+  if (pct >= 50)  return 'Below Normal';
+  if (pct >= 25)  return 'Low Flow';
+  return 'Critically Low';
+}
+
+// Build / update the flow-health GeoJSON overlay
+function renderFlowHealthLayer(riverNetwork, metrics) {
+  if (!cachedNormals?.sites || !riverNetwork?.features) return;
+
+  const today = todayKey();
+  // Build a lookup of gauge site_id -> {flow, pct}
+  const gaugeLookup = {};
+  (metrics?.streamflows || []).forEach(g => {
+    const norm = cachedNormals.sites[g.id]?.[today];
+    if (norm && norm > 0) {
+      gaugeLookup[g.id] = { flow: g.flow_cfs, pct: Math.round((g.flow_cfs / norm) * 100) };
+    }
+  });
+
+  // Annotate river features with the nearest gauge's pct
+  const features = riverNetwork.features.map(f => {
+    const gaugeId = f.properties?.gauge_id;
+    const health = gaugeId ? gaugeLookup[gaugeId] : null;
+    const pct = health?.pct ?? null;
+    return {
+      ...f,
+      properties: { ...f.properties, health_pct: pct, health_color: flowHealthColor(pct) }
+    };
+  });
+  const fc = { type: 'FeatureCollection', features };
+
+  if (!map.getSource('rivers-health')) {
+    map.addSource('rivers-health', { type: 'geojson', data: fc });
+
+    // Wide outer glow for the health line
+    map.addLayer({
+      id: 'rivers-health-glow',
+      type: 'line',
+      source: 'rivers-health',
+      filter: ['!=', ['get', 'health_color'], null],
+      layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
+      paint: {
+        'line-color': ['coalesce', ['get', 'health_color'], '#0ea5e9'],
+        'line-width': ['+', ['*', ['get', 'weight'], 1.5], 8],
+        'line-blur': 6,
+        'line-opacity': 0.7
+      }
+    });
+
+    // Core health line — thicker than base so it reads clearly over the dimmed river
+    map.addLayer({
+      id: 'rivers-health-core',
+      type: 'line',
+      source: 'rivers-health',
+      filter: ['!=', ['get', 'health_color'], null],
+      layout: { 'line-cap': 'round', 'line-join': 'round', 'visibility': 'none' },
+      paint: {
+        'line-color': ['coalesce', ['get', 'health_color'], '#0ea5e9'],
+        'line-width': ['+', ['get', 'weight'], 2],
+        'line-opacity': 1.0
+      }
+    });
+  } else {
+    map.getSource('rivers-health').setData(fc);
+    // Update paint on existing layers if they already exist
+    if (map.getLayer('rivers-health-core')) {
+      map.setPaintProperty('rivers-health-core', 'line-width', ['+', ['get', 'weight'], 2]);
+    }
+  }
+}
+
+function toggleFlowHealthLayer(show) {
+  const vis = show ? 'visible' : 'none';
+  setLayerVisibility('rivers-health-glow', show);
+  setLayerVisibility('rivers-health-core', show);
+  // Dim normal river layers when health overlay is on — keep some geography visible
+  ['rivers-mainstem-core','rivers-major-core','rivers-minor-core',
+   'rivers-mainstem-glow','rivers-major-glow','rivers-minor-glow'].forEach(id => {
+    if (map.getLayer(id)) {
+      const normalOpacity = id.includes('glow') ? 0.65 : 0.95;
+      map.setPaintProperty(id, 'line-opacity', show ? (id.includes('glow') ? 0.1 : 0.25) : normalOpacity);
+    }
+  });
+  // Show/hide health legend in map
+  const leg = document.getElementById('flow-health-legend');
+  if (leg) leg.style.display = show ? 'block' : 'none';
+}
+
+// ─── End Flow Health Overlay ─────────────────────────────────────────────────
+
 function renderMetrics(metrics) {
   // Clear previous CFS markers
   Object.values(markers).forEach(arr => {
@@ -1349,7 +1702,7 @@ function renderMetrics(metrics) {
   });
   stationMarkers = {};
 
-  const showGauges = document.getElementById('toggle-gauges')?.checked ?? false;
+  const showBadges = document.getElementById('toggle-all-badges')?.checked ?? false;
   const showTunnels = document.getElementById('toggle-tunnels')?.checked ?? false;
   const showCanals = document.getElementById('toggle-canals')?.checked ?? false;
   const showReservoirs = document.getElementById('toggle-reservoirs')?.checked ?? true;
@@ -1406,7 +1759,7 @@ function renderMetrics(metrics) {
       )
     };
 
-    if (!showGauges) {
+    if (!showBadges) {
       marker.getElement().style.display = 'none';
     }
 
@@ -1480,7 +1833,7 @@ function renderMetrics(metrics) {
 }
 
 function updateSidebar(metrics) {
-  // 1. Where Is the Water Going? (Major Basin Outflows & Diversions)
+  // 1. Where Is the Water Going? (Major Basin Outflows & Diversions) - Bar Chart
   const tunnelsExport = (metrics.tunnels || [])
     .filter(t => t.id && t.id.endsWith("TUNCO"))
     .reduce((sum, t) => sum + (t.flow_cfs || 0), 0);
@@ -1494,17 +1847,34 @@ function updateSidebar(metrics) {
 
   const leesFlow = (metrics.streamflows || []).find(s => s.id === "09380000")?.flow_cfs || 9770;
 
-  const tunnelsElem = document.getElementById("flow-tunnels-val");
-  if (tunnelsElem) tunnelsElem.textContent = `${tunnelsExport.toFixed(1)} cfs`;
+  const flowChartElem = document.getElementById("flow-dest-chart");
+  if (flowChartElem) {
+    const maxFlow = Math.max(tunnelsExport, aacFlow, craFlow, leesFlow) || 1;
+    const makeBar = (name, flow, color, label1, label2, center, zoomLevel) => {
+      const pct = Math.max(2, (flow / maxFlow) * 100);
+      const onClick = center ? `onclick="if(window.map) window.map.flyTo({center: [${center[0]}, ${center[1]}], zoom: ${zoomLevel || 9}, duration: 1400})"` : '';
+      return `
+        <div class="flow-bar-row interactive" ${onClick} title="Click to fly to ${name}">
+          <div class="flow-bar-labels">
+            <span class="flow-bar-name">${name} <span class="flow-bar-sub">(${label1})</span></span>
+            <span class="flow-bar-val" style="color: ${color}">${Math.round(flow).toLocaleString()} cfs</span>
+          </div>
+          <div class="flow-bar-track">
+            <div class="flow-bar-fill" style="width: ${pct}%; background-color: ${color};"></div>
+          </div>
+        </div>
+      `;
+    };
 
-  const aacElem = document.getElementById("flow-aac-val");
-  if (aacElem) aacElem.textContent = `${Math.round(aacFlow).toLocaleString()} cfs`;
-
-  const craElem = document.getElementById("flow-cra-val");
-  if (craElem) craElem.textContent = `${Math.round(craFlow).toLocaleString()} cfs`;
-
-  const leesElem = document.getElementById("flow-lees-val");
-  if (leesElem) leesElem.textContent = `${Math.round(leesFlow).toLocaleString()} cfs`;
+    flowChartElem.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+        ${makeBar("Lees Ferry", leesFlow, "var(--color-primary)", "Upper \u2192 Lower Basin", "", [-111.587, 36.865], 9.5)}
+        ${makeBar("All-American Canal", aacFlow, "var(--color-emerald)", "Ag Export", "", [-114.467, 32.883], 9)}
+        ${makeBar("CO River Aqueduct", craFlow, "var(--color-emerald)", "Urban Export", "", [-114.162, 34.314], 9)}
+        ${makeBar("Front Range Tunnels", tunnelsExport, "var(--color-amber)", "Divide Export", "", [-105.7, 39.8], 8)}
+      </div>
+    `;
+  }
 
   // 2. Major Storage Reservoirs Panel (7 Key Facilities)
   const resList = metrics.reservoirs || [];
@@ -1545,16 +1915,24 @@ function updateSidebar(metrics) {
       const cleanName = r.name.split('(')[0].trim();
       const subLabel = r.river || (r.name.match(/\(([^)]+)\)/)?.[1] || 'Major Storage');
 
+      const capAf = r.capacity_af || (r.storage_af / (pct / 100));
+      const storageStr = r.storage_af >= 1e6 ? `${(r.storage_af / 1e6).toFixed(2)}M AF` : `${Math.round(r.storage_af / 1e3).toLocaleString()}k AF`;
+      const capStr = capAf >= 1e6 ? `${(capAf / 1e6).toFixed(2)}M AF` : `${Math.round(capAf / 1e3).toLocaleString()}k AF`;
+
       row.innerHTML = `
         <div class="res-row-head">
           <span class="res-row-name">${cleanName}</span>
-          <span class="res-row-val ${statusClass}">${pct}% (${(r.storage_af / 1e6).toFixed(2)}M AF)</span>
+          <span class="res-row-val ${statusClass}">${pct}%</span>
         </div>
         <div class="res-row-sub">
           <span>${subLabel}</span>
-          <span>Elev: ${Math.round(r.elevation_ft || 0).toLocaleString()} ft</span>
+          <span><strong>${storageStr}</strong> of ${capStr}</span>
         </div>
-        <div class="progress-track" style="height: 5px;">
+        <div class="res-row-sub" style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">
+          <span>Elev: ${Math.round(r.elevation_ft || 0).toLocaleString()} ft</span>
+          <span>${formatTimestamp(r.timestamp)}</span>
+        </div>
+        <div class="progress-track" style="height: 5px; margin-top: 5px;">
           <div class="progress-fill ${statusClass}" style="width: ${Math.min(100, Math.max(2, pct))}%;"></div>
         </div>
       `;
@@ -1648,19 +2026,39 @@ function flyToNode(id, lat, lon) {
   }
 }
 
+// Authoritative full basin bounding box (encompassing all Upper & Lower Basin boundaries)
+const BASIN_BOUNDS = [
+  [-116.65, 31.15], // Southwest: Gulf of California / Salton Sea / Imperial Valley / Sonoran border
+  [-105.45, 43.65]  // Northeast: Wind River Range / Green River headwaters WY / Continental Divide
+];
+
 // Preset Zoom Navigation with mode-sensitive pitch
 function zoomToPreset(preset) {
-  document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
-  if (event && event.target && event.target.classList.contains("nav-btn") && event.target.id !== "tilt-toggle-btn") {
-    event.target.classList.add("active");
-  }
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    if (btn.getAttribute("onclick")?.includes(preset)) {
+      btn.classList.add("active");
+    } else if (!btn.classList.contains("law-btn") && !btn.getAttribute("onclick")?.includes("sankey")) {
+      btn.classList.remove("active");
+    }
+  });
 
   if (isTilted) {
     // 3D Oblique Perspectives
     switch(preset) {
-      case "basin":
-        map.flyTo({ center: [-110.2, 38.0], zoom: 6.3, pitch: 42, bearing: -10, duration: 1500 });
+      case "basin": {
+        const cam = map.cameraForBounds(BASIN_BOUNDS, {
+          padding: { top: 135, bottom: 45, left: 45, right: 45 },
+          bearing: -8
+        });
+        map.flyTo({
+          center: [cam.center.lng, cam.center.lat + 0.35],
+          zoom: cam.zoom,
+          pitch: map.getPitch() > 10 ? map.getPitch() : 38,
+          bearing: -8,
+          duration: 1200
+        });
         break;
+      }
       case "divide":
         map.flyTo({ center: [-105.9, 39.85], zoom: 9.8, pitch: 56, bearing: -30, duration: 1500 });
         break;
@@ -1674,9 +2072,20 @@ function zoomToPreset(preset) {
   } else {
     // Clean, readable top-down 2D mode
     switch(preset) {
-      case "basin":
-        map.flyTo({ center: [-109.8, 38.5], zoom: 6.3, pitch: 0, bearing: 0, duration: 1500 });
+      case "basin": {
+        const cam = map.cameraForBounds(BASIN_BOUNDS, {
+          padding: { top: 45, bottom: 45, left: 45, right: 45 },
+          bearing: 0
+        });
+        map.flyTo({
+          center: cam.center,
+          zoom: cam.zoom,
+          pitch: 0,
+          bearing: 0,
+          duration: 1200
+        });
         break;
+      }
       case "divide":
         map.flyTo({ center: [-105.95, 39.85], zoom: 9.8, pitch: 0, bearing: 0, duration: 1500 });
         break;
@@ -1810,71 +2219,6 @@ function updateBadgePlacements() {
   }
 }
 
-function toggleLayer(layerName) {
-  const kebab = layerName.replace(/([A-Z])/g, '-$1').toLowerCase();
-  const camel = layerName.replace(/-([a-z])/g, g => g[1].toUpperCase());
-  
-  const checkbox = document.getElementById(`toggle-${kebab}`) || document.getElementById(`toggle-${camel}`);
-  if (!checkbox) return;
-  const isChecked = checkbox.checked;
-
-  switch(camel) {
-    case "river":
-      setLayerVisibility('rivers-main-glow', isChecked);
-      setLayerVisibility('rivers-main-core', isChecked);
-      setLayerVisibility('rivers-hit-buffer', isChecked);
-      break;
-    case "minorRivers":
-      setLayerVisibility('rivers-minor-glow', isChecked);
-      setLayerVisibility('rivers-minor-core', isChecked);
-      break;
-    case "gauges":
-      markers.gauges.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
-      queueBadgePlacements();
-      break;
-    case "tunnels":
-      setLayerVisibility('tunnels-casing', isChecked);
-      setLayerVisibility('tunnels-line', isChecked);
-      setLayerVisibility('tunnels-portals-layer', isChecked);
-      setLayerVisibility('tunnels-hit-buffer', isChecked);
-      const showTunnelBadges = (document.getElementById('toggle-tunnel-badges') || document.getElementById('toggle-tunnelBadges'))?.checked ?? false;
-      markers.tunnels.forEach(m => m.getElement().style.display = (isChecked && showTunnelBadges) ? '' : 'none');
-      queueBadgePlacements();
-      break;
-    case "tunnelBadges":
-      const tunnelsOn = document.getElementById('toggle-tunnels')?.checked ?? false;
-      markers.tunnels.forEach(m => m.getElement().style.display = (tunnelsOn && isChecked) ? '' : 'none');
-      queueBadgePlacements();
-      break;
-    case "canals":
-      setLayerVisibility('canals-line', isChecked);
-      setLayerVisibility('canals-hit-buffer', isChecked);
-      const showCanalBadges = (document.getElementById('toggle-canal-badges') || document.getElementById('toggle-canalBadges'))?.checked ?? false;
-      markers.canals.forEach(m => m.getElement().style.display = (isChecked && showCanalBadges) ? '' : 'none');
-      queueBadgePlacements();
-      break;
-    case "canalBadges":
-      const canalsOn = document.getElementById('toggle-canals')?.checked ?? true;
-      markers.canals.forEach(m => m.getElement().style.display = (canalsOn && isChecked) ? '' : 'none');
-      queueBadgePlacements();
-      break;
-    case "reservoirs":
-      setLayerVisibility('lakes-fill', isChecked);
-      setLayerVisibility('lakes-stroke', isChecked);
-      markers.reservoirs.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
-      break;
-    case "dams":
-      setLayerVisibility('dams-layer', isChecked);
-      break;
-    case "divide":
-      setLayerVisibility('divide-line', isChecked);
-      break;
-    case "basin":
-      setLayerVisibility('basin-fill', isChecked);
-      setLayerVisibility('basin-line', isChecked);
-      break;
-  }
-}
 
 let tablePanelHeight = 360;
 
@@ -2043,4 +2387,93 @@ function refreshData() {
   const syncElem = document.getElementById("sync-time");
   if (syncElem) syncElem.textContent = "Querying live USGS gauges...";
   loadData(true);
+}
+function toggleLayerPanelCollapse() {
+  const card = document.getElementById("layer-card");
+  const group = document.getElementById("layer-toggle-group");
+  const icon = document.getElementById("layer-collapse-icon");
+  if (!group) return;
+  const isHidden = window.getComputedStyle(group).display === "none";
+  group.style.display = isHidden ? "flex" : "none";
+  if (card) card.classList.toggle("collapsed", !isHidden);
+  if (icon) icon.style.transform = isHidden ? "rotate(0deg)" : "rotate(-90deg)";
+}
+
+function toggleLayer(layerName) {
+  const kebab = layerName.replace(/([A-Z])/g, '-$1').toLowerCase();
+  const camel = layerName.replace(/-([a-z])/g, g => g[1].toUpperCase());
+  
+  const checkbox = document.getElementById(`toggle-${kebab}`) || document.getElementById(`toggle-${camel}`);
+  if (!checkbox) return;
+  const isChecked = checkbox.checked;
+
+  const showAllBadges = document.getElementById('toggle-all-badges')?.checked ?? false;
+
+  switch(camel) {
+    case "riverNetwork":
+      ['river-mainstem', 'river-major', 'river-minor', 'reservoirs'].forEach(id => {
+        const cb = document.getElementById(`toggle-${id}`);
+        if (cb) { cb.checked = isChecked; toggleLayer(id); }
+      });
+      break;
+    case "riverMainstem":
+      setLayerVisibility('rivers-mainstem-glow', isChecked);
+      setLayerVisibility('rivers-mainstem-core', isChecked);
+      setLayerVisibility('rivers-mainstem-hit', isChecked);
+      break;
+    case "riverMajor":
+      setLayerVisibility('rivers-major-glow', isChecked);
+      setLayerVisibility('rivers-major-core', isChecked);
+      setLayerVisibility('rivers-major-hit', isChecked);
+      break;
+    case "riverMinor":
+      setLayerVisibility('rivers-minor-glow', isChecked);
+      setLayerVisibility('rivers-minor-core', isChecked);
+      setLayerVisibility('rivers-minor-hit', isChecked);
+      break;
+    case "flowHealth":
+      toggleFlowHealthLayer(isChecked);
+      if (isChecked && cachedNormals && cachedRiverNetwork && cachedMetrics) {
+        renderFlowHealthLayer(cachedRiverNetwork, cachedMetrics);
+      }
+      break;
+    case "allBadges":
+      markers.gauges.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
+      const tunnelsOn = document.getElementById('toggle-tunnels')?.checked ?? true;
+      markers.tunnels.forEach(m => m.getElement().style.display = (tunnelsOn && isChecked) ? '' : 'none');
+      const canalsOn = document.getElementById('toggle-canals')?.checked ?? true;
+      markers.canals.forEach(m => m.getElement().style.display = (canalsOn && isChecked) ? '' : 'none');
+      queueBadgePlacements();
+      break;
+    case "tunnels":
+      setLayerVisibility('tunnels-casing', isChecked);
+      setLayerVisibility('tunnels-line', isChecked);
+      setLayerVisibility('tunnels-portals-layer', isChecked);
+      setLayerVisibility('tunnels-hit-buffer', isChecked);
+      markers.tunnels.forEach(m => m.getElement().style.display = (isChecked && showAllBadges) ? '' : 'none');
+      queueBadgePlacements();
+      break;
+    case "canals":
+      setLayerVisibility('canals-line', isChecked);
+      setLayerVisibility('canals-hit-buffer', isChecked);
+      markers.canals.forEach(m => m.getElement().style.display = (isChecked && showAllBadges) ? '' : 'none');
+      queueBadgePlacements();
+      break;
+    case "reservoirs":
+      setLayerVisibility('lakes-fill', isChecked);
+      setLayerVisibility('lakes-stroke', isChecked);
+      markers.reservoirs.forEach(m => m.getElement().style.display = isChecked ? '' : 'none');
+      break;
+    case "dams":
+      setLayerVisibility('dams-layer', isChecked);
+      break;
+    case "divide":
+      setLayerVisibility('divide-line', isChecked);
+      setLayerVisibility('divide-line-hit-buffer', isChecked);
+      break;
+    case "basin":
+      setLayerVisibility('basin-line', isChecked);
+      setLayerVisibility('basin-line-hit-buffer', isChecked);
+      break;
+  }
 }

@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2.7">
 </head>
 <body>
   <!-- Header Bar -->
@@ -35,8 +35,8 @@
         <button class="nav-btn" onclick="zoomToPreset('divide')">West Slope & Tunnels</button>
         <button class="nav-btn" onclick="zoomToPreset('lees_ferry')">Lees Ferry</button>
         <button class="nav-btn" onclick="zoomToPreset('reservoirs')">Powell & Mead</button>
-        <button class="nav-btn" onclick="toggleTilt()" id="tilt-toggle-btn" title="Toggle 3D Elevation Relief & Camera Tilt">3D Tilt: OFF (Flat 2D)</button>
         <button class="nav-btn law-btn" onclick="openLegalModal()" title="View Law of the River & Compact Framework">⚖️ Law of the River</button>
+        <button class="nav-btn" onclick="window.open('./sankey.html','_blank')" title="Open Minard-style flow diagram" style="background:rgba(14,165,233,0.1);border:1px solid #0ea5e9;color:#38bdf8;font-weight:700;">〰 Flow Diagram</button>
       </div>
     </div>
 
@@ -61,6 +61,70 @@
     <div id="map-container">
       <div id="map"></div>
 
+      <!-- Floating Map Menu (Basemap & 3D Selector) -->
+      <div class="map-menu-container" id="map-menu-container">
+        <button class="map-menu-btn" id="map-menu-btn" onclick="toggleMapMenu(event)" title="Basemap & Perspective Settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+          <span id="map-menu-label">Basemap &amp; 3D</span>
+        </button>
+
+        <div class="map-menu-dropdown" id="map-menu-dropdown">
+          <!-- Perspective (2D / 3D) -->
+          <div class="map-menu-section">
+            <div class="map-menu-section-title">Perspective &amp; 3D Relief</div>
+            <div class="perspective-toggle-group">
+              <button class="perspective-btn active" id="btn-perspective-2d" onclick="setPerspective('2d')">Flat 2D</button>
+              <button class="perspective-btn" id="btn-perspective-3d" onclick="setPerspective('3d')">3D Relief</button>
+            </div>
+            
+            <div class="tilt-control-group" id="menu-tilt-group">
+              <div class="tilt-control-header">
+                <span class="tilt-control-title">Tilt Angle</span>
+                <span class="tilt-status-badge" id="tilt-status-badge">Flat 2D</span>
+              </div>
+              <input type="range" min="0" max="65" value="0" id="tilt-range-slider" oninput="setPitchFromSlider(this.value)" class="tilt-slider" title="Adjust 3D tilt angle">
+              <div class="tilt-presets">
+                <button type="button" class="tilt-chip active" id="chip-flat" onclick="setPitchDegrees(0)">Flat 2D</button>
+                <button type="button" class="tilt-chip" id="chip-low" onclick="setPitchDegrees(35)">Low 3D</button>
+                <button type="button" class="tilt-chip" id="chip-steep" onclick="setPitchDegrees(55)">High 3D</button>
+              </div>
+              <div class="tilt-hint">💡 Use ▲/▼ buttons on map, drag slider, or right-click &amp; drag anywhere to tilt</div>
+            </div>
+          </div>
+
+          <!-- Basemap Style -->
+          <div class="map-menu-section">
+            <div class="map-menu-section-title">Basemap Style</div>
+            <div class="basemap-list">
+              <button class="basemap-item-btn active" data-value="esriNatGeo" onclick="selectBasemap('esriNatGeo')">
+                <span class="basemap-icon">🗺️</span>
+                <span class="basemap-name">National Geographic</span>
+                <span class="basemap-check">✓</span>
+              </button>
+              <button class="basemap-item-btn" data-value="esriWorldTopo" onclick="selectBasemap('esriWorldTopo')">
+                <span class="basemap-icon">🏔️</span>
+                <span class="basemap-name">World Topo (High Res)</span>
+                <span class="basemap-check">✓</span>
+              </button>
+              <button class="basemap-item-btn" data-value="esriTerrain" onclick="selectBasemap('esriTerrain')">
+                <span class="basemap-icon">🌄</span>
+                <span class="basemap-name">Terrain with Labels</span>
+                <span class="basemap-check">✓</span>
+              </button>
+              <button class="basemap-item-btn" data-value="openTopo" onclick="selectBasemap('openTopo')">
+                <span class="basemap-icon">🧭</span>
+                <span class="basemap-name">OpenTopoMap (Contours)</span>
+                <span class="basemap-check">✓</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Map Legend -->
       <div class="map-legend">
         <h4>Map Legend</h4>
@@ -76,42 +140,49 @@
         <div class="legend-item"><span class="legend-line" style="display:inline-block; width:22px; height:3px; background:repeating-linear-gradient(90deg, #d97706, #d97706 4px, transparent 4px, transparent 8px); margin-right:6px; vertical-align:middle;"></span> Trans-Mountain Tunnels (Front Range)</div>
         <div class="legend-item"><span class="legend-line" style="display:inline-block; width:22px; height:3.5px; background:repeating-linear-gradient(90deg, #059669, #059669 4px, transparent 4px, transparent 8px); margin-right:6px; vertical-align:middle;"></span> Conveyance Canals (AAC / CRA)</div>
         <div class="legend-item"><span class="legend-dot gauge"></span> Real-Time Streamflow Gauge</div>
+
+        <div id="flow-health-legend" style="display:none;">
+          <div class="legend-section-title" style="margin-top: 8px; color: #dc2626;">FLOW HEALTH (% OF DAILY AVERAGE)</div>
+          <div class="legend-item"><span class="legend-line river" style="background:#1d4ed8; height: 5px;"></span> Abundant (&gt; 150%)</div>
+          <div class="legend-item"><span class="legend-line river" style="background:#0ea5e9; height: 5px;"></span> Normal (90–150%)</div>
+          <div class="legend-item"><span class="legend-line river" style="background:#f59e0b; height: 5px;"></span> Below Normal (50–90%)</div>
+          <div class="legend-item"><span class="legend-line river" style="background:#ef4444; height: 5px;"></span> Low Flow (25–50%)</div>
+          <div class="legend-item"><span class="legend-line river" style="background:#7f1d1d; height: 5px;"></span> Critically Low (&lt; 25%)</div>
+        </div>
       </div>
     </div>
 
     <!-- Right Sidebar: Controls & Basin Metrics -->
     <aside class="sidebar-panel">
       <!-- Layer Control Card -->
-      <section class="card layer-card">
-        <div class="card-header">
-          <h3>Layer & Basemap Controls</h3>
+      <section class="card layer-card" id="layer-card">
+        <div class="card-header card-header-clickable" onclick="toggleLayerPanelCollapse()" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;" title="Click to collapse / expand layer controls">
+          <h3>Layer Controls</h3>
+          <span class="collapse-icon" id="layer-collapse-icon" style="font-size: 11px; color: var(--text-muted); transition: transform 0.2s ease;">▼</span>
         </div>
-        <div class="basemap-select-wrap">
-          <label for="basemap-select" style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">BASEMAP STYLE</label>
-          <select id="basemap-select" onchange="changeBasemap(this.value)" class="custom-select">
-            <option value="esriNatGeo" selected>National Geographic (Warm Physical Style)</option>
-            <option value="esriWorldTopo">High-Res Topographic &amp; Physical (Esri Topo)</option>
-            <option value="esriTerrain">Soft Shaded Relief (Esri Terrain Base)</option>
-            <option value="esriPhysical">World Physical (Classic NPS / Max Z8)</option>
-            <option value="esriSatellite">Satellite Imagery (Esri World Imagery)</option>
-            <option value="esriRelief">Pure Hillshade (High-Res Elevation)</option>
-            <option value="openTopo">OpenTopoMap (High Contrast Contours)</option>
-          </select>
-        </div>
-        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 10px 0;">
-        <div class="toggle-group">
+        <div class="toggle-group" id="layer-toggle-group">
           <label class="toggle-label">
-            <span>Mainstem & Major Rivers</span>
-            <input type="checkbox" id="toggle-river" checked onchange="toggleLayer('river')">
+            <span>River & Lake Network</span>
+            <input type="checkbox" id="toggle-river-network" checked onchange="toggleLayer('river-network')">
             <span class="slider"></span>
           </label>
-          <label class="toggle-label">
-            <span>Secondary Tributaries</span>
-            <input type="checkbox" id="toggle-minorRivers" checked onchange="toggleLayer('minorRivers')">
+          <label class="toggle-label" style="padding-left: 16px; font-size: 11px; color: var(--text-muted);">
+            <span>↳ Mainstem Colorado River</span>
+            <input type="checkbox" id="toggle-river-mainstem" checked onchange="toggleLayer('river-mainstem')">
             <span class="slider"></span>
           </label>
-          <label class="toggle-label">
-            <span>Reservoirs & Lakes</span>
+          <label class="toggle-label" style="padding-left: 16px; font-size: 11px; color: var(--text-muted);">
+            <span>↳ Major Tributaries</span>
+            <input type="checkbox" id="toggle-river-major" checked onchange="toggleLayer('river-major')">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle-label" style="padding-left: 16px; font-size: 11px; color: var(--text-muted);">
+            <span>↳ Secondary Streams</span>
+            <input type="checkbox" id="toggle-river-minor" checked onchange="toggleLayer('river-minor')">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle-label" style="padding-left: 16px; font-size: 11px; color: var(--text-muted);">
+            <span>↳ Reservoirs & Lakes</span>
             <input type="checkbox" id="toggle-reservoirs" checked onchange="toggleLayer('reservoirs')">
             <span class="slider"></span>
           </label>
@@ -131,8 +202,16 @@
             <span class="slider"></span>
           </label>
           <label class="toggle-label">
-            <span>Streamflow Gauge Badges</span>
-            <input type="checkbox" id="toggle-gauges" onchange="toggleLayer('gauges')">
+            <span>Flow Health Overlay</span>
+            <input type="checkbox" id="toggle-flow-health" onchange="toggleLayer('flow-health')">
+            <span class="slider"></span>
+          </label>
+          <label class="toggle-label" style="padding-left: 16px; font-size: 11px; color: var(--text-muted);">
+            <span>↳ % of Historical Daily Average</span>
+          </label>
+          <label class="toggle-label">
+            <span>Flow Data Badges (All)</span>
+            <input type="checkbox" id="toggle-all-badges" onchange="toggleLayer('all-badges')">
             <span class="slider"></span>
           </label>
           <label class="toggle-label">
@@ -140,19 +219,9 @@
             <input type="checkbox" id="toggle-tunnels" checked onchange="toggleLayer('tunnels')">
             <span class="slider"></span>
           </label>
-          <label class="toggle-label" style="padding-left: 16px; font-size: 11px; color: var(--text-muted);">
-            <span>↳ Tunnel Flow Badges</span>
-            <input type="checkbox" id="toggle-tunnel-badges" onchange="toggleLayer('tunnel-badges')">
-            <span class="slider"></span>
-          </label>
           <label class="toggle-label">
             <span>Conveyance Canals (AAC / CRA)</span>
             <input type="checkbox" id="toggle-canals" checked onchange="toggleLayer('canals')">
-            <span class="slider"></span>
-          </label>
-          <label class="toggle-label" style="padding-left: 16px; font-size: 11px; color: var(--text-muted);">
-            <span>↳ Canal Flow Badges</span>
-            <input type="checkbox" id="toggle-canal-badges" onchange="toggleLayer('canal-badges')">
             <span class="slider"></span>
           </label>
         </div>
@@ -166,62 +235,8 @@
         </div>
         <p class="metric-desc" style="margin-top: 4px; margin-bottom: 8px;">Real-time snapshot of out-of-basin diversions and primary interstate compact deliveries:</p>
         
-        <div class="flow-dest-list" id="flow-dest-list">
-          <div class="flow-dest-item">
-            <div class="dest-header">
-              <div class="dest-title-wrap">
-                <span class="dest-dot amber"></span>
-                <span class="dest-name">Front Range Tunnels</span>
-              </div>
-              <span class="dest-flow amber" id="flow-tunnels-val">5.7 cfs</span>
-            </div>
-            <div class="dest-meta">
-              <span>Continental Divide Export</span>
-              <span>Denver &amp; Northern Water</span>
-            </div>
-          </div>
-
-          <div class="flow-dest-item">
-            <div class="dest-header">
-              <div class="dest-title-wrap">
-                <span class="dest-dot emerald"></span>
-                <span class="dest-name">All-American Canal</span>
-              </div>
-              <span class="dest-flow emerald" id="flow-aac-val">4,800 cfs</span>
-            </div>
-            <div class="dest-meta">
-              <span>Imperial &amp; Coachella Valleys</span>
-              <span>Agriculture (Alfalfa/Crops)</span>
-            </div>
-          </div>
-
-          <div class="flow-dest-item">
-            <div class="dest-header">
-              <div class="dest-title-wrap">
-                <span class="dest-dot emerald"></span>
-                <span class="dest-name">Colorado River Aqueduct</span>
-              </div>
-              <span class="dest-flow emerald" id="flow-cra-val">1,350 cfs</span>
-            </div>
-            <div class="dest-meta">
-              <span>Southern California (MWD)</span>
-              <span>19M Urban Residents</span>
-            </div>
-          </div>
-
-          <div class="flow-dest-item">
-            <div class="dest-header">
-              <div class="dest-title-wrap">
-                <span class="dest-dot blue"></span>
-                <span class="dest-name">Lees Ferry Compact Flow</span>
-              </div>
-              <span class="dest-flow blue" id="flow-lees-val">9,770 cfs</span>
-            </div>
-            <div class="dest-meta">
-              <span>Upper &rarr; Lower Basin Delivery</span>
-              <span>Lake Powell / Glen Canyon</span>
-            </div>
-          </div>
+        <div class="flow-dest-chart" id="flow-dest-chart">
+          <!-- Dynamically populated by updateSidebar() with a horizontal bar chart -->
         </div>
       </section>
 
@@ -240,26 +255,7 @@
         </div>
       </section>
 
-      <!-- Water Allocation Breakdown -->
-      <section class="card stat-card sectors-card">
-        <div class="card-header">
-          <h3>Water Use by Sector</h3>
-          <span class="badge">Basin Consumption</span>
-        </div>
-        <div class="sector-chart-wrap">
-          <div class="donut-chart" style="background: conic-gradient(#059669 0% 78%, #0284c7 78% 92%, #eab308 92% 100%);">
-            <div class="donut-hole">
-              <span class="donut-stat">78%</span>
-              <span class="donut-label">Ag</span>
-            </div>
-          </div>
-          <div class="sector-legend">
-            <div class="sec-item"><span class="sec-box ag"></span> Agriculture (Alfalfa, Hay, Crops): <strong>78%</strong></div>
-            <div class="sec-item"><span class="sec-box mun"></span> Municipal &amp; Industrial: <strong>14%</strong></div>
-            <div class="sec-item"><span class="sec-box evap"></span> Reservoir Evaporation &amp; Loss: <strong>8%</strong></div>
-          </div>
-        </div>
-      </section>
+
     </aside>
   </main>
 
@@ -398,6 +394,6 @@
 
   <!-- MapLibre GL JS -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=12.0"></script>
+  <script src="app.js?v=15.0"></script>
 </body>
 </html>

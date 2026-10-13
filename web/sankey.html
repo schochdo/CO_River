@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      background: var(--background, #0f172a);
+      color: var(--foreground, #f1f5f9);
+      font-family: 'Inter', system-ui, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .flow-path {
+      transition: opacity 0.2s;
+      cursor: pointer;
+    }
+    .flow-path:hover { opacity: 0.85 !important; }
+
+    #tip {
+      position: fixed;
+      background: rgba(15,23,42,0.96);
+      border: 1px solid rgba(148,163,184,0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      z-index: 999;
+      max-width: 260px;
+      backdrop-filter: blur(8px);
+      line-height: 1.5;
+    }
+    #tip.show { opacity: 1; }
+
+    .legend-dot { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:middle; }
+  </style>
+</head>
+<body>
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="mb-5">
+      <div class="flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h1 class="text-2xl font-bold tracking-tight">Colorado River: Minard Flow Diagram</h1>
+          <p class="text-sm mt-1 text-[var(--muted-foreground,#94a3b8)]">Line width proportional to live volume · hover any segment for details · <span id="fetched-at" style="color:#38bdf8">Loading…</span></p>
+        </div>
+        <div class="flex gap-4 flex-wrap items-center">
+          <label class="flex items-center gap-2 text-sm cursor-pointer">
+            <input type="checkbox" id="show-paper" class="w-4 h-4 accent-red-500">
+            <span>Paper Water Deficit</span>
+          </label>
+          <button onclick="load()" class="text-xs px-3 py-1 rounded-lg" style="background:rgba(56,189,248,0.15);border:1px solid #38bdf8;color:#38bdf8">↻ Refresh</button>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div class="flex flex-wrap gap-4 mt-3 text-xs text-[var(--muted-foreground,#94a3b8)]">
+        <span><span class="legend-dot" style="background:#38bdf8"></span>River / Tributary inflow</span>
+        <span><span class="legend-dot" style="background:#f59e0b"></span>Trans-Mtn Diversion (Front Range)</span>
+        <span><span class="legend-dot" style="background:#059669"></span>Agricultural Export (AAC)</span>
+        <span><span class="legend-dot" style="background:#8b5cf6"></span>Urban Export (CRA)</span>
+        <span><span class="legend-dot" style="background:#475569"></span>Evaporation / Storage Loss</span>
+        <span><span class="legend-dot" style="background:#ef4444;opacity:0.6"></span>Paper Deficit</span>
+      </div>
+    </div>
+
+    <!-- SVG -->
+    <div style="background:#050d1a;border-radius:14px;overflow:hidden;border:1px solid rgba(148,163,184,0.1)">
+      <svg id="sankey" viewBox="0 0 1100 680" style="width:100%;display:block;"></svg>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+      <div class="rounded-xl p-4" style="background:var(--card,#0f1e32);border:1px solid rgba(56,189,248,0.2)">
+        <div class="text-xs font-semibold uppercase tracking-wide" style="color:#64748b">Lees Ferry</div>
+        <div class="text-xl font-black mt-1" style="color:#38bdf8" id="stat-lees">—</div>
+        <div class="text-xs mt-0.5" style="color:#475569">Compact division point</div>
+      </div>
+      <div class="rounded-xl p-4" style="background:var(--card,#0f1e32);border:1px solid rgba(14,165,233,0.2)">
+        <div class="text-xs font-semibold uppercase tracking-wide" style="color:#64748b">Palo Verde</div>
+        <div class="text-xl font-black mt-1" style="color:#0ea5e9" id="stat-palo">—</div>
+        <div class="text-xs mt-0.5" style="color:#475569">Lower Basin mainstem</div>
+      </div>
+      <div class="rounded-xl p-4" style="background:var(--card,#0f1e32);border:1px solid rgba(245,158,11,0.2)">
+        <div class="text-xs font-semibold uppercase tracking-wide" style="color:#64748b">Total Exported</div>
+        <div class="text-xl font-black mt-1" style="color:#f59e0b" id="stat-export">—</div>
+        <div class="text-xs mt-0.5" style="color:#475569">Tunnels + AAC + CRA</div>
+      </div>
+      <div class="rounded-xl p-4" style="background:var(--card,#0f1e32);border:1px solid rgba(239,68,68,0.2)">
+        <div class="text-xs font-semibold uppercase tracking-wide" style="color:#64748b">Structural Deficit</div>
+        <div class="text-xl font-black mt-1" style="color:#ef4444">~3.3 MAF/yr</div>
+        <div class="text-xs mt-0.5" style="color:#475569">16.5 allocated vs ~13.2 MAF avg</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tip"></div>
+
+  <script>
+    const METRICS_URL = './data/latest_metrics.json';
+    let metrics = null;
+    let showDeficit = false;
+
+    const SVG = document.getElementById('sankey');
+    const NS  = 'http://www.w3.org/2000/svg';
+
+    function el(tag, attrs, parent) {
+      const e = document.createElementNS(NS, tag);
+      for (const [k,v] of Object.entries(attrs||{})) e.setAttribute(k, v);
+      (parent || SVG).appendChild(e);
+      return e;
+    }
+
+    // Sankey band: horizontal flow from (x1,cy1,hw1) → (x2,cy2,hw2)
+    function band(x1, cy1, hw1, x2, cy2, hw2) {
+      const mx = (x1+x2)/2;
+      return [
+        `M${x1} ${cy1-hw1} C${mx} ${cy1-hw1},${mx} ${cy2-hw2},${x2} ${cy2-hw2}`,
+        `L${x2} ${cy2+hw2} C${mx} ${cy2+hw2},${mx} ${cy1+hw1},${x1} ${cy1+hw1}Z`
+      ].join(' ');
+    }
+
+    // Tributary tap: merging from (fromX, fromY, hw) into trunk at (intoX, trunkY)
+    function trib(fromX, fromY, hw, intoX, trunkY, thw) {
+      const mx = (fromX + intoX)/2;
+      const my = (fromY + trunkY)/2;
+      return [
+        `M${fromX} ${fromY-hw} C${mx} ${fromY-hw},${intoX} ${my},${intoX} ${trunkY-thw}`,
+        `L${intoX} ${trunkY+thw} C${intoX} ${my},${mx} ${fromY+hw},${fromX} ${fromY+hw}Z`
+      ].join(' ');
+    }
+
+    // Diversion tap: branching out from trunk downward or upward
+    function diver(trunkX, trunkY, thw, destX, destY, dhw) {
+      const mx = (trunkX + destX)/2;
+      const my = (trunkY + destY)/2;
+      return [
+        `M${trunkX} ${trunkY-thw} C${trunkX} ${my},${destX} ${my},${destX} ${destY-dhw}`,
+        `L${destX} ${destY+dhw} C${destX} ${my},${trunkX} ${my},${trunkX} ${trunkY+thw}Z`
+      ].join(' ');
+    }
+
+    const tip = document.getElementById('tip');
+    function showTip(e, html) {
+      tip.innerHTML = html; tip.classList.add('show'); moveTip(e);
+    }
+    function moveTip(e) {
+      let lx = e.clientX+16, ly = e.clientY+16;
+      if (lx+280>window.innerWidth)  lx = e.clientX-280;
+      if (ly+180>window.innerHeight) ly = e.clientY-180;
+      tip.style.left = lx+'px'; tip.style.top = ly+'px';
+    }
+    function hideTip() { tip.classList.remove('show'); }
+    SVG.addEventListener('mousemove', moveTip);
+    SVG.addEventListener('mouseleave', hideTip);
+
+    function addTip(node, html) {
+      node.addEventListener('mouseenter', e => showTip(e, html));
+      node.addEventListener('mousemove',  moveTip);
+      node.addEventListener('mouseleave', hideTip);
+    }
+
+    function label(x, y, txt, col='#94a3b8', sz=10, anchor='middle', bold=false) {
+      const t = el('text', { x, y, 'text-anchor': anchor, fill: col,
+        'font-size': sz, 'font-weight': bold?700:400 });
+      t.textContent = txt;
+      return t;
+    }
+
+    function fmtCFS(v) { return v == null ? '—' : Math.round(v).toLocaleString() + ' cfs'; }
+
+    // ── RENDER ────────────────────────────────────────────────────────────────
+    function render(m) {
+      while (SVG.firstChild) SVG.removeChild(SVG.firstChild);
+
+      const g = id => m?.streamflows?.find(s => s.id===id)?.flow_cfs ?? null;
+
+      // Live values
+      const leesFerry   = g('09380000') ?? 9770;
+      const dotsero     = g('09070500') ?? 632;
+      const cameo       = g('09095500') ?? 1280;
+      const ciscoUT     = g('09180500') ?? 2860;
+      const greenRiver  = g('09315000') ?? 3370;
+      const gunnison    = g('09152500') ?? 1220;
+      const yampa       = g('09260050') ?? 146;
+      const dolores     = g('09180000') ?? 190;
+      const sanJuan     = g('09379500') ?? 2480;
+      const animas      = g('09364500') ?? 2100;
+      const paloVerde   = g('09429100') ?? 4470;
+      const roaringFork = g('09085000') ?? 444;
+      const eagle       = g('09070000') ?? 133;
+      const lco         = g('09402000') ?? 285;
+      const tunnelFlow  = (m?.tunnels||[]).reduce((s,t)=>s+(t.flow_cfs||0),0);
+      const aac  = m?.canals?.find(c=>c.id==='09527700')?.flow_cfs ?? 2250;
+      const cra  = m?.canals?.find(c=>c.name?.includes('Aqueduct'))?.flow_cfs ?? 1350;
+
+      // Scale: half-width in px per cfs
+      const SC = 0.022;
+      const MIN = 3;
+      const hw = v => Math.max(MIN, Math.abs(v)*SC);
+
+      // ── Background ───────────────────────────────────────────────────────────
+      el('rect', { width:1100, height:680, fill:'#050d1a' });
+
+      // Stage columns (faint)
+      const cols = [[110,'HEADWATERS'],[250,'UPPER CO'],[390,'GRAND JCT'],[510,'CANYONLANDS'],
+                    [660,'LEES FERRY'],[800,'LOWER BASIN'],[970,'EXPORTS & DELTA']];
+      cols.forEach(([cx, lb]) => {
+        el('line', { x1:cx, y1:36, x2:cx, y2:650, stroke:'#0f2030', 'stroke-width':1 });
+        el('text', { x:cx, y:20, 'text-anchor':'middle', fill:'#1e3a5f',
+          'font-size':9, 'font-weight':700, 'letter-spacing':0.8 }).textContent = lb;
+      });
+
+      // Main trunk Y
+      const TY = 290;
+
+      // ── Headwaters → Dotsero ─────────────────────────────────────────────────
+      const hw_head = hw(dotsero);
+      const p_head = el('path', { d: band(40, TY, hw_head*0.7, 185, TY, hw_head),
+        fill:'#38bdf8', opacity:0.8, class:'flow-path' });
+      addTip(p_head, `<strong style="color:#38bdf8">Colorado Headwaters</strong><br>Rocky Mountain NP → Dotsero<br>Blue River + Eagle River<br>${fmtCFS(dotsero)} at Dotsero, CO`);
+
+      // Eagle tributary (above trunk)
+      const eagleTopY = TY - hw_head - hw(eagle) - 10;
+      const p_eagle = el('path', { d: trib(145, eagleTopY, hw(eagle), 190, TY, hw_head),
+        fill:'#38bdf8', opacity:0.55, class:'flow-path' });
+      addTip(p_eagle, `<strong style="color:#38bdf8">Eagle River</strong><br>${fmtCFS(eagle)} below Gypsum, CO<br>Drains Vail / Leadville area`);
+      label(145, eagleTopY-12, 'Eagle R.', '#64748b', 10);
+
+      // Front Range tunnels exit upward from x=100
+      const tunTopY = TY - hw_head - 55;
+      if (tunnelFlow > 0.5) {
+        const p_tun = el('path', { d: diver(100, TY, hw(tunnelFlow)/2, 170, tunTopY, hw(tunnelFlow)),
+          fill:'#f59e0b', opacity:0.88, class:'flow-path' });
+        addTip(p_tun, `<strong style="color:#f59e0b">Front Range Transmountain Diversions</strong><br>${fmtCFS(tunnelFlow)}<br>Moffat + Roberts + Adams + Boustead Tunnels<br>Denver Water / Northern Water → East Slope`);
+        label(175, tunTopY-8, 'Front Range Tunnels', '#d97706', 10, 'start');
+        label(175, tunTopY+4, fmtCFS(tunnelFlow), '#92400e', 9, 'start');
+      }
+
+      // ── Dotsero → Cameo (Roaring Fork joins, Gunnison joins) ─────────────────
+      const afterDotsero = dotsero + roaringFork;
+      const p_d2c = el('path', { d: band(185, TY, hw_head, 345, TY, hw(cameo)),
+        fill:'#38bdf8', opacity:0.83, class:'flow-path' });
+      addTip(p_d2c, `<strong style="color:#38bdf8">Colorado R. — Glenwood Canyon</strong><br>Roaring Fork joins at Glenwood Springs<br>${fmtCFS(cameo)} at Cameo (near GJ)`);
+
+      // Roaring Fork (below trunk)
+      const rfBotY = TY + hw(cameo) + hw(roaringFork) + 8;
+      const p_rf = el('path', { d: trib(250, rfBotY, hw(roaringFork), 265, TY, hw(roaringFork)) ,
+        fill:'#38bdf8', opacity:0.5, class:'flow-path' });
+      addTip(p_rf, `<strong style="color:#38bdf8">Roaring Fork River</strong><br>${fmtCFS(roaringFork)} at Glenwood Springs<br>Aspen / Basalt watershed`);
+      label(250, rfBotY+hw(roaringFork)+10, 'Roaring Fork', '#475569', 10);
+
+      // Gunnison joins below trunk at x=345
+      const gunBotY = TY + hw(cameo) + hw(gunnison) + 14;
+      const p_gun = el('path', { d: trib(345, gunBotY, hw(gunnison), 345, TY, hw(gunnison)),
+        fill:'#0ea5e9', opacity:0.72, class:'flow-path' });
+      addTip(p_gun, `<strong style="color:#0ea5e9">Gunnison River</strong><br>${fmtCFS(gunnison)} near Grand Junction<br>Blue Mesa Reservoir upstream<br>Drains Gunnison, Montrose area`);
+      label(345, gunBotY+hw(gunnison)+10, 'Gunnison R.', '#0369a1', 10);
+
+      // ── Cameo → Cisco UT ─────────────────────────────────────────────────────
+      const afterGJ = cameo + gunnison;
+      const p_c2cis = el('path', { d: band(360, TY, hw(afterGJ*0.9), 470, TY, hw(ciscoUT)),
+        fill:'#38bdf8', opacity:0.85, class:'flow-path' });
+      addTip(p_c2cis, `<strong style="color:#38bdf8">Colorado R. — Ruby / Westwater Canyons</strong><br>Through Utah border → Cisco<br>${fmtCFS(ciscoUT)} at Cisco, UT`);
+
+      // Dolores (below, x=450)
+      const dolBotY = TY + hw(ciscoUT) + hw(dolores) + 12;
+      const p_dol = el('path', { d: trib(455, dolBotY, hw(dolores), 460, TY, hw(dolores)),
+        fill:'#38bdf8', opacity:0.48, class:'flow-path' });
+      addTip(p_dol, `<strong style="color:#38bdf8">Dolores River</strong><br>${fmtCFS(dolores)} near Cisco, UT<br>McPhee Dam regulates this reach`);
+      label(455, dolBotY+hw(dolores)+10, 'Dolores R.', '#475569', 10);
+
+      // ── Green River joins at x=510 ────────────────────────────────────────────
+      // Yampa feeds Green from above
+      const greenTopY = TY - hw(ciscoUT) - hw(greenRiver) - 16;
+      const yampaTopY = greenTopY - hw(greenRiver) - hw(yampa) - 10;
+      const p_yampa = el('path', { d: trib(470, yampaTopY, hw(yampa), 490, greenTopY, hw(yampa)),
+        fill:'#38bdf8', opacity:0.42, class:'flow-path' });
+      addTip(p_yampa, `<strong style="color:#38bdf8">Yampa River</strong><br>${fmtCFS(yampa)} at Deerlodge Park<br>Flows through Dinosaur NM<br>Major Green River tributary`);
+      label(462, yampaTopY-12, 'Yampa R.', '#475569', 10);
+
+      const p_green = el('path', { d: trib(505, greenTopY, hw(greenRiver), 510, TY, hw(greenRiver)),
+        fill:'#0ea5e9', opacity:0.75, class:'flow-path' });
+      addTip(p_green, `<strong style="color:#0ea5e9">Green River</strong><br>${fmtCFS(greenRiver)} at Green River, UT<br>Largest tributary to the Colorado<br>Flaming Gorge Dam upstream`);
+      label(490, greenTopY-hw(greenRiver)-8, 'Green River', '#0369a1', 11, 'middle', true);
+      label(490, greenTopY-hw(greenRiver)+4, fmtCFS(greenRiver), '#164e63', 10);
+
+      // Segment: Cisco → San Juan confluence (includes Green)
+      const afterGreen = ciscoUT + greenRiver;
+      const p_cis2sj = el('path', { d: band(510, TY, hw(afterGreen*0.9), 600, TY, hw(afterGreen*0.82)),
+        fill:'#38bdf8', opacity:0.86, class:'flow-path' });
+      addTip(p_cis2sj, `<strong style="color:#38bdf8">Colorado R. — Cataract Canyon</strong><br>Entering Lake Powell<br>${fmtCFS(afterGreen)} combined flow`);
+
+      // San Juan + Animas join below at x=595
+      const sjTotal = sanJuan + animas * 0.5;
+      const sjBotY = TY + hw(afterGreen*0.82) + hw(sjTotal) + 14;
+      const p_sj = el('path', { d: trib(600, sjBotY, hw(sjTotal), 600, TY, hw(sjTotal)),
+        fill:'#0ea5e9', opacity:0.65, class:'flow-path' });
+      addTip(p_sj, `<strong style="color:#0ea5e9">San Juan River (+ Animas)</strong><br>San Juan: ${fmtCFS(sanJuan)} near Bluff, UT<br>Animas: ${fmtCFS(animas)} at Farmington, NM<br>Navajo Dam regulates upper reach`);
+      label(600, sjBotY+hw(sjTotal)+10, 'San Juan R.', '#0369a1', 10);
+
+      // ── Powell evaporation loss ───────────────────────────────────────────────
+      const powellEvap = 500;
+      const p_pevap = el('path', { d: diver(640, TY, hw(powellEvap)/2, 660, TY - hw(afterGreen*0.7) - 40, hw(powellEvap)),
+        fill:'#475569', opacity:0.65, class:'flow-path' });
+      addTip(p_pevap, `<strong style="color:#94a3b8">Lake Powell Evaporation & Seepage</strong><br>≈ ${fmtCFS(powellEvap)} annual average<br>Powell currently at 10.3% capacity`);
+      label(665, TY - hw(afterGreen*0.7) - 55, 'Powell Evap.', '#334155', 10, 'start');
+
+      // ── LEES FERRY — the compact point ───────────────────────────────────────
+      const LFX = 665;
+      el('rect', { x:LFX-2, y:TY-hw(leesFerry)-30, width:5,
+        height:hw(leesFerry)*2+60, fill:'#fbbf24', rx:2 });
+      el('text', { x:LFX+10, y:TY-hw(leesFerry)-16, fill:'#fbbf24',
+        'font-size':12, 'font-weight':700 }).textContent = 'LEES FERRY';
+      el('text', { x:LFX+10, y:TY-hw(leesFerry)-2, fill:'#92400e',
+        'font-size':10 }).textContent = '1922 Colorado Compact';
+
+      // Segment: Glen Canyon → Grand Canyon
+      const preGC = afterGreen + sjTotal;
+      const p_gc = el('path', { d: band(LFX, TY, hw(leesFerry), 780, TY, hw(leesFerry * 0.93)),
+        fill:'#38bdf8', opacity:0.87, class:'flow-path' });
+      addTip(p_gc, `<strong style="color:#38bdf8">Grand Canyon Reach</strong><br>${fmtCFS(leesFerry)} at Lees Ferry<br>Little Colorado (+${fmtCFS(lco)}) joins below Marble Canyon<br>Through Hoover Dam → Lake Mead`);
+
+      // ── Mead evaporation ─────────────────────────────────────────────────────
+      const meadEvap = 700;
+      const p_mevap = el('path', { d: diver(795, TY, hw(meadEvap)/2, 790, TY - hw(leesFerry * 0.93) - 40, hw(meadEvap)),
+        fill:'#475569', opacity:0.65, class:'flow-path' });
+      addTip(p_mevap, `<strong style="color:#94a3b8">Lake Mead Evaporation</strong><br>≈ ${fmtCFS(meadEvap)} annual average<br>Mead at 32.9% capacity`);
+      label(800, TY - hw(leesFerry * 0.93) - 52, 'Mead Evap.', '#334155', 10, 'start');
+
+      // ── CRA exits upper-right at x=820 ───────────────────────────────────────
+      const craTopY = TY - hw(leesFerry * 0.85) - hw(cra) - 30;
+      const p_cra = el('path', { d: diver(820, TY, hw(cra)/2, 860, craTopY, hw(cra)),
+        fill:'#8b5cf6', opacity:0.87, class:'flow-path' });
+      addTip(p_cra, `<strong style="color:#8b5cf6">Colorado River Aqueduct</strong><br>${fmtCFS(cra)}<br>Parker Dam → Metropolitan Water District<br>Los Angeles / San Diego / SoCal urban supply`);
+      label(870, craTopY-12, 'CO River Aqueduct', '#7c3aed', 11, 'start', true);
+      label(870, craTopY+1, fmtCFS(cra)+' → SoCal', '#5b21b6', 10, 'start');
+
+      // ── Lower basin segment ──────────────────────────────────────────────────
+      const lowerFlow = paloVerde;
+      const p_lower = el('path', { d: band(840, TY, hw(leesFerry * 0.7), 920, TY, hw(lowerFlow)),
+        fill:'#0ea5e9', opacity:0.84, class:'flow-path' });
+      addTip(p_lower, `<strong style="color:#0ea5e9">Lower Colorado R.</strong><br>${fmtCFS(lowerFlow)} at Palo Verde Dam<br>Davis–Parker reach — heavily regulated<br>Gila River joins near Yuma`);
+
+      // ── AAC exits downward at x=930 ──────────────────────────────────────────
+      const aacBotY = TY + hw(lowerFlow) + hw(aac) + 24;
+      const p_aac = el('path', { d: diver(935, TY, hw(aac)/2, 935, aacBotY, hw(aac)),
+        fill:'#059669', opacity:0.88, class:'flow-path' });
+      addTip(p_aac, `<strong style="color:#10b981">All-American Canal</strong><br>${fmtCFS(aac)}<br>Imperial Dam → Imperial & Coachella Valleys<br>Largest irrigation canal in the US<br>Serves ~3.1M acres of farmland`);
+      label(940, aacBotY+hw(aac)+12, 'All-American Canal', '#065f46', 11, 'start', true);
+      label(940, aacBotY+hw(aac)+24, fmtCFS(aac)+' → Imperial Valley', '#064e3b', 10, 'start');
+
+      // ── What remains → Mexico / runs dry ─────────────────────────────────────
+      const remaining = Math.max(0, lowerFlow - aac * 0.5);
+      if (remaining > 30) {
+        const p_mex = el('path', { d: band(950, TY, hw(remaining * 1.1), 1060, TY + 60, hw(remaining * 0.4)),
+          fill:'#1e3a5f', opacity:0.7, class:'flow-path' });
+        addTip(p_mex, `<strong style="color:#38bdf8">Morelos Dam / Mexico Treaty Delivery</strong><br>≈ ${fmtCFS(remaining)} remaining<br>1.5 MAF/yr guaranteed to Mexico (1944 Treaty)<br>River rarely reaches the Gulf of California today`);
+        label(1075, TY+66, 'Morelos Dam', '#334155', 11, 'start');
+        label(1075, TY+80, '(Mexico)', '#1e293b', 10, 'start');
+      } else {
+        el('text', { x:1000, y:TY+24, fill:'#ef4444', 'font-size':15, 'font-weight':800 }).textContent = 'RUNS DRY';
+        el('text', { x:1000, y:TY+40, fill:'#7f1d1d', 'font-size':10 }).textContent = 'before reaching Mexico';
+      }
+
+      // ── Paper water deficit band ──────────────────────────────────────────────
+      if (showDeficit) {
+        const defHW = hw(2800); // ~3.3 MAF/yr ≈ 2800 cfs averaged out
+        const defY  = TY + hw(leesFerry) + defHW + 50;
+        const p_def = el('path', { d: band(40, defY, defHW, 1060, defY, defHW),
+          fill:'#ef4444', opacity:0.18 });
+        el('line', { x1:40, y1:defY-defHW, x2:1060, y2:defY-defHW,
+          stroke:'#ef4444', 'stroke-width':1.5, 'stroke-dasharray':'6 4' });
+        el('text', { x:50, y:defY-defHW-8, fill:'#ef4444', 'font-size':11, 'font-weight':600 })
+          .textContent = '▲ Paper Water Structural Deficit — ~3.3 MAF/yr over-allocated';
+        addTip(p_def, `<strong style="color:#ef4444">Paper Water Structural Deficit</strong><br>Total allocations: 16.5 MAF/yr<br>Modern avg natural flow: ~13.2 MAF/yr<br>Chronic over-allocation: ~3.3 MAF/yr<br>Fills the gap by drawing down Powell & Mead`);
+      }
+
+      // ── Update stats ──────────────────────────────────────────────────────────
+      document.getElementById('stat-lees').textContent   = fmtCFS(leesFerry);
+      document.getElementById('stat-palo').textContent   = fmtCFS(paloVerde);
+      document.getElementById('stat-export').textContent = fmtCFS(aac + cra + tunnelFlow);
+    }
+
+    // ── Load ──────────────────────────────────────────────────────────────────
+    async function load() {
+      document.getElementById('fetched-at').textContent = 'Fetching…';
+      try {
+        const r = await fetch(METRICS_URL + '?t=' + Date.now());
+        if (r.ok) {
+          metrics = await r.json();
+          const ts = metrics.fetched_at
+            ? new Date(metrics.fetched_at).toLocaleString()
+            : 'unknown';
+          document.getElementById('fetched-at').textContent = 'Live · ' + ts;
+        } else { throw new Error('HTTP ' + r.status); }
+      } catch(e) {
+        document.getElementById('fetched-at').textContent = 'Using estimated values (file not found)';
+        metrics = { streamflows:[], tunnels:[], canals:[], reservoirs:[] };
+      }
+      render(metrics);
+    }
+
+    document.getElementById('show-paper').addEventListener('change', e => {
+      showDeficit = e.target.checked; render(metrics || {});
+    });
+
+    load();
+  </script>
+</body>
+</html>
