@@ -1706,8 +1706,8 @@ input:checked + .slider:before {
   transform: translateY(-1px);
 }
 
-/* 3D GIS Navigation Compass & Perspective Controls */
-.nav-compass-control {
+/* Google Earth Style Trackball Navigation Control (Lower Right) */
+.trackball-nav-control {
   position: absolute;
   bottom: 24px;
   right: 22px;
@@ -1718,102 +1718,73 @@ input:checked + .slider:before {
   gap: 6px;
   user-select: none;
   -webkit-user-select: none;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 4px 14px rgba(12, 35, 64, 0.15));
 }
 
-.compass-dial-btn {
+.trackball-wrapper {
   position: relative;
-  width: 68px;
-  height: 68px;
+  width: 76px;
+  height: 76px;
   border-radius: 50%;
   cursor: grab;
-  background: rgba(15, 23, 42, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(56, 189, 248, 0.40);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1.5px solid rgba(2, 132, 199, 0.45);
+  box-shadow: 0 4px 12px rgba(12, 35, 64, 0.10), inset 0 1px 2px rgba(255, 255, 255, 0.9);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   touch-action: none;
 }
 
-.compass-dial-btn:hover {
-  border-color: rgba(56, 189, 248, 0.85);
-  box-shadow: 0 6px 20px rgba(2, 132, 199, 0.35), inset 0 1px 3px rgba(255, 255, 255, 0.25);
+.trackball-wrapper:hover {
+  border-color: #0284c7;
+  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.25), inset 0 1px 3px rgba(255, 255, 255, 1.0);
 }
 
-.compass-dial-btn.grabbing {
+.trackball-wrapper.grabbing {
   cursor: grabbing !important;
-  box-shadow: 0 2px 10px rgba(2, 132, 199, 0.4);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
 }
 
-.compass-svg {
+.trackball-svg {
   display: block;
-  width: 68px;
-  height: 68px;
+  width: 76px;
+  height: 76px;
 }
 
-.compass-needle-group {
-  transform-origin: 34px 34px;
+.trackball-compass-ring {
   transition: transform 0.05s linear;
 }
 
-/* Tilt and 3D Mode Toolbar */
-.nav-tilt-toolbar {
+.trackball-inner-orb {
+  cursor: move;
+}
+
+/* Light Blue Trackball Toolbar */
+.trackball-toolbar {
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 3px 6px;
-  background: rgba(15, 23, 42, 0.90);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(56, 189, 248, 0.35);
+  border: 1px solid rgba(2, 132, 199, 0.35);
   border-radius: 16px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 10px rgba(12, 35, 64, 0.08);
 }
 
-.nav-mode-btn {
-  padding: 2px 7px;
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: #38bdf8;
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid rgba(56, 189, 248, 0.30);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.nav-mode-btn:hover {
-  background: #0284c7;
-  color: #ffffff;
-  border-color: #38bdf8;
-}
-
-.nav-mode-btn.active {
-  background: #0284c7;
-  color: #ffffff;
-  border-color: #38bdf8;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
-}
-
-.nav-tilt-steppers {
-  display: flex;
-  gap: 2px;
-}
-
-.nav-step-btn {
+.trackball-btn {
   width: 20px;
   height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid #e2e8f0;
   border-radius: 50%;
-  background: rgba(30, 41, 59, 0.85);
-  color: #94a3b8;
+  background: #f8fafc;
+  color: #475569;
   font-family: 'Inter', sans-serif;
   font-size: 9px;
   font-weight: 700;
@@ -1821,21 +1792,60 @@ input:checked + .slider:before {
   transition: all 0.15s ease;
 }
 
-.nav-step-btn:hover {
-  background: #0284c7;
-  color: #ffffff;
-  border-color: #38bdf8;
+.trackball-btn:hover {
+  background: #e0f2fe;
+  color: #0284c7;
+  border-color: #7dd3fc;
   transform: scale(1.1);
 }
 
-.nav-tilt-badge {
+#btn-trackball-reset-north {
+  color: #dc2626;
+  font-weight: 800;
+}
+
+#btn-trackball-reset-north:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+.trackball-mode-btn {
+  padding: 2px 7px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #0284c7;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.trackball-mode-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.trackball-mode-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  box-shadow: 0 0 6px rgba(2, 132, 199, 0.35);
+}
+
+.trackball-pitch-val {
   font-family: 'Inter', sans-serif;
   font-size: 9.5px;
   font-weight: 700;
-  color: #94a3b8;
+  color: #0284c7;
   padding: 0 4px;
   min-width: 20px;
   text-align: center;
 }
+
 
 

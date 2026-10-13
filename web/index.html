@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="style.css?v=2.8">
+  <link rel="stylesheet" href="style.css?v=2.9">
 </head>
 <body>
   <!-- Header Bar -->
@@ -152,49 +152,52 @@
         </div>
       </div>
 
-      <!-- 3D GIS Navigation Compass & Perspective Controls -->
-      <div class="nav-compass-control" id="nav-compass-control">
-        <div class="compass-dial-btn" id="compass-dial-btn" title="Click to Reset North • Drag to Rotate Bearing">
-          <svg class="compass-svg" id="compass-svg" width="68" height="68" viewBox="0 0 68 68">
-            <!-- Fixed Outer Bezel Track (Solid Dark Slate with Subtle Cyan Ring) -->
-            <circle cx="34" cy="34" r="32" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.45" />
-            <circle cx="34" cy="34" r="30" fill="#1e293b" fill-opacity="0.6" />
+      <!-- Google Earth Style Trackball Navigation Control (Lower Right) -->
+      <div class="trackball-nav-control" id="trackball-nav-control">
+        <div class="trackball-wrapper" id="trackball-wrapper" title="Drag center trackball to orbit & tilt • Drag outer ring to rotate • Click N to reset North">
+          <svg class="trackball-svg" id="trackball-svg" width="76" height="76" viewBox="-38 -38 76 76">
+            <!-- Outer Ring Base Track (Light Slate Bezel with Sky Blue accent) -->
+            <circle cx="0" cy="0" r="36" fill="#f8fafc" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.6" />
+            <circle cx="0" cy="0" r="33" fill="#f1f5f9" />
 
-            <!-- Rotating Needle & Cardinals Group -->
-            <g id="compass-needle-group" class="compass-needle-group">
+            <!-- Rotating Outer Compass Group (North Arrow & Cardinals) -->
+            <g id="trackball-compass-ring" class="trackball-compass-ring">
+              <!-- North Red Arrow Indicator -->
+              <polygon points="0,-36 4,-26 -4,-26" fill="#dc2626" />
               <!-- Cardinal Degree Ticks -->
-              <line x1="34" y1="4" x2="34" y2="9" stroke="#ef4444" stroke-width="2" stroke-linecap="round" />
-              <line x1="64" y1="34" x2="59" y2="34" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" />
-              <line x1="34" y1="64" x2="34" y2="59" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" />
-              <line x1="4" y1="34" x2="9" y2="34" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" />
+              <line x1="0" y1="-36" x2="0" y2="-28" stroke="#dc2626" stroke-width="2" stroke-linecap="round" />
+              <line x1="33" y1="0" x2="26" y2="0" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" />
+              <line x1="0" y1="33" x2="0" y2="26" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" />
+              <line x1="-33" y1="0" x2="-26" y2="0" stroke="#64748b" stroke-width="1.4" stroke-linecap="round" />
 
               <!-- Cardinal Labels -->
-              <text x="34" y="17" fill="#ef4444" font-family="'Inter', sans-serif" font-size="9" font-weight="900" text-anchor="middle" dominant-baseline="middle">N</text>
-              <text x="53" y="34" fill="#94a3b8" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="middle">E</text>
-              <text x="34" y="52" fill="#64748b" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="middle">S</text>
-              <text x="15" y="34" fill="#94a3b8" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="middle">W</text>
+              <text x="0" y="-18" fill="#dc2626" font-family="'Inter', sans-serif" font-size="9.5" font-weight="900" text-anchor="middle" dominant-baseline="central">N</text>
+              <text x="20" y="0" fill="#475569" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="central">E</text>
+              <text x="0" y="19" fill="#64748b" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="central">S</text>
+              <text x="-20" y="0" fill="#475569" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="central">W</text>
+            </g>
 
-              <!-- Precision 3D Compass Needle -->
-              <!-- North Pointer (Dual-tone Red) -->
-              <polygon points="34,8 37.5,31 34,28" fill="#ef4444" />
-              <polygon points="34,8 30.5,31 34,28" fill="#dc2626" />
-              <!-- South Pointer (Dual-tone Silver) -->
-              <polygon points="34,58 37.5,37 34,40" fill="#94a3b8" />
-              <polygon points="34,58 30.5,37 34,40" fill="#cbd5e1" />
-              <!-- Center Pivot Cap -->
-              <circle cx="34" cy="34" r="3.8" fill="#0284c7" stroke="#ffffff" stroke-width="1.5" />
+            <!-- Inner Interactive 3D Trackball Gimbal (Tilt & Orbit) -->
+            <g id="trackball-inner-orb" class="trackball-inner-orb">
+              <!-- Inner Ball Surface (Sky Blue Ice theme) -->
+              <circle cx="0" cy="0" r="19" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.2" stroke-dasharray="2,2" stroke-opacity="0.8" />
+              <!-- Horizon Bar -->
+              <line x1="-15" y1="0" x2="15" y2="0" stroke="rgba(2, 132, 199, 0.5)" stroke-width="1" />
+              <!-- Perspective Gimbal Ellipse (squashes with pitch) -->
+              <ellipse id="trackball-pitch-ellipse" cx="0" cy="0" rx="15" ry="15" fill="none" stroke="#0284c7" stroke-width="1.6" stroke-opacity="0.9" />
+              <!-- Center Trackball Pivot Dot -->
+              <circle id="trackball-center-pivot" cx="0" cy="0" r="4" fill="#0284c7" stroke="#ffffff" stroke-width="1.5" />
             </g>
           </svg>
         </div>
 
-        <!-- 3D Perspective & Tilt Toolbar -->
-        <div class="nav-tilt-toolbar" id="nav-tilt-toolbar">
-          <button type="button" class="nav-mode-btn" id="btn-toggle-3d" onclick="toggle3DMode()" title="Switch to 3D Terrain Perspective (50°)">3D</button>
-          <div class="nav-tilt-steppers">
-            <button type="button" class="nav-step-btn" id="btn-tilt-up" onclick="stepTilt(15)" title="Tilt Camera Down (More 3D)">▲</button>
-            <button type="button" class="nav-step-btn" id="btn-tilt-down" onclick="stepTilt(-15)" title="Tilt Camera Up (Towards 2D)">▼</button>
-          </div>
-          <span class="nav-tilt-badge" id="nav-tilt-badge" title="Current Perspective Tilt Angle">2D</span>
+        <!-- Light Blue Trackball Toolbar -->
+        <div class="trackball-toolbar" id="trackball-toolbar">
+          <button type="button" class="trackball-btn" id="btn-trackball-reset-north" onclick="resetNorth()" title="Reset to True North (0°)">N</button>
+          <button type="button" class="trackball-mode-btn" id="btn-toggle-3d" onclick="toggle3DMode()" title="Toggle 3D Terrain Perspective">3D</button>
+          <button type="button" class="trackball-btn" id="btn-tilt-up" onclick="stepTilt(15)" title="Tilt Camera Down (More 3D)">▲</button>
+          <button type="button" class="trackball-btn" id="btn-tilt-down" onclick="stepTilt(-15)" title="Tilt Camera Up (Towards 2D)">▼</button>
+          <span class="trackball-pitch-val" id="trackball-pitch-val" title="Current Perspective Tilt Angle">2D</span>
         </div>
       </div>
     </div>
@@ -473,6 +476,6 @@
 
   <!-- MapLibre GL JS -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=16.0"></script>
+  <script src="app.js?v=17.0"></script>
 </body>
 </html>

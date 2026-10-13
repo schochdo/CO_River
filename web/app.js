@@ -145,7 +145,7 @@ function initMap() {
     }
 
     loadData();
-    initNavCompass();
+    initTrackballNavigation();
     initTableResizer();
     if (window.location.search.includes('expand_table=1')) {
       toggleTableCollapse();
@@ -2650,113 +2650,163 @@ function toggleLayer(layerName) {
   }
 }
 
-// ─── 3D GIS Navigation Compass & Perspective Controls ─────────────────────────
-function initNavCompass() {
-  const compassWrapper = document.getElementById('compass-dial-btn');
-  if (!compassWrapper || !map) return;
+// ─── Google Earth Style Trackball Navigation Control ─────────────────────────
+function initTrackballNavigation() {
+  const wrapper = document.getElementById('trackball-wrapper');
+  if (!wrapper || !map) return;
 
-  let isDragging = false;
-  let startAngle = 0;
+  let isDraggingOrb = false;
+  let isDraggingRing = false;
+  let startX = 0;
+  let startY = 0;
+  let startPitch = 0;
   let startBearing = 0;
+  let startRingAngle = 0;
   let hasMoved = false;
 
-  // 1. Synchronize visual needle, 3D tilt perspective, and toolbar states with MapLibre
-  window.updateNavCompass = function() {
+  // 1. Sync visual trackball & compass orientation to map state
+  window.updateTrackball = function() {
     if (!map) return;
     const bearing = map.getBearing();
     const pitch = map.getPitch();
 
-    // Rotate compass needle & cardinal ring to geographic orientation
-    const needleGroup = document.getElementById('compass-needle-group');
-    if (needleGroup) {
-      needleGroup.setAttribute('transform', `rotate(${-bearing} 34 34)`);
+    // Rotate compass ring strictly around (0, 0)
+    const ring = document.getElementById('trackball-compass-ring');
+    if (ring) {
+      ring.setAttribute('transform', `rotate(${-bearing})`);
     }
 
-    // Perspective 3D gimbal effect: tilt the compass disk smoothly based on pitch
-    if (compassWrapper) {
-      const tiltX = Math.min(35, pitch * 0.45);
-      compassWrapper.style.transform = `perspective(180px) rotateX(${tiltX}deg)`;
+    // Squash gimbal ellipse with 3D tilt perspective (Google Earth style)
+    const ellipse = document.getElementById('trackball-pitch-ellipse');
+    if (ellipse) {
+      const ry = Math.max(3.5, 15 * Math.cos(pitch * Math.PI / 180));
+      ellipse.setAttribute('ry', ry);
     }
 
-    // Update 3D / 2D toggle button appearance
-    const btnToggle3D = document.getElementById('btn-toggle-3d');
-    if (btnToggle3D) {
+    // Shift center pivot dot slightly up when tilted
+    const pivot = document.getElementById('trackball-center-pivot');
+    if (pivot) {
+      const dy = (pitch / 65) * 6.5;
+      pivot.setAttribute('cy', -dy);
+    }
+
+    // Update 3D / 2D button
+    const btn3D = document.getElementById('btn-toggle-3d');
+    if (btn3D) {
       if (pitch >= 8) {
-        btnToggle3D.textContent = '2D';
-        btnToggle3D.classList.add('active');
-        btnToggle3D.setAttribute('title', 'Reset to flat 2D perspective (0°)');
+        btn3D.textContent = '2D';
+        btn3D.classList.add('active');
+        btn3D.setAttribute('title', 'Reset to flat 2D perspective (0°)');
       } else {
-        btnToggle3D.textContent = '3D';
-        btnToggle3D.classList.remove('active');
-        btnToggle3D.setAttribute('title', 'Switch to 3D terrain perspective (50°)');
+        btn3D.textContent = '3D';
+        btn3D.classList.remove('active');
+        btn3D.setAttribute('title', 'Switch to 3D terrain perspective (50°)');
       }
     }
 
-    // Update pitch badge
-    const badge = document.getElementById('nav-tilt-badge');
+    // Update tilt badge
+    const badge = document.getElementById('trackball-pitch-val');
     if (badge) {
       badge.textContent = pitch < 3 ? '2D' : `${Math.round(pitch)}°`;
     }
   };
 
-  map.on('rotate', window.updateNavCompass);
-  map.on('pitch', window.updateNavCompass);
-  map.on('move', window.updateNavCompass);
+  map.on('rotate', window.updateTrackball);
+  map.on('pitch', window.updateTrackball);
+  map.on('move', window.updateTrackball);
 
-  // 2. Interactive Compass Drag-to-Rotate (1:1 steering wheel tracking)
-  compassWrapper.addEventListener('pointerdown', (e) => {
-    isDragging = true;
-    hasMoved = false;
-
-    const rect = compassWrapper.getBoundingClientRect();
+  // 2. Interactive Trackball Drag (Orbit, Tilt, and Bearing Spin)
+  wrapper.addEventListener('pointerdown', (e) => {
+    const rect = wrapper.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
+    const distFromCenter = Math.hypot(e.clientX - cx, e.clientY - cy);
 
-    // Up is North (0°), Right is East (+90°), Down is South (+180°), Left is West (-90°)
-    startAngle = Math.atan2(e.clientX - cx, -(e.clientY - cy)) * (180 / Math.PI);
+    hasMoved = false;
+    startX = e.clientX;
+    startY = e.clientY;
+    startPitch = map.getPitch();
     startBearing = map.getBearing();
 
-    compassWrapper.classList.add('grabbing');
-    compassWrapper.setPointerCapture(e.pointerId);
+    if (distFromCenter < 22) {
+      // User grabbed the inner trackball orb -> full 3D trackball orbit & tilt
+      isDraggingOrb = true;
+    } else {
+      // User grabbed the outer compass ring -> bearing rotation
+      isDraggingRing = true;
+      startRingAngle = Math.atan2(e.clientX - cx, -(e.clientY - cy)) * (180 / Math.PI);
+    }
+
+    wrapper.classList.add('grabbing');
+    wrapper.setPointerCapture(e.pointerId);
     e.preventDefault();
     e.stopPropagation();
   });
 
-  compassWrapper.addEventListener('pointermove', (e) => {
-    if (!isDragging) return;
-    const rect = compassWrapper.getBoundingClientRect();
+  wrapper.addEventListener('pointermove', (e) => {
+    const rect = wrapper.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
 
-    const currentAngle = Math.atan2(e.clientX - cx, -(e.clientY - cy)) * (180 / Math.PI);
-    const delta = currentAngle - startAngle;
+    if (isDraggingOrb) {
+      const deltaX = e.clientX - startX;
+      const deltaY = e.clientY - startY;
 
-    if (Math.abs(delta) > 1.5) {
-      hasMoved = true;
+      if (Math.hypot(deltaX, deltaY) > 2) {
+        hasMoved = true;
+      }
+
+      // Vertical drag controls pitch (push up to tilt down into 3D horizon, pull down to level 2D)
+      const newPitch = Math.max(0, Math.min(65, startPitch - deltaY * 0.55));
+      if (newPitch > 0 && !map.getTerrain()) {
+        map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+      } else if (newPitch === 0 && map.getTerrain()) {
+        map.setTerrain(null);
+      }
+      map.setPitch(newPitch);
+
+      // Horizontal drag orbits camera bearing
+      const newBearing = (startBearing + deltaX * 0.55) % 360;
+      map.setBearing(newBearing);
+
+      window.updateTrackball();
+    } else if (isDraggingRing) {
+      const currentAngle = Math.atan2(e.clientX - cx, -(e.clientY - cy)) * (180 / Math.PI);
+      const delta = currentAngle - startRingAngle;
+
+      if (Math.abs(delta) > 1.5) {
+        hasMoved = true;
+      }
+
+      map.setBearing((startBearing + delta) % 360);
+      window.updateTrackball();
     }
-
-    // Natural steering wheel: rotating mouse clockwise rotates bearing clockwise
-    map.setBearing((startBearing + delta) % 360);
-    window.updateNavCompass();
   });
 
   const stopDrag = (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    compassWrapper.classList.remove('grabbing');
-    try { compassWrapper.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (isDraggingOrb || isDraggingRing) {
+      isDraggingOrb = false;
+      isDraggingRing = false;
+      wrapper.classList.remove('grabbing');
+      try { wrapper.releasePointerCapture(e.pointerId); } catch (_) {}
 
-    // If pointer clicked without dragging, treat as click to reset North
-    if (!hasMoved) {
-      window.resetNorth();
+      // If clicked without dragging, click near North resets North
+      if (!hasMoved) {
+        window.resetNorth();
+      }
     }
   };
 
-  compassWrapper.addEventListener('pointerup', stopDrag);
-  compassWrapper.addEventListener('pointercancel', stopDrag);
+  wrapper.addEventListener('pointerup', stopDrag);
+  wrapper.addEventListener('pointercancel', stopDrag);
+
+  // Double-click to reset everything (North-up and flat 2D)
+  wrapper.addEventListener('dblclick', () => {
+    map.easeTo({ bearing: 0, pitch: 0, duration: 600 });
+  });
 
   // Initial sync
-  window.updateNavCompass();
+  window.updateTrackball();
 }
 
 window.resetNorth = function() {
@@ -2790,4 +2840,5 @@ window.stepTilt = function(delta) {
   }
   map.easeTo({ pitch: targetPitch, duration: 400 });
 };
+
 
