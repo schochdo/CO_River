@@ -145,7 +145,7 @@ function initMap() {
     }
 
     loadData();
-
+    initGyroNavigation();
     initTableResizer();
     if (window.location.search.includes('expand_table=1')) {
       toggleTableCollapse();
@@ -2660,3 +2660,129 @@ function toggleLayer(layerName) {
       break;
   }
 }
+
+// ─── 3D Gyroscope Navigation Control (Interactive Compass & Gimbal) ───────────
+function initGyroNavigation() {
+  const wrapper = document.getElementById('gyro-compass-wrapper');
+  if (!wrapper || !map) return;
+
+  let isDraggingRing = false;
+  let isDraggingGimbal = false;
+  let startAngle = 0;
+  let startBearing = 0;
+  let startY = 0;
+  let startPitch = 0;
+
+  // 1. Update visual display to match map orientation
+  window.updateGyroscope = function() {
+    if (!map) return;
+    const bearing = map.getBearing();
+    const pitch = map.getPitch();
+
+    const ring = document.getElementById('gyro-compass-ring');
+    if (ring) {
+      ring.setAttribute('transform', `rotate(${-bearing} 42 42)`);
+    }
+
+    const ellipse = document.getElementById('gyro-pitch-ellipse');
+    if (ellipse) {
+      // Perspective squash: ry goes from 18 down to 6 at 65° tilt
+      const ry = Math.max(5, 18 * Math.cos(pitch * Math.PI / 180));
+      ellipse.setAttribute('ry', ry);
+    }
+
+    const pivot = document.getElementById('gyro-center-pivot');
+    if (pivot) {
+      const dy = (pitch / 65) * 7.5;
+      pivot.setAttribute('cy', 42 - dy);
+    }
+
+    const badge = document.getElementById('gyro-pitch-val');
+    if (badge) {
+      badge.textContent = `${Math.round(pitch)}°`;
+    }
+  };
+
+  map.on('rotate', window.updateGyroscope);
+  map.on('pitch', window.updateGyroscope);
+  map.on('move', window.updateGyroscope);
+
+  // 2. Drag outer compass ring to rotate bearing, or inner orb to tilt pitch
+  wrapper.addEventListener('pointerdown', (e) => {
+    const rect = wrapper.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const distFromCenter = Math.hypot(e.clientX - cx, e.clientY - cy);
+
+    if (distFromCenter < 24) {
+      // Dragging inside inner gimbal -> 3D pitch/tilt
+      isDraggingGimbal = true;
+      startY = e.clientY;
+      startPitch = map.getPitch();
+    } else {
+      // Dragging outer compass ring -> Bearing rotation
+      isDraggingRing = true;
+      startAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+      startBearing = map.getBearing();
+    }
+
+    wrapper.classList.add('grabbing');
+    wrapper.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  wrapper.addEventListener('pointermove', (e) => {
+    if (isDraggingRing) {
+      const rect = wrapper.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const currentAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+      const deltaAngle = currentAngle - startAngle;
+      map.setBearing((startBearing + deltaAngle) % 360);
+      window.updateGyroscope();
+    } else if (isDraggingGimbal) {
+      const deltaY = startY - e.clientY;
+      const newPitch = Math.max(0, Math.min(65, startPitch + deltaY * 0.7));
+      if (newPitch > 0 && !map.getTerrain()) {
+        map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+      }
+      map.setPitch(newPitch);
+      window.updateGyroscope();
+    }
+  });
+
+  const stopDrag = (e) => {
+    if (isDraggingRing || isDraggingGimbal) {
+      isDraggingRing = false;
+      isDraggingGimbal = false;
+      wrapper.classList.remove('grabbing');
+      try { wrapper.releasePointerCapture(e.pointerId); } catch (_) {}
+    }
+  };
+
+  wrapper.addEventListener('pointerup', stopDrag);
+  wrapper.addEventListener('pointercancel', stopDrag);
+
+  // Initial sync
+  window.updateGyroscope();
+}
+
+window.resetNorth = function() {
+  if (map) {
+    map.easeTo({ bearing: 0, duration: 600 });
+  }
+};
+
+window.stepTilt = function(delta) {
+  if (map) {
+    const curPitch = map.getPitch();
+    const targetPitch = Math.max(0, Math.min(65, curPitch + delta));
+    if (targetPitch > 0 && !map.getTerrain()) {
+      map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+    } else if (targetPitch === 0 && map.getTerrain()) {
+      map.setTerrain(null);
+    }
+    map.easeTo({ pitch: targetPitch, duration: 400 });
+  }
+};
