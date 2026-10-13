@@ -455,6 +455,7 @@ def fetch_reservoirs():
         "name": "Lake Havasu (Parker Dam)",
         "river": "Lower Colorado River (AZ/CA)",
         "type": "reservoir",
+        "category": "system",
         "elevation_ft": round(havasu_elev, 1),
         "storage_af": round(havasu_af, 0),
         "capacity_af": havasu_cap,
@@ -465,7 +466,107 @@ def fetch_reservoirs():
         "lon": -114.1678
     })
 
-    return results
+    # Tag earlier system reservoirs
+    for r in results:
+        if "category" not in r:
+            r["category"] = "system"
+
+    # --- Front Range & Denver Collection Reservoirs (West Slope Diversion Sources) ---
+    front_range_res = [
+        {
+            "id": "dillon_reservoir",
+            "abbrev": "DILRESCO",
+            "name": "Dillon Reservoir",
+            "river": "Blue River (Summit County, CO)",
+            "capacity_af": 257114.0,
+            "full_pool_elev": 9017.0,
+            "operator": "Denver Water",
+            "role": "Primary West Slope Storage -> Roberts Tunnel to Denver",
+            "lat": 39.6183,
+            "lon": -106.0656
+        },
+        {
+            "id": "lake_granby",
+            "abbrev": "GRARESCO",
+            "name": "Lake Granby",
+            "river": "Upper Colorado River (Grand County, CO)",
+            "capacity_af": 539800.0,
+            "full_pool_elev": 8280.0,
+            "operator": "USBR / Northern Water",
+            "role": "C-BT Project Primary Storage -> Adams Tunnel",
+            "lat": 40.1488,
+            "lon": -105.8675
+        },
+        {
+            "id": "green_mountain",
+            "abbrev": "GRERESCO",
+            "name": "Green Mountain Reservoir",
+            "river": "Blue River (Summit/Grand County, CO)",
+            "capacity_af": 153639.0,
+            "full_pool_elev": 7950.0,
+            "operator": "USBR",
+            "role": "West Slope Compensatory Storage (C-BT Replacement)",
+            "lat": 39.8783,
+            "lon": -106.3298
+        },
+        {
+            "id": "homestake_reservoir",
+            "abbrev": "HOMRESCO",
+            "name": "Homestake Reservoir",
+            "river": "Homestake Creek / Eagle River (Eagle County, CO)",
+            "capacity_af": 43600.0,
+            "full_pool_elev": 10260.0,
+            "operator": "Aurora & Colorado Springs Utilities",
+            "role": "Homestake Project Storage -> Homestake Tunnel to Arkansas Basin",
+            "lat": 39.3690,
+            "lon": -106.4630
+        }
+    ]
+
+    for fr in front_range_res:
+        af_val = 0.0
+        elev_val = 0.0
+        dt_str = datetime.now().strftime("%Y-%m-%d")
+        url_cdwr = f"https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrytimeseriesday/?format=json&abbrev={fr['abbrev']}"
+        try:
+            r = requests.get(url_cdwr, headers={"User-Agent": USER_AGENT}, timeout=7)
+            if r.status_code == 200:
+                items = r.json().get("ResultList", [])
+                for x in items:
+                    p = x.get("parameter")
+                    if p == "STORAGE":
+                        af_val = float(x.get("measValue", 0.0))
+                        dt_str = x.get("measDate", dt_str).split("T")[0]
+                    elif p == "ELEV":
+                        elev_val = float(x.get("measValue", 0.0))
+        except Exception:
+            pass
+
+        pct_val = round((af_val / fr["capacity_af"]) * 100, 1) if fr["capacity_af"] > 0 else 0.0
+        
+        # Calculate elevation in ft MSL or gauge stage
+        is_stage = elev_val > 0 and elev_val < 500
+        elev_msl = round(fr["full_pool_elev"] - (126.0 - elev_val), 1) if (is_stage and fr.get("full_pool_elev")) else (round(elev_val, 1) if elev_val > 500 else None)
+        feet_down = round(fr["full_pool_elev"] - elev_msl, 1) if (elev_msl and fr.get("full_pool_elev")) else None
+
+        results.append({
+            "id": fr["id"],
+            "name": fr["name"],
+            "river": fr["river"],
+            "type": "reservoir",
+            "category": "front_range",
+            "operator": fr["operator"],
+            "elevation_ft": elev_msl,
+            "stage_ft": round(elev_val, 1) if is_stage else None,
+            "feet_below_full": feet_down,
+            "storage_af": round(af_val, 0),
+            "capacity_af": fr["capacity_af"],
+            "capacity_pct": pct_val,
+            "role": fr["role"],
+            "timestamp": dt_str,
+            "lat": fr["lat"],
+            "lon": fr["lon"]
+        })
 
     return results
 

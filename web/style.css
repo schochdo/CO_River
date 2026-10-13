@@ -559,11 +559,11 @@ body {
   transition: all 0.2s ease;
 }
 
-.card.layer-card.collapsed {
+.card.collapsed {
   padding: 8px 14px;
 }
 
-.card.layer-card.collapsed .card-header {
+.card.collapsed .card-header {
   margin-bottom: 0;
 }
 
@@ -576,6 +576,12 @@ body {
 .card.reservoirs-card {
   border: 1.5px solid #bae6fd;
   border-left: 3.5px solid var(--color-primary);
+  background: var(--bg-card);
+}
+
+.card.front-range-card {
+  border: 1.5px solid #fef08a;
+  border-left: 3.5px solid #d97706;
   background: var(--bg-card);
 }
 

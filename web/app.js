@@ -1876,19 +1876,23 @@ function updateSidebar(metrics) {
     `;
   }
 
-  // 2. Major Storage Reservoirs Panel (7 Key Facilities)
-  const resList = metrics.reservoirs || [];
-  const totalCap = resList.reduce((sum, r) => sum + (r.capacity_af || (r.storage_af / (r.capacity_pct / 100))), 0);
-  const totalStorage = resList.reduce((sum, r) => sum + (r.storage_af || 0), 0);
-  const systemPct = totalCap > 0 ? ((totalStorage / totalCap) * 100).toFixed(1) : "28.9";
+  // 2. Major Storage Reservoirs Panel (Separated into Basin-Wide vs. Front Range & Denver)
+  const allRes = metrics.reservoirs || [];
+  const systemRes = allRes.filter(r => r.category !== 'front_range');
+  const frontRangeRes = allRes.filter(r => r.category === 'front_range');
+
+  // Basin System Summary
+  const sysTotalCap = systemRes.reduce((sum, r) => sum + (r.capacity_af || (r.storage_af / (r.capacity_pct / 100))), 0);
+  const sysTotalStorage = systemRes.reduce((sum, r) => sum + (r.storage_af || 0), 0);
+  const sysPct = sysTotalCap > 0 ? ((sysTotalStorage / sysTotalCap) * 100).toFixed(1) : "28.9";
 
   const badgeElem = document.getElementById("basin-storage-badge");
   if (badgeElem) {
-    badgeElem.textContent = `${systemPct}% Full`;
-    if (systemPct < 25) {
+    badgeElem.textContent = `${sysPct}% Full`;
+    if (sysPct < 25) {
       badgeElem.style.background = "#fef2f2";
       badgeElem.style.color = "#dc2626";
-    } else if (systemPct < 50) {
+    } else if (sysPct < 50) {
       badgeElem.style.background = "#fef3c7";
       badgeElem.style.color = "#b45309";
     } else {
@@ -1899,13 +1903,31 @@ function updateSidebar(metrics) {
 
   const summaryElem = document.getElementById("basin-storage-summary");
   if (summaryElem) {
-    summaryElem.innerHTML = `System Total: <strong>${(totalStorage / 1e6).toFixed(2)}M AF</strong> of ${(totalCap / 1e6).toFixed(2)}M AF Total Capacity`;
+    summaryElem.innerHTML = `System Total: <strong>${(sysTotalStorage / 1e6).toFixed(2)}M AF</strong> of ${(sysTotalCap / 1e6).toFixed(2)}M AF Total Capacity`;
   }
 
-  const resContainer = document.getElementById("reservoir-list");
-  if (resContainer) {
-    resContainer.innerHTML = "";
-    resList.forEach(r => {
+  // Front Range Summary
+  const frTotalCap = frontRangeRes.reduce((sum, r) => sum + (r.capacity_af || 0), 0);
+  const frTotalStorage = frontRangeRes.reduce((sum, r) => sum + (r.storage_af || 0), 0);
+  const frPct = frTotalCap > 0 ? ((frTotalStorage / frTotalCap) * 100).toFixed(1) : "45.0";
+
+  const frBadgeElem = document.getElementById("fr-storage-badge");
+  if (frBadgeElem) {
+    frBadgeElem.textContent = `${frPct}% Full`;
+    frBadgeElem.style.background = frPct < 25 ? "#fef2f2" : (frPct < 50 ? "#fef3c7" : "#ecfeff");
+    frBadgeElem.style.color = frPct < 25 ? "#dc2626" : (frPct < 50 ? "#b45309" : "#0891b2");
+  }
+
+  const frSummaryElem = document.getElementById("fr-storage-summary");
+  if (frSummaryElem) {
+    frSummaryElem.innerHTML = `Total West Slope Storage: <strong>${Math.round(frTotalStorage / 1e3).toLocaleString()}k AF</strong> of ${Math.round(frTotalCap / 1e3).toLocaleString()}k AF Capacity`;
+  }
+
+  const renderResCardList = (containerId, list) => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = "";
+    list.forEach(r => {
       const pct = Number(r.capacity_pct) || 0;
       const statusClass = pct < 25 ? 'crit' : (pct < 50 ? 'warn' : 'good');
       const row = document.createElement("div");
@@ -1913,11 +1935,14 @@ function updateSidebar(metrics) {
       row.title = `Click to fly to ${r.name}`;
       
       const cleanName = r.name.split('(')[0].trim();
-      const subLabel = r.river || (r.name.match(/\(([^)]+)\)/)?.[1] || 'Major Storage');
+      const subLabel = r.operator ? `${r.operator} &bull; ${r.river}` : (r.river || (r.name.match(/\(([^)]+)\)/)?.[1] || 'Major Storage'));
 
       const capAf = r.capacity_af || (r.storage_af / (pct / 100));
       const storageStr = r.storage_af >= 1e6 ? `${(r.storage_af / 1e6).toFixed(2)}M AF` : `${Math.round(r.storage_af / 1e3).toLocaleString()}k AF`;
       const capStr = capAf >= 1e6 ? `${(capAf / 1e6).toFixed(2)}M AF` : `${Math.round(capAf / 1e3).toLocaleString()}k AF`;
+
+      const elevText = r.elevation_ft ? `Elev: ${Math.round(r.elevation_ft).toLocaleString()} ft` : (r.stage_ft ? `Stage: ${r.stage_ft} ft` : '');
+      const downText = r.feet_below_full != null ? `<span style="color:#b45309;font-weight:600;"> &bull; ${r.feet_below_full} ft down</span>` : '';
 
       row.innerHTML = `
         <div class="res-row-head">
@@ -1929,7 +1954,7 @@ function updateSidebar(metrics) {
           <span><strong>${storageStr}</strong> of ${capStr}</span>
         </div>
         <div class="res-row-sub" style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">
-          <span>Elev: ${Math.round(r.elevation_ft || 0).toLocaleString()} ft</span>
+          <span>${elevText}${downText}</span>
           <span>${formatTimestamp(r.timestamp)}</span>
         </div>
         <div class="progress-track" style="height: 5px; margin-top: 5px;">
@@ -1938,12 +1963,15 @@ function updateSidebar(metrics) {
       `;
       row.onclick = () => {
         if (r.lat && r.lon) {
-          map.flyTo({ center: [r.lon, r.lat], zoom: 9.3, duration: 1400 });
+          map.flyTo({ center: [r.lon, r.lat], zoom: 10.2, duration: 1400 });
         }
       };
-      resContainer.appendChild(row);
+      container.appendChild(row);
     });
-  }
+  };
+
+  renderResCardList("reservoir-list", systemRes);
+  renderResCardList("front-range-res-list", frontRangeRes);
 }
 
 function populateTelemetryTable(metrics) {
@@ -2388,15 +2416,22 @@ function refreshData() {
   if (syncElem) syncElem.textContent = "Querying live USGS gauges...";
   loadData(true);
 }
-function toggleLayerPanelCollapse() {
-  const card = document.getElementById("layer-card");
-  const group = document.getElementById("layer-toggle-group");
-  const icon = document.getElementById("layer-collapse-icon");
-  if (!group) return;
-  const isHidden = window.getComputedStyle(group).display === "none";
-  group.style.display = isHidden ? "flex" : "none";
+function toggleCardCollapse(cardId, bodyId, iconId) {
+  const card = document.getElementById(cardId);
+  const body = document.getElementById(bodyId);
+  const icon = document.getElementById(iconId);
+  if (!body) return;
+  const isHidden = window.getComputedStyle(body).display === "none";
+  body.style.display = isHidden ? "block" : "none";
+  if (body.classList.contains("toggle-group")) {
+    body.style.display = isHidden ? "flex" : "none";
+  }
   if (card) card.classList.toggle("collapsed", !isHidden);
   if (icon) icon.style.transform = isHidden ? "rotate(0deg)" : "rotate(-90deg)";
+}
+
+function toggleLayerPanelCollapse() {
+  toggleCardCollapse("layer-card", "layer-toggle-group", "layer-collapse-icon");
 }
 
 function toggleLayer(layerName) {
