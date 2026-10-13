@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="style.css?v=2.7">
+  <link rel="stylesheet" href="style.css?v=2.8">
 </head>
 <body>
   <!-- Header Bar -->
@@ -152,69 +152,49 @@
         </div>
       </div>
 
-      <!-- 3D Gyroscope Navigation Control (Lower Right) -->
-      <div class="gyro-nav-control" id="gyro-nav-control" title="Drag outer ring to rotate • Drag center orb to tilt 3D • Click N to reset North">
-        <div class="gyro-compass-wrapper" id="gyro-compass-wrapper">
-          <svg class="gyro-svg" id="gyro-svg" width="84" height="84" viewBox="0 0 84 84">
-            <defs>
-              <radialGradient id="gyroBgGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#1e293b" stop-opacity="0.94" />
-                <stop offset="100%" stop-color="#0f172a" stop-opacity="0.98" />
-              </radialGradient>
-              <linearGradient id="gyroGimbalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#0284c7" stop-opacity="0.30" />
-                <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.10" />
-              </linearGradient>
-            </defs>
+      <!-- 3D GIS Navigation Compass & Perspective Controls -->
+      <div class="nav-compass-control" id="nav-compass-control">
+        <div class="compass-dial-btn" id="compass-dial-btn" title="Click to Reset North • Drag to Rotate Bearing">
+          <svg class="compass-svg" id="compass-svg" width="68" height="68" viewBox="0 0 68 68">
+            <!-- Fixed Outer Bezel Track (Solid Dark Slate with Subtle Cyan Ring) -->
+            <circle cx="34" cy="34" r="32" fill="#0f172a" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.45" />
+            <circle cx="34" cy="34" r="30" fill="#1e293b" fill-opacity="0.6" />
 
-            <!-- Outer Compass Rotating Ring -->
-            <g id="gyro-compass-ring" class="gyro-compass-ring">
-              <!-- Outer Ring Track -->
-              <circle cx="42" cy="42" r="38" fill="url(#gyroBgGrad)" stroke="#38bdf8" stroke-width="1.5" stroke-opacity="0.45" />
-              
+            <!-- Rotating Needle & Cardinals Group -->
+            <g id="compass-needle-group" class="compass-needle-group">
               <!-- Cardinal Degree Ticks -->
-              <line x1="42" y1="5" x2="42" y2="11" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" />
-              <line x1="79" y1="42" x2="73" y2="42" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" />
-              <line x1="42" y1="79" x2="42" y2="73" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" />
-              <line x1="5" y1="42" x2="11" y2="42" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" />
-              
-              <!-- Minor Ticks -->
-              <line x1="68" y1="16" x2="64" y2="20" stroke="#64748b" stroke-width="1.2" stroke-linecap="round" />
-              <line x1="68" y1="68" x2="64" y2="64" stroke="#64748b" stroke-width="1.2" stroke-linecap="round" />
-              <line x1="16" y1="68" x2="20" y2="64" stroke="#64748b" stroke-width="1.2" stroke-linecap="round" />
-              <line x1="16" y1="16" x2="20" y2="20" stroke="#64748b" stroke-width="1.2" stroke-linecap="round" />
+              <line x1="34" y1="4" x2="34" y2="9" stroke="#ef4444" stroke-width="2" stroke-linecap="round" />
+              <line x1="64" y1="34" x2="59" y2="34" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" />
+              <line x1="34" y1="64" x2="34" y2="59" stroke="#64748b" stroke-width="1.5" stroke-linecap="round" />
+              <line x1="4" y1="34" x2="9" y2="34" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" />
 
-              <!-- North Red Arrow & Cardinal Labels -->
-              <polygon points="42,7 45.5,16 38.5,16" fill="#ef4444" />
-              <text x="42" y="24" fill="#ef4444" font-family="'Inter', sans-serif" font-size="10" font-weight="800" text-anchor="middle" dominant-baseline="middle">N</text>
-              <text x="70" y="43" fill="#94a3b8" font-family="'Inter', sans-serif" font-size="8" font-weight="700" text-anchor="middle" dominant-baseline="middle">E</text>
-              <text x="42" y="70" fill="#94a3b8" font-family="'Inter', sans-serif" font-size="8" font-weight="700" text-anchor="middle" dominant-baseline="middle">S</text>
-              <text x="14" y="43" fill="#94a3b8" font-family="'Inter', sans-serif" font-size="8" font-weight="700" text-anchor="middle" dominant-baseline="middle">W</text>
-            </g>
+              <!-- Cardinal Labels -->
+              <text x="34" y="17" fill="#ef4444" font-family="'Inter', sans-serif" font-size="9" font-weight="900" text-anchor="middle" dominant-baseline="middle">N</text>
+              <text x="53" y="34" fill="#94a3b8" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="middle">E</text>
+              <text x="34" y="52" fill="#64748b" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="middle">S</text>
+              <text x="15" y="34" fill="#94a3b8" font-family="'Inter', sans-serif" font-size="7.5" font-weight="700" text-anchor="middle" dominant-baseline="middle">W</text>
 
-            <!-- Inner 3D Gyroscope Gimbal / Tilt Orb -->
-            <g id="gyro-tilt-gimbal" class="gyro-tilt-gimbal">
-              <!-- Inner Orb Sphere -->
-              <circle cx="42" cy="42" r="22" fill="url(#gyroGimbalGrad)" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="2,2" stroke-opacity="0.75" />
-              
-              <!-- 3D Perspective Ellipse (distorts with pitch) -->
-              <ellipse id="gyro-pitch-ellipse" cx="42" cy="42" rx="18" ry="18" fill="none" stroke="#38bdf8" stroke-width="1.6" stroke-opacity="0.9" />
-              
-              <!-- Horizon Bar -->
-              <line x1="24" y1="42" x2="60" y2="42" stroke="rgba(255,255,255,0.45)" stroke-width="1" />
-              
-              <!-- Central 3D Gimbal Pivot Dot -->
-              <circle id="gyro-center-pivot" cx="42" cy="42" r="4.5" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5" />
+              <!-- Precision 3D Compass Needle -->
+              <!-- North Pointer (Dual-tone Red) -->
+              <polygon points="34,8 37.5,31 34,28" fill="#ef4444" />
+              <polygon points="34,8 30.5,31 34,28" fill="#dc2626" />
+              <!-- South Pointer (Dual-tone Silver) -->
+              <polygon points="34,58 37.5,37 34,40" fill="#94a3b8" />
+              <polygon points="34,58 30.5,37 34,40" fill="#cbd5e1" />
+              <!-- Center Pivot Cap -->
+              <circle cx="34" cy="34" r="3.8" fill="#0284c7" stroke="#ffffff" stroke-width="1.5" />
             </g>
           </svg>
         </div>
 
-        <!-- Quick-Action Pill (N / Tilt Up / Tilt Down / Angle) -->
-        <div class="gyro-toolbar">
-          <button type="button" class="gyro-btn" id="btn-gyro-reset-north" onclick="resetNorth()" title="Reset to True North (0°)">N</button>
-          <button type="button" class="gyro-btn" id="btn-gyro-pitch-up" onclick="stepTilt(12)" title="Tilt Perspective 3D (Up)">▲</button>
-          <button type="button" class="gyro-btn" id="btn-gyro-pitch-down" onclick="stepTilt(-12)" title="Tilt Flat 2D (Down)">▼</button>
-          <span class="gyro-pitch-val" id="gyro-pitch-val" title="Current Perspective Tilt Angle">0°</span>
+        <!-- 3D Perspective & Tilt Toolbar -->
+        <div class="nav-tilt-toolbar" id="nav-tilt-toolbar">
+          <button type="button" class="nav-mode-btn" id="btn-toggle-3d" onclick="toggle3DMode()" title="Switch to 3D Terrain Perspective (50°)">3D</button>
+          <div class="nav-tilt-steppers">
+            <button type="button" class="nav-step-btn" id="btn-tilt-up" onclick="stepTilt(15)" title="Tilt Camera Down (More 3D)">▲</button>
+            <button type="button" class="nav-step-btn" id="btn-tilt-down" onclick="stepTilt(-15)" title="Tilt Camera Up (Towards 2D)">▼</button>
+          </div>
+          <span class="nav-tilt-badge" id="nav-tilt-badge" title="Current Perspective Tilt Angle">2D</span>
         </div>
       </div>
     </div>
@@ -493,6 +473,6 @@
 
   <!-- MapLibre GL JS -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=15.0"></script>
+  <script src="app.js?v=16.0"></script>
 </body>
 </html>

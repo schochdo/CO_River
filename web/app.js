@@ -145,7 +145,7 @@ function initMap() {
     }
 
     loadData();
-    initGyroNavigation();
+    initNavCompass();
     initTableResizer();
     if (window.location.search.includes('expand_table=1')) {
       toggleTableCollapse();
@@ -172,6 +172,14 @@ function initMap() {
     }
     if (window.location.search.includes('zoom_to=socal')) {
       map.jumpTo({ center: [-115.0, 33.1], zoom: 7.2 });
+    }
+    if (window.location.search.includes('show_canals=1')) {
+      const toggle = document.getElementById("toggle-canals");
+      if (toggle) {
+        toggle.checked = true;
+        toggleLayer("canals");
+      }
+      map.jumpTo({ center: [-115.0, 32.78], zoom: 10 });
     }
     if (window.location.search.includes('zoom_to=lees_ferry')) {
       map.jumpTo({ center: [-111.588, 36.864], zoom: 7.8 });
@@ -763,7 +771,7 @@ async function loadData(forceLive = false) {
 
   } catch (error) {
     console.error("Error loading water dashboard data:", error);
-    if (syncElem) syncElem.textContent = "Error loading live data";
+    if (syncElem) syncElem.textContent = "Telemetry Snapshot (Offline)";
   }
 }
 
@@ -1403,25 +1411,7 @@ function renderGeography(geo, riverNetwork, lakes) {
 
       map.addSource('canals', { type: 'geojson', data: canalsGeoJSON });
       const showCanals = document.getElementById('toggle-canals')?.checked ?? true;
-      // 1. High-contrast dark casing for canal dotted line
-      map.addLayer({
-        id: 'canals-casing',
-        type: 'line',
-        source: 'canals',
-        layout: {
-          'visibility': showCanals ? 'visible' : 'none',
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#0f172a',
-          'line-width': 5.5,
-          'line-dasharray': [2, 2.5],
-          'line-opacity': 0.45
-        }
-      });
-
-      // 2. Crisp blue dotted line representing engineered open water conveyance
+      // Crisp, pure blue dotted line for canals (no underlying casing or shadows)
       map.addLayer({
         id: 'canals-line',
         type: 'line',
@@ -1434,7 +1424,7 @@ function renderGeography(geo, riverNetwork, lakes) {
         paint: {
           'line-color': '#0284c7',
           'line-width': 3.5,
-          'line-dasharray': [2, 2.5],
+          'line-dasharray': [3, 2.5],
           'line-opacity': 1.0
         }
       });
@@ -2630,7 +2620,6 @@ function toggleLayer(layerName) {
       queueBadgePlacements();
       break;
     case "canals":
-      setLayerVisibility('canals-casing', isChecked);
       setLayerVisibility('canals-line', isChecked);
       setLayerVisibility('canals-hit-buffer', isChecked);
       markers.canals.forEach(m => m.getElement().style.display = (isChecked && showAllBadges) ? '' : 'none');
@@ -2661,128 +2650,144 @@ function toggleLayer(layerName) {
   }
 }
 
-// ─── 3D Gyroscope Navigation Control (Interactive Compass & Gimbal) ───────────
-function initGyroNavigation() {
-  const wrapper = document.getElementById('gyro-compass-wrapper');
-  if (!wrapper || !map) return;
+// ─── 3D GIS Navigation Compass & Perspective Controls ─────────────────────────
+function initNavCompass() {
+  const compassWrapper = document.getElementById('compass-dial-btn');
+  if (!compassWrapper || !map) return;
 
-  let isDraggingRing = false;
-  let isDraggingGimbal = false;
+  let isDragging = false;
   let startAngle = 0;
   let startBearing = 0;
-  let startY = 0;
-  let startPitch = 0;
+  let hasMoved = false;
 
-  // 1. Update visual display to match map orientation
-  window.updateGyroscope = function() {
+  // 1. Synchronize visual needle, 3D tilt perspective, and toolbar states with MapLibre
+  window.updateNavCompass = function() {
     if (!map) return;
     const bearing = map.getBearing();
     const pitch = map.getPitch();
 
-    const ring = document.getElementById('gyro-compass-ring');
-    if (ring) {
-      ring.setAttribute('transform', `rotate(${-bearing} 42 42)`);
+    // Rotate compass needle & cardinal ring to geographic orientation
+    const needleGroup = document.getElementById('compass-needle-group');
+    if (needleGroup) {
+      needleGroup.setAttribute('transform', `rotate(${-bearing} 34 34)`);
     }
 
-    const ellipse = document.getElementById('gyro-pitch-ellipse');
-    if (ellipse) {
-      // Perspective squash: ry goes from 18 down to 6 at 65° tilt
-      const ry = Math.max(5, 18 * Math.cos(pitch * Math.PI / 180));
-      ellipse.setAttribute('ry', ry);
+    // Perspective 3D gimbal effect: tilt the compass disk smoothly based on pitch
+    if (compassWrapper) {
+      const tiltX = Math.min(35, pitch * 0.45);
+      compassWrapper.style.transform = `perspective(180px) rotateX(${tiltX}deg)`;
     }
 
-    const pivot = document.getElementById('gyro-center-pivot');
-    if (pivot) {
-      const dy = (pitch / 65) * 7.5;
-      pivot.setAttribute('cy', 42 - dy);
+    // Update 3D / 2D toggle button appearance
+    const btnToggle3D = document.getElementById('btn-toggle-3d');
+    if (btnToggle3D) {
+      if (pitch >= 8) {
+        btnToggle3D.textContent = '2D';
+        btnToggle3D.classList.add('active');
+        btnToggle3D.setAttribute('title', 'Reset to flat 2D perspective (0°)');
+      } else {
+        btnToggle3D.textContent = '3D';
+        btnToggle3D.classList.remove('active');
+        btnToggle3D.setAttribute('title', 'Switch to 3D terrain perspective (50°)');
+      }
     }
 
-    const badge = document.getElementById('gyro-pitch-val');
+    // Update pitch badge
+    const badge = document.getElementById('nav-tilt-badge');
     if (badge) {
-      badge.textContent = `${Math.round(pitch)}°`;
+      badge.textContent = pitch < 3 ? '2D' : `${Math.round(pitch)}°`;
     }
   };
 
-  map.on('rotate', window.updateGyroscope);
-  map.on('pitch', window.updateGyroscope);
-  map.on('move', window.updateGyroscope);
+  map.on('rotate', window.updateNavCompass);
+  map.on('pitch', window.updateNavCompass);
+  map.on('move', window.updateNavCompass);
 
-  // 2. Drag outer compass ring to rotate bearing, or inner orb to tilt pitch
-  wrapper.addEventListener('pointerdown', (e) => {
-    const rect = wrapper.getBoundingClientRect();
+  // 2. Interactive Compass Drag-to-Rotate (1:1 steering wheel tracking)
+  compassWrapper.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    hasMoved = false;
+
+    const rect = compassWrapper.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
-    const distFromCenter = Math.hypot(e.clientX - cx, e.clientY - cy);
 
-    if (distFromCenter < 24) {
-      // Dragging inside inner gimbal -> 3D pitch/tilt
-      isDraggingGimbal = true;
-      startY = e.clientY;
-      startPitch = map.getPitch();
-    } else {
-      // Dragging outer compass ring -> Bearing rotation
-      isDraggingRing = true;
-      startAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
-      startBearing = map.getBearing();
-    }
+    // Up is North (0°), Right is East (+90°), Down is South (+180°), Left is West (-90°)
+    startAngle = Math.atan2(e.clientX - cx, -(e.clientY - cy)) * (180 / Math.PI);
+    startBearing = map.getBearing();
 
-    wrapper.classList.add('grabbing');
-    wrapper.setPointerCapture(e.pointerId);
+    compassWrapper.classList.add('grabbing');
+    compassWrapper.setPointerCapture(e.pointerId);
     e.preventDefault();
     e.stopPropagation();
   });
 
-  wrapper.addEventListener('pointermove', (e) => {
-    if (isDraggingRing) {
-      const rect = wrapper.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const currentAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
-      const deltaAngle = currentAngle - startAngle;
-      map.setBearing((startBearing + deltaAngle) % 360);
-      window.updateGyroscope();
-    } else if (isDraggingGimbal) {
-      const deltaY = startY - e.clientY;
-      const newPitch = Math.max(0, Math.min(65, startPitch + deltaY * 0.7));
-      if (newPitch > 0 && !map.getTerrain()) {
-        map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
-      }
-      map.setPitch(newPitch);
-      window.updateGyroscope();
+  compassWrapper.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const rect = compassWrapper.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    const currentAngle = Math.atan2(e.clientX - cx, -(e.clientY - cy)) * (180 / Math.PI);
+    const delta = currentAngle - startAngle;
+
+    if (Math.abs(delta) > 1.5) {
+      hasMoved = true;
     }
+
+    // Natural steering wheel: rotating mouse clockwise rotates bearing clockwise
+    map.setBearing((startBearing + delta) % 360);
+    window.updateNavCompass();
   });
 
   const stopDrag = (e) => {
-    if (isDraggingRing || isDraggingGimbal) {
-      isDraggingRing = false;
-      isDraggingGimbal = false;
-      wrapper.classList.remove('grabbing');
-      try { wrapper.releasePointerCapture(e.pointerId); } catch (_) {}
+    if (!isDragging) return;
+    isDragging = false;
+    compassWrapper.classList.remove('grabbing');
+    try { compassWrapper.releasePointerCapture(e.pointerId); } catch (_) {}
+
+    // If pointer clicked without dragging, treat as click to reset North
+    if (!hasMoved) {
+      window.resetNorth();
     }
   };
 
-  wrapper.addEventListener('pointerup', stopDrag);
-  wrapper.addEventListener('pointercancel', stopDrag);
+  compassWrapper.addEventListener('pointerup', stopDrag);
+  compassWrapper.addEventListener('pointercancel', stopDrag);
 
   // Initial sync
-  window.updateGyroscope();
+  window.updateNavCompass();
 }
 
 window.resetNorth = function() {
-  if (map) {
-    map.easeTo({ bearing: 0, duration: 600 });
+  if (!map) return;
+  map.easeTo({ bearing: 0, duration: 550 });
+};
+
+window.toggle3DMode = function() {
+  if (!map) return;
+  const currentPitch = map.getPitch();
+  if (currentPitch >= 8) {
+    // Already in 3D -> smoothly reset to flat 2D perspective
+    map.easeTo({ pitch: 0, duration: 600 });
+  } else {
+    // Flat 2D -> engage 3D terrain and pitch camera to 50 degrees
+    if (!map.getTerrain()) {
+      map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+    }
+    map.easeTo({ pitch: 50, duration: 800 });
   }
 };
 
 window.stepTilt = function(delta) {
-  if (map) {
-    const curPitch = map.getPitch();
-    const targetPitch = Math.max(0, Math.min(65, curPitch + delta));
-    if (targetPitch > 0 && !map.getTerrain()) {
-      map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
-    } else if (targetPitch === 0 && map.getTerrain()) {
-      map.setTerrain(null);
-    }
-    map.easeTo({ pitch: targetPitch, duration: 400 });
+  if (!map) return;
+  const curPitch = map.getPitch();
+  const targetPitch = Math.max(0, Math.min(65, curPitch + delta));
+  if (targetPitch > 0 && !map.getTerrain()) {
+    map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+  } else if (targetPitch === 0 && map.getTerrain()) {
+    map.setTerrain(null);
   }
+  map.easeTo({ pitch: targetPitch, duration: 400 });
 };
+
