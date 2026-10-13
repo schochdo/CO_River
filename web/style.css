@@ -1712,28 +1712,23 @@ input:checked + .slider:before {
   bottom: 24px;
   right: 22px;
   z-index: 25;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
   user-select: none;
   -webkit-user-select: none;
-  filter: drop-shadow(0 4px 14px rgba(12, 35, 64, 0.15));
+  filter: drop-shadow(0 4px 14px rgba(12, 35, 64, 0.16));
 }
 
 .trackball-wrapper {
   position: relative;
-  width: 76px;
-  height: 76px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   cursor: grab;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1.5px solid rgba(2, 132, 199, 0.45);
+  background: #ffffff;
+  border: 1.5px solid #0284c7;
   box-shadow: 0 4px 12px rgba(12, 35, 64, 0.10), inset 0 1px 2px rgba(255, 255, 255, 0.9);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
   touch-action: none;
+  overflow: hidden;
 }
 
 .trackball-wrapper:hover {
@@ -1744,12 +1739,13 @@ input:checked + .slider:before {
 .trackball-wrapper.grabbing {
   cursor: grabbing !important;
   box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+  transform: scale(0.97);
 }
 
 .trackball-svg {
   display: block;
-  width: 76px;
-  height: 76px;
+  width: 72px;
+  height: 72px;
 }
 
 .trackball-compass-ring {
@@ -1760,92 +1756,6 @@ input:checked + .slider:before {
   cursor: move;
 }
 
-/* Light Blue Trackball Toolbar */
-.trackball-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 6px;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(2, 132, 199, 0.35);
-  border-radius: 16px;
-  box-shadow: 0 3px 10px rgba(12, 35, 64, 0.08);
-}
-
-.trackball-btn {
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 1px solid #e2e8f0;
-  border-radius: 50%;
-  background: #f8fafc;
-  color: #475569;
-  font-family: 'Inter', sans-serif;
-  font-size: 9px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.trackball-btn:hover {
-  background: #e0f2fe;
-  color: #0284c7;
-  border-color: #7dd3fc;
-  transform: scale(1.1);
-}
-
-#btn-trackball-reset-north {
-  color: #dc2626;
-  font-weight: 800;
-}
-
-#btn-trackball-reset-north:hover {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #fca5a5;
-}
-
-.trackball-mode-btn {
-  padding: 2px 7px;
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  color: #0284c7;
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.trackball-mode-btn:hover {
-  background: #0284c7;
-  color: #ffffff;
-  border-color: #0284c7;
-}
-
-.trackball-mode-btn.active {
-  background: #0284c7;
-  color: #ffffff;
-  border-color: #0284c7;
-  box-shadow: 0 0 6px rgba(2, 132, 199, 0.35);
-}
-
-.trackball-pitch-val {
-  font-family: 'Inter', sans-serif;
-  font-size: 9.5px;
-  font-weight: 700;
-  color: #0284c7;
-  padding: 0 4px;
-  min-width: 20px;
-  text-align: center;
-}
 
 
 
