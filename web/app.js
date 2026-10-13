@@ -2020,6 +2020,7 @@ function updateSidebar(metrics) {
   const badgeElem = document.getElementById("basin-storage-badge");
   if (badgeElem) {
     badgeElem.textContent = `${sysPct}% Full`;
+    badgeElem.style.border = "none";
     if (sysPct < 25) {
       badgeElem.style.background = "#fef2f2";
       badgeElem.style.color = "#dc2626";
@@ -2045,6 +2046,7 @@ function updateSidebar(metrics) {
   const frBadgeElem = document.getElementById("fr-storage-badge");
   if (frBadgeElem) {
     frBadgeElem.textContent = `${frPct}% Full`;
+    frBadgeElem.style.border = "none";
     frBadgeElem.style.background = frPct < 25 ? "#fef2f2" : (frPct < 50 ? "#fef3c7" : "#ecfeff");
     frBadgeElem.style.color = frPct < 25 ? "#dc2626" : (frPct < 50 ? "#b45309" : "#0891b2");
   }

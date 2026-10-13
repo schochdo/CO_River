@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="style.css?v=3.0">
+  <link rel="stylesheet" href="style.css?v=3.1">
 </head>
 <body>
   <!-- Header Bar -->
@@ -192,9 +192,11 @@
     <aside class="sidebar-panel">
       <!-- Layer Control Card -->
       <section class="card layer-card collapsed" id="layer-card">
-        <div class="card-header card-header-clickable" onclick="toggleCardCollapse('layer-card', 'layer-toggle-group', 'layer-collapse-icon')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;" title="Click to collapse / expand layer controls">
+        <div class="card-header card-header-clickable" onclick="toggleCardCollapse('layer-card', 'layer-toggle-group', 'layer-collapse-icon')" title="Click to collapse / expand layer controls">
           <h3>Layer Controls</h3>
-          <span class="collapse-icon" id="layer-collapse-icon" style="font-size: 11px; color: var(--text-muted); transition: transform 0.2s ease; transform: rotate(-90deg);">▼</span>
+          <div class="card-header-actions">
+            <span class="collapse-icon" id="layer-collapse-icon" style="transform: rotate(-90deg);">▼</span>
+          </div>
         </div>
         <div class="toggle-group" id="layer-toggle-group" style="display: none;">
           <label class="toggle-label">
@@ -270,12 +272,11 @@
 
       <!-- Where Is the Water Going? (Major Basin Outflows & Diversions) -->
       <section class="card stat-card outflows-card collapsed" id="outflows-card">
-        <div class="card-header card-header-clickable" onclick="toggleCardCollapse('outflows-card', 'outflows-body', 'outflows-collapse-icon')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;" title="Click to collapse / expand outflows">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <h3>Where Is the Water Going?</h3>
-            <span class="badge blue">System Allocation</span>
+        <div class="card-header card-header-clickable" onclick="toggleCardCollapse('outflows-card', 'outflows-body', 'outflows-collapse-icon')" title="Click to collapse / expand outflows">
+          <h3>Where Is the Water Going?</h3>
+          <div class="card-header-actions">
+            <span class="collapse-icon" id="outflows-collapse-icon" style="transform: rotate(-90deg);">▼</span>
           </div>
-          <span class="collapse-icon" id="outflows-collapse-icon" style="font-size: 11px; color: var(--text-muted); transition: transform 0.2s ease; transform: rotate(-90deg);">▼</span>
         </div>
         <div id="outflows-body" style="display: none;">
           <p class="metric-desc" style="margin-top: 4px; margin-bottom: 8px;">Real-time snapshot of out-of-basin diversions and primary interstate compact deliveries:</p>
@@ -287,12 +288,12 @@
 
       <!-- Basin-Wide Mega Reservoirs -->
       <section class="card stat-card reservoirs-card collapsed" id="reservoirs-card">
-        <div class="card-header card-header-clickable" onclick="toggleCardCollapse('reservoirs-card', 'reservoirs-body', 'reservoirs-collapse-icon')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;" title="Click to collapse / expand main storage reservoirs">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <h3>Basin Storage Reservoirs</h3>
-            <span class="badge" id="basin-storage-badge" style="background:#fef3c7; color:#b45309; font-weight:700;">28.9% Full</span>
+        <div class="card-header card-header-clickable" onclick="toggleCardCollapse('reservoirs-card', 'reservoirs-body', 'reservoirs-collapse-icon')" title="Click to collapse / expand main storage reservoirs">
+          <h3>Basin Storage Reservoirs</h3>
+          <div class="card-header-actions">
+            <span class="badge stat-badge" id="basin-storage-badge" style="background:#fef3c7; color:#b45309;">28.9% Full</span>
+            <span class="collapse-icon" id="reservoirs-collapse-icon" style="transform: rotate(-90deg);">▼</span>
           </div>
-          <span class="collapse-icon" id="reservoirs-collapse-icon" style="font-size: 11px; color: var(--text-muted); transition: transform 0.2s ease; transform: rotate(-90deg);">▼</span>
         </div>
         <div id="reservoirs-body" style="display: none;">
           <div id="basin-storage-summary" style="font-size: 11px; color: var(--text-muted); margin: 4px 0 8px 0; font-weight: 500;">
@@ -306,12 +307,12 @@
 
       <!-- Front Range & Denver Collection Reservoirs -->
       <section class="card stat-card front-range-card collapsed" id="front-range-card">
-        <div class="card-header card-header-clickable" onclick="toggleCardCollapse('front-range-card', 'front-range-body', 'front-range-collapse-icon')" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none;" title="Click to collapse / expand Denver & Front Range collection storage">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <h3>Front Range &amp; Denver Reservoirs</h3>
-            <span class="badge amber" id="fr-storage-badge" style="font-weight:700;">Storage</span>
+        <div class="card-header card-header-clickable" onclick="toggleCardCollapse('front-range-card', 'front-range-body', 'front-range-collapse-icon')" title="Click to collapse / expand Denver & Front Range collection storage">
+          <h3>Front Range Reservoirs</h3>
+          <div class="card-header-actions">
+            <span class="badge stat-badge" id="fr-storage-badge" style="background:#fef3c7; color:#b45309;">46.0% Full</span>
+            <span class="collapse-icon" id="front-range-collapse-icon" style="transform: rotate(-90deg);">▼</span>
           </div>
-          <span class="collapse-icon" id="front-range-collapse-icon" style="font-size: 11px; color: var(--text-muted); transition: transform 0.2s ease; transform: rotate(-90deg);">▼</span>
         </div>
         <div id="front-range-body" style="display: none;">
           <div id="fr-storage-summary" style="font-size: 11px; color: var(--text-muted); margin: 4px 0 8px 0; font-weight: 500;">
@@ -462,6 +463,6 @@
 
   <!-- MapLibre GL JS -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=18.0"></script>
+  <script src="app.js?v=18.1"></script>
 </body>
 </html>
