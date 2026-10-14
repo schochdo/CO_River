@@ -779,10 +779,10 @@ async function loadData(forceLive = false) {
       if (live && live.streamflows && live.streamflows.length > 0) {
         metrics.streamflows = live.streamflows;
         if (live.aac) {
-          const idx = metrics.tunnels.findIndex(t => t.id === "09527700");
-          if (idx !== -1) {
-            metrics.tunnels[idx].flow_cfs = live.aac.flow_cfs;
-            metrics.tunnels[idx].timestamp = live.aac.timestamp;
+          const cIdx = (metrics.canals || []).findIndex(c => c.id === "09527700");
+          if (cIdx !== -1) {
+            metrics.canals[cIdx].flow_cfs = live.aac.flow_cfs;
+            metrics.canals[cIdx].timestamp = live.aac.timestamp;
           }
         }
         metrics.fetched_at = new Date().toISOString();
@@ -1784,7 +1784,7 @@ function renderGeography(geo, riverNetwork, lakes) {
               <strong>Terminus:</strong> ${t.to}
             </div>
             <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-              <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : '1,600 cfs (Whitsett Pumping Plant)'}<br>
+              <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : '1,600 cfs (Whitsett Pumping Plant)')}<br>
               <strong>Infrastructure:</strong> Major Inter-Basin Conveyance Aqueduct
             </div>
           </div>
@@ -1820,7 +1820,7 @@ function renderGeography(geo, riverNetwork, lakes) {
                 <strong>Terminus:</strong> ${t.to}
               </div>
               <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-                <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : '1,600 cfs (Whitsett Pumping Plant)'}<br>
+                <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : '1,600 cfs (Whitsett Pumping Plant)')}<br>
                 <strong>Infrastructure:</strong> Major Inter-Basin Conveyance Aqueduct
               </div>
               ${formatPortalHtml(portal, '#0284c7')}
@@ -2218,12 +2218,17 @@ function renderMetrics(metrics) {
   }
 
   // 2. Trans-Mountain Tunnels & Conveyance Canals Badges
-  metrics.tunnels.forEach(t => {
+  const allDiversions = [...(metrics.tunnels || []), ...(metrics.canals || [])];
+  allDiversions.forEach(t => {
     const isFrontRange = t.id && t.id.endsWith("TUNCO");
     const diversionBadge = isFrontRange ? "Trans-Mountain Diversion Tunnel" : "Major Conveyance Canal";
-    const lengthText = isFrontRange ? `${t.length_miles} miles under Divide` : `${t.length_miles} miles`;
-    const fromText = isFrontRange ? `<strong>West Portal:</strong> ${t.from}` : `<strong>Intake:</strong> ${t.from}`;
-    const toText = isFrontRange ? `<strong>East Portal:</strong> ${t.to}` : `<strong>Terminus:</strong> ${t.to}`;
+    const geoMatch = (cachedGeography?.tunnels || []).find(gt => gt.id === t.id);
+    const lengthVal = t.length_miles || geoMatch?.length_miles || (t.id === "09426650" ? 336.0 : (t.id === "09424150" ? 242.0 : 82.0));
+    const lengthText = isFrontRange ? `${lengthVal} miles under Divide` : `${lengthVal} miles`;
+    const fromVal = t.from || geoMatch?.from || "Lake Havasu / Parker Dam";
+    const toVal = t.to || geoMatch?.to || t.destination;
+    const fromText = isFrontRange ? `<strong>West Portal:</strong> ${fromVal}` : `<strong>Intake:</strong> ${fromVal}`;
+    const toText = isFrontRange ? `<strong>East Portal:</strong> ${toVal}` : `<strong>Terminus:</strong> ${toVal}`;
     const badgeClass = isFrontRange ? "tunnel-badge" : "canal-badge";
 
     const el = document.createElement('div');
@@ -2471,6 +2476,17 @@ function populateTelemetryTable(metrics) {
       timestamp: t.timestamp,
       lat: t.lat,
       lon: t.lon
+    })),
+    ...(metrics.canals || []).map(c => ({
+      id: c.id,
+      name: c.name,
+      type: "diversion_canal",
+      basin: "Lower Basin Conveyance",
+      reading: `${c.flow_cfs.toLocaleString()} cfs`,
+      notes: c.destination,
+      timestamp: c.timestamp,
+      lat: c.lat,
+      lon: c.lon
     })),
     ...metrics.reservoirs.map(r => ({
       id: r.id,

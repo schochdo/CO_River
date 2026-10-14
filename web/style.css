@@ -1081,6 +1081,7 @@ input:checked + .slider:before {
 }
 .type-pill.streamflow { background: #e0f2fe; color: #0369a1; }
 .type-pill.diversion_tunnel { background: #fef3c7; color: #b45309; }
+.type-pill.diversion_canal { background: #ecfdf5; color: #047857; }
 .type-pill.reservoir { background: #fee2e2; color: #b91c1c; }
 
 /* Custom Leaflet Map Callout Badges */
