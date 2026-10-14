@@ -1564,7 +1564,7 @@ function renderGeography(geo, riverNetwork, lakes) {
         }
       });
 
-      // 2. High-contrast vivid amber core solid line
+      // 2. Core solid line in hydrologic blue
       map.addLayer({
         id: 'tunnels-line',
         type: 'line',
@@ -1575,7 +1575,7 @@ function renderGeography(geo, riverNetwork, lakes) {
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#f59e0b',
+          'line-color': '#0284c7',
           'line-width': [
             'interpolate', ['linear'], ['zoom'],
             5, ['+', ['*', ['get', 'flow_cfs'], 0.005], 1.5],
@@ -1586,7 +1586,7 @@ function renderGeography(geo, riverNetwork, lakes) {
         }
       });
 
-      // 3. Intake and Outlet Portal Markers
+      // 3. Intake and Outlet Portal Markers (Barbell-Type Pipeline Terminals)
       map.addLayer({
         id: 'tunnels-portals-layer',
         type: 'circle',
@@ -1601,8 +1601,8 @@ function renderGeography(geo, riverNetwork, lakes) {
             8, 6.5,
             12, 8.5
           ],
-          'circle-color': '#f59e0b',
-          'circle-stroke-color': '#78350f',
+          'circle-color': '#0284c7',
+          'circle-stroke-color': '#0f172a',
           'circle-stroke-width': 2.5,
           'circle-opacity': 1.0
         }
@@ -1629,7 +1629,7 @@ function renderGeography(geo, riverNetwork, lakes) {
         const t = e.features[0].properties;
         const flowVal = Number(t.flow_cfs || 0);
         const flowDisplay = flowVal > 0 
-          ? `<span style="font-size:16px; font-weight:800; color:#d97706;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>`
+          ? `<span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>`
           : `<span style="font-size:14px; font-weight:700; color:#64748b;">0.0 cfs <span style="font-size:11px; font-weight:500;">(Inactive / Closed)</span></span>`;
 
         const capDisplay = t.capacity_cfs ? `${Number(t.capacity_cfs).toLocaleString()} cfs` : '1,020 cfs';
@@ -1640,10 +1640,10 @@ function renderGeography(geo, riverNetwork, lakes) {
         tooltipPopup.setLngLat(e.lngLat).setHTML(`
           <div style="font-family:'Inter',sans-serif; min-width: 220px; max-width: 290px;">
             <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
-              <span style="font-size:10px;font-weight:700;color:#b45309;background:#fffbeb;border:1px solid #fde68a;padding:2px 6px;border-radius:4px;">Trans-Mountain Diversion Tunnel</span>
+              <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;">Trans-Mountain Diversion Tunnel</span>
             </div>
             <strong style="font-size:13.5px;color:#0f172a;display:block;">${t.name}</strong>
-            <span style="font-size:11px;color:#d97706;font-weight:600;">${t.operator || ''}</span>
+            <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
             <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
               <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
               ${flowDisplay}
@@ -1686,12 +1686,12 @@ function renderGeography(geo, riverNetwork, lakes) {
           .setLngLat(e.lngLat)
           .setHTML(`
             <div style="font-family:'Inter',sans-serif; min-width: 230px;">
-              <span style="font-size:10px;font-weight:700;color:#b45309;background:#fffbeb;border:1px solid #fde68a;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
+              <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
               <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
-              <span style="font-size:11px;color:#d97706;font-weight:600;">${t.operator || ''}</span>
+              <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
               <div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
                 <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
-                <span style="font-size:16px; font-weight:800; color:#d97706;">${flowVal.toLocaleString()} cfs</span>
+                <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} cfs</span>
               </div>
               <div style="font-size:11px;line-height:1.45;color:#334155;">
                 <strong>Destination:</strong> ${t.destination || t.to}<br>
@@ -1703,7 +1703,7 @@ function renderGeography(geo, riverNetwork, lakes) {
                 <strong>Design Capacity:</strong> ${capDisplay}<br>
                 <strong>Operational Status:</strong> ${statusText}
               </div>
-              ${formatPortalHtml(portal, '#b45309')}
+              ${formatPortalHtml(portal, '#0284c7')}
             </div>
           `)
           .addTo(map);
@@ -2239,13 +2239,13 @@ function renderMetrics(metrics) {
     const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
       <div style="font-family:'Inter',sans-serif; min-width: 220px; padding: 2px;">
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <span style="font-size:10px; font-weight:700; color:${isFrontRange ? '#b45309' : '#0369a1'}; background:${isFrontRange ? '#fffbeb' : '#e0f2fe'}; border:1px solid ${isFrontRange ? '#fde68a' : '#bae6fd'}; padding:2px 6px; border-radius:4px;">${diversionBadge}</span>
+          <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; border:1px solid #bae6fd; padding:2px 6px; border-radius:4px;">${diversionBadge}</span>
         </div>
         <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${t.name}</strong>
         <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:6px;">${t.operator || ''}</div>
         <div style="margin: 6px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
           <span style="font-size:11px; color:#475569; font-weight:600;">Diverted Flow:</span>
-          <span style="font-size:16px; font-weight:800; color:${isFrontRange ? '#d97706' : '#0284c7'};">${t.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>
+          <span style="font-size:16px; font-weight:800; color:#0284c7;">${t.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>
         </div>
         <div style="font-size:11px; color:#475569; line-height:1.5;">
           <strong>Destination:</strong> ${t.destination}<br>
@@ -2254,7 +2254,7 @@ function renderMetrics(metrics) {
           ${toText}<br>
           <strong>Last Measured:</strong> ${formatTimestamp(t.timestamp)}
         </div>
-        ${formatPortalHtml(portal, isFrontRange ? '#d97706' : '#0284c7')}
+        ${formatPortalHtml(portal, '#0284c7')}
       </div>
     `);
 
@@ -2335,7 +2335,7 @@ function updateSidebar(metrics) {
         ${makeBar("All-American Canal", aacFlow, "var(--color-emerald)", "Ag Export", "", [-114.467, 32.883], 9, { id: "09527700", name: "All-American Canal" })}
         ${makeBar("Central AZ Project", capFlow, "var(--color-emerald)", "AZ Municipal/Ag", "", [-114.111, 34.289], 9, { id: "09426650", name: "Central Arizona Project" })}
         ${makeBar("CO River Aqueduct", craFlow, "var(--color-emerald)", "Urban Export", "", [-114.162, 34.314], 9, { id: "09424150", name: "Colorado River Aqueduct" })}
-        ${makeBar("Front Range Tunnels", tunnelsExport, "var(--color-amber)", "Divide Export", "", [-105.7, 39.8], 8, { id: "ROBTUNCO", name: "Front Range Tunnels" })}
+        ${makeBar("Front Range Tunnels", tunnelsExport, "var(--color-primary)", "Divide Export", "", [-105.7, 39.8], 8, { id: "ROBTUNCO", name: "Front Range Tunnels" })}
       </div>
     `;
   }
