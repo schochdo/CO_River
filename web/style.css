@@ -1689,32 +1689,24 @@ input:checked + .slider:before {
   cursor: move;
 }
 
-/* MapLibre Attribution Offset (Keeps text strictly clear of the trackball widget) */
-.maplibregl-ctrl-bottom-right {
-  bottom: 6px !important;
-  right: 104px !important;
+/* Integrated Map Legend Attribution */
+.legend-attribution {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
 }
 
-.maplibregl-ctrl-attrib {
-  font-size: 10.5px !important;
-  line-height: 16px !important;
-  background: rgba(226, 232, 240, 0.90) !important;
-  color: var(--text-muted) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: 4px !important;
-  padding: 1px 7px !important;
-  backdrop-filter: blur(6px) !important;
-  -webkit-backdrop-filter: blur(6px) !important;
+.legend-attribution a {
+  color: var(--text-muted);
+  text-decoration: none;
 }
 
-.maplibregl-ctrl-attrib a {
-  color: var(--text-muted) !important;
-  text-decoration: none !important;
-}
-
-.maplibregl-ctrl-attrib a:hover {
-  color: var(--color-primary) !important;
-  text-decoration: underline !important;
+.legend-attribution a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
 }
 
 

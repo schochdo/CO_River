@@ -119,7 +119,8 @@ function initMap() {
     fitBoundsOptions: { padding: { top: 45, bottom: 45, left: 45, right: 45 } },
     pitch: 0,
     bearing: 0,
-    maxPitch: 65
+    maxPitch: 65,
+    attributionControl: false
   });
   window.map = map;
 
@@ -210,6 +211,22 @@ function changeBasemap(key) {
   document.querySelectorAll('.basemap-item-btn').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.value === key);
   });
+
+  // Update integrated attribution in map legend footer
+  const baseAttributions = {
+    esriNatGeo: 'Tiles &copy; Esri &mdash; National Geographic, USGS, NOAA',
+    esriWorldTopo: 'Tiles &copy; Esri &mdash; HERE, Garmin, USGS, EPA',
+    esriTerrain: 'Tiles &copy; Esri &mdash; USGS, Esri, NPS',
+    esriPhysical: 'Tiles &copy; Esri &mdash; US NPS, USGS',
+    esriSatellite: 'Tiles &copy; Esri',
+    esriRelief: 'Tiles &copy; Esri &mdash; USGS, METI, NASA',
+    openTopo: 'Tiles &copy; OpenTopoMap &mdash; &copy; OpenStreetMap'
+  };
+  const attribEl = document.getElementById('legend-attribution');
+  if (attribEl) {
+    const txt = baseAttributions[key] || baseAttributions.esriNatGeo;
+    attribEl.innerHTML = `${txt} | <a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre</a>`;
+  }
 }
 
 function selectBasemap(key) {
