@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="style.css?v=3.2">
+  <link rel="stylesheet" href="style.css?v=3.3">
 </head>
 <body>
   <!-- Header Bar -->
@@ -61,40 +61,18 @@
     <div id="map-container">
       <div id="map"></div>
 
-      <!-- Floating Map Menu (Basemap & 3D Selector) -->
+      <!-- Floating Map Menu (Basemap Selector) -->
       <div class="map-menu-container" id="map-menu-container">
-        <button class="map-menu-btn" id="map-menu-btn" onclick="toggleMapMenu(event)" title="Basemap & Perspective Settings">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
+        <button class="map-menu-btn" id="map-menu-btn" onclick="toggleMapMenu(event)" title="Choose Basemap">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+            <line x1="8" y1="2" x2="8" y2="18"></line>
+            <line x1="16" y1="6" x2="16" y2="22"></line>
           </svg>
-          <span id="map-menu-label">Basemap &amp; 3D</span>
+          <span id="map-menu-label">Basemap</span>
         </button>
 
         <div class="map-menu-dropdown" id="map-menu-dropdown">
-          <!-- Perspective (2D / 3D) -->
-          <div class="map-menu-section">
-            <div class="map-menu-section-title">Perspective &amp; 3D Relief</div>
-            <div class="perspective-toggle-group">
-              <button class="perspective-btn active" id="btn-perspective-2d" onclick="setPerspective('2d')">Flat 2D</button>
-              <button class="perspective-btn" id="btn-perspective-3d" onclick="setPerspective('3d')">3D Relief</button>
-            </div>
-            
-            <div class="tilt-control-group" id="menu-tilt-group">
-              <div class="tilt-control-header">
-                <span class="tilt-control-title">Tilt Angle</span>
-                <span class="tilt-status-badge" id="tilt-status-badge">Flat 2D</span>
-              </div>
-              <input type="range" min="0" max="65" value="0" id="tilt-range-slider" oninput="setPitchFromSlider(this.value)" class="tilt-slider" title="Adjust 3D tilt angle">
-              <div class="tilt-presets">
-                <button type="button" class="tilt-chip active" id="chip-flat" onclick="setPitchDegrees(0)">Flat 2D</button>
-                <button type="button" class="tilt-chip" id="chip-low" onclick="setPitchDegrees(35)">Low 3D</button>
-                <button type="button" class="tilt-chip" id="chip-steep" onclick="setPitchDegrees(55)">High 3D</button>
-              </div>
-              <div class="tilt-hint">💡 Use ▲/▼ buttons on map, drag slider, or right-click &amp; drag anywhere to tilt</div>
-            </div>
-          </div>
 
           <!-- Basemap Style -->
           <div class="map-menu-section">
@@ -463,6 +441,6 @@
 
   <!-- MapLibre GL JS -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=18.2"></script>
+  <script src="app.js?v=18.3"></script>
 </body>
 </html>

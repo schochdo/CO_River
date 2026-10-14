@@ -255,17 +255,17 @@ body {
   top: calc(100% + 8px);
   right: 0;
   left: auto;
-  width: 275px;
+  width: 230px;
   background: var(--bg-panel);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
-  border-radius: 14px;
+  border-radius: 12px;
   box-shadow: 0 14px 32px -4px rgba(15, 23, 42, 0.2), 0 8px 16px -4px rgba(15, 23, 42, 0.1);
-  padding: 16px;
+  padding: 12px;
   display: none;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   user-select: none;
 }
 
@@ -299,115 +299,6 @@ body {
   color: var(--text-muted);
 }
 
-.perspective-toggle-group {
-  display: flex;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 3px;
-  gap: 3px;
-}
-
-.perspective-btn {
-  flex: 1;
-  border: none;
-  background: transparent;
-  padding: 7px 10px;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
-}
-
-.perspective-btn:hover {
-  color: var(--text-main);
-}
-
-.perspective-btn.active {
-  background: var(--bg-card);
-  color: var(--color-primary);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  font-weight: 700;
-}
-
-/* Tilt slider & presets inside Map Menu */
-.tilt-control-group {
-  margin-top: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.tilt-control-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-}
-
-.tilt-control-title {
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.tilt-status-badge {
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--color-primary);
-  background: #e0f2fe;
-  padding: 2px 7px;
-  border-radius: 10px;
-}
-
-.tilt-slider {
-  width: 100%;
-  height: 5px;
-  accent-color: #0284c7;
-  cursor: pointer;
-  margin: 3px 0;
-}
-
-.tilt-presets {
-  display: flex;
-  gap: 5px;
-}
-
-.tilt-chip {
-  flex: 1;
-  padding: 5px 0;
-  font-size: 11px;
-  font-weight: 600;
-  font-family: inherit;
-  color: var(--text-muted);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
-}
-
-.tilt-chip:hover {
-  background: #e0f2fe;
-  color: var(--color-primary);
-}
-
-.tilt-chip.active {
-  background: #0284c7;
-  color: #ffffff;
-  border-color: #0284c7;
-}
-
-.tilt-hint {
-  font-size: 10.5px;
-  color: var(--text-muted);
-  line-height: 1.35;
-  margin-top: 2px;
-}
 
 .basemap-list {
   display: flex;
