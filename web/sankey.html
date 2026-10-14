@@ -378,43 +378,49 @@
         <!-- 5. Dams & Major Storage Reservoirs (Architectural Icons & Division Points) -->
         <g id="dams-layer">
           <!-- Lake Powell / Glen Canyon Dam -->
-          <g id="dam-glencanyon" transform="translate(615, 415)" class="cursor-pointer">
-            <rect x="-18" y="-10" width="36" height="20" rx="3" fill="#091222" stroke="#38bdf8" stroke-width="2" />
-            <path d="M -12 -5 L -12 5 M -6 -5 L -6 5 M 0 -5 L 0 5 M 6 -5 L 6 5 M 12 -5 L 12 5" stroke="#38bdf8" stroke-width="1.3" />
+          <g id="dam-glencanyon" class="cursor-pointer">
+            <g transform="translate(615, 415)">
+              <rect x="-18" y="-10" width="36" height="20" rx="3" fill="#091222" stroke="#38bdf8" stroke-width="2" />
+              <path d="M -12 -5 L -12 5 M -6 -5 L -6 5 M 0 -5 L 0 5 M 6 -5 L 6 5 M 12 -5 L 12 5" stroke="#38bdf8" stroke-width="1.3" />
+            </g>
+            <text x="640" y="410" fill="#f8fafc" font-size="12.5" font-weight="900">Lake Powell / Glen Canyon Dam</text>
+            <text x="640" y="424" fill="#38bdf8" font-size="10.5" font-weight="700">Capacity: 24.3M AF • Master Storage Bank</text>
           </g>
-          <text x="640" y="410" fill="#f8fafc" font-size="12.5" font-weight="900">Lake Powell / Glen Canyon Dam</text>
-          <text x="640" y="424" fill="#38bdf8" font-size="10.5" font-weight="700">Capacity: 24.3M AF • Master Storage Bank</text>
 
           <!-- Lee's Ferry Compact Point Divider -->
-          <g id="node-leesferry" transform="translate(595, 445)" class="cursor-pointer">
-            <line x1="0" y1="-18" x2="0" y2="18" stroke="#fbbf24" stroke-width="3.5" stroke-linecap="round" />
-            <circle cx="0" cy="0" r="5" fill="#fbbf24" stroke="#091222" stroke-width="2" />
+          <g id="node-leesferry" class="cursor-pointer">
+            <g transform="translate(595, 445)">
+              <line x1="0" y1="-18" x2="0" y2="18" stroke="#fbbf24" stroke-width="3.5" stroke-linecap="round" />
+              <circle cx="0" cy="0" r="5" fill="#fbbf24" stroke="#091222" stroke-width="2" />
+            </g>
+            <rect x="608" y="433" width="135" height="25" rx="5" fill="#1e293b" stroke="#fbbf24" stroke-width="1.2" />
+            <text x="675" y="445" fill="#fbbf24" font-size="10.5" font-weight="800" text-anchor="middle">Lee's Ferry (Compact Point)</text>
+            <text x="675" y="454" fill="#cbd5e1" font-size="8.5" font-weight="600" text-anchor="middle">1922 Compact Division Point</text>
           </g>
-          <rect x="608" y="433" width="135" height="25" rx="5" fill="#1e293b" stroke="#fbbf24" stroke-width="1.2" />
-          <text x="675" y="445" fill="#fbbf24" font-size="10.5" font-weight="800" text-anchor="middle">Lee's Ferry (Compact Point)</text>
-          <text x="675" y="454" fill="#cbd5e1" font-size="8.5" font-weight="600" text-anchor="middle">1922 Compact Division Point</text>
 
           <!-- Lake Mead / Hoover Dam -->
-          <g id="dam-hoover" transform="translate(500, 525)" class="cursor-pointer">
-            <rect x="-18" y="-10" width="36" height="20" rx="3" fill="#091222" stroke="#38bdf8" stroke-width="2" />
-            <path d="M -12 -5 L -12 5 M -6 -5 L -6 5 M 0 -5 L 0 5 M 6 -5 L 6 5 M 12 -5 L 12 5" stroke="#38bdf8" stroke-width="1.3" />
+          <g id="dam-hoover" class="cursor-pointer">
+            <g transform="translate(500, 525)">
+              <rect x="-18" y="-10" width="36" height="20" rx="3" fill="#091222" stroke="#38bdf8" stroke-width="2" />
+              <path d="M -12 -5 L -12 5 M -6 -5 L -6 5 M 0 -5 L 0 5 M 6 -5 L 6 5 M 12 -5 L 12 5" stroke="#38bdf8" stroke-width="1.3" />
+            </g>
+            <text x="440" y="555" fill="#f8fafc" font-size="12.5" font-weight="900" text-anchor="end">Lake Mead / Hoover Dam</text>
+            <text x="440" y="569" fill="#38bdf8" font-size="10.5" font-weight="700" text-anchor="end">Capacity: 26.1M AF • Lower Basin Control</text>
           </g>
-          <text x="440" y="555" fill="#f8fafc" font-size="12.5" font-weight="900" text-anchor="end">Lake Mead / Hoover Dam</text>
-          <text x="440" y="569" fill="#38bdf8" font-size="10.5" font-weight="700" text-anchor="end">Capacity: 26.1M AF • Lower Basin Control</text>
 
           <!-- Parker Dam / Lake Havasu -->
-          <g id="dam-parker" transform="translate(510, 645)" class="cursor-pointer">
-            <circle cx="0" cy="0" r="6" fill="#f97316" stroke="#ffffff" stroke-width="2" />
+          <g id="dam-parker" class="cursor-pointer">
+            <circle cx="510" cy="645" r="6" fill="#f97316" stroke="#ffffff" stroke-width="2" />
+            <text x="524" y="632" fill="#f1f5f9" font-size="11" font-weight="700">Parker Dam / Lake Havasu</text>
+            <text x="524" y="644" fill="#94a3b8" font-size="9">CRA &amp; CAP Pumping Intakes</text>
           </g>
-          <text x="524" y="632" fill="#f1f5f9" font-size="11" font-weight="700">Parker Dam / Lake Havasu</text>
-          <text x="524" y="644" fill="#94a3b8" font-size="9">CRA &amp; CAP Pumping Intakes</text>
 
           <!-- Imperial Dam -->
-          <g id="dam-imperial" transform="translate(495, 765)" class="cursor-pointer">
-            <circle cx="0" cy="0" r="6" fill="#f97316" stroke="#ffffff" stroke-width="2" />
+          <g id="dam-imperial" class="cursor-pointer">
+            <circle cx="495" cy="765" r="6" fill="#f97316" stroke="#ffffff" stroke-width="2" />
+            <text x="509" y="755" fill="#f1f5f9" font-size="11" font-weight="700">Imperial Dam</text>
+            <text x="509" y="767" fill="#94a3b8" font-size="9">All-American Canal Intake</text>
           </g>
-          <text x="509" y="755" fill="#f1f5f9" font-size="11" font-weight="700">Imperial Dam</text>
-          <text x="509" y="767" fill="#94a3b8" font-size="9">All-American Canal Intake</text>
         </g>
 
         <!-- 6. Legend Box (Top Right, matching user mock-up) -->
@@ -444,7 +450,7 @@
           <line x1="16" y1="136" x2="48" y2="136" stroke="rgba(249, 115, 22, 0.75)" stroke-width="5" stroke-linecap="round" marker-end="url(#arrow-loss)" />
           <text x="64" y="140" fill="#f1f5f9" font-size="11.5" font-weight="600">Reservoir Evaporation &amp; Loss</text>
 
-          <text x="16" y="162" fill="#64748b" font-size="9" font-style="italic">Hover over any path for full water accounting</text>
+          <text x="16" y="162" fill="#38bdf8" font-size="9" font-weight="600">Click any feature to open official data portal ↗</text>
         </g>
       </svg>
 
@@ -483,13 +489,24 @@
   <script>
     const tooltip = document.getElementById('flow-tooltip');
 
-    function attachTooltip(elemId, title, getDetails) {
+    function attachElement(elemId, title, getDetails, portal) {
       const el = document.getElementById(elemId);
       if (!el) return;
+      el.style.cursor = 'pointer';
+
+      const portalHtml = portal ? `
+        <div class="mt-2.5 pt-2 border-t border-slate-700/80 flex items-center justify-between text-[11px]">
+          <span class="text-slate-400 font-medium">Official Data Portal:</span>
+          <span class="text-sky-400 font-bold flex items-center gap-1">${portal.label} ↗</span>
+        </div>
+        <div class="text-[9.5px] text-slate-400 mt-1 italic">Click diagram element to open portal in new tab</div>
+      ` : '';
+
       el.addEventListener('mouseenter', (e) => {
         tooltip.innerHTML = `
           <div class="font-bold text-sky-300 text-sm mb-1">${title}</div>
           <div class="text-xs text-slate-300">${getDetails()}</div>
+          ${portalHtml}
         `;
         tooltip.classList.add('visible');
         updateTooltipPos(e);
@@ -498,113 +515,249 @@
       el.addEventListener('mouseleave', () => {
         tooltip.classList.remove('visible');
       });
+
+      if (portal && portal.url) {
+        el.addEventListener('click', () => {
+          window.open(portal.url, '_blank', 'noopener');
+        });
+      }
     }
 
     function updateTooltipPos(e) {
       let x = e.clientX + 16;
       let y = e.clientY + 16;
-      if (x + 340 > window.innerWidth) x = e.clientX - 340;
-      if (y + 160 > window.innerHeight) y = e.clientY - 160;
+      if (x + 350 > window.innerWidth) x = e.clientX - 350;
+      if (y + 180 > window.innerHeight) y = e.clientY - 180;
       tooltip.style.left = x + 'px';
       tooltip.style.top = y + 'px';
     }
 
     function setupTooltips() {
-      attachTooltip('river-headwaters', 'Colorado River Headwaters (Rocky Mountain NP)', () => `
+      attachElement('river-headwaters', 'Colorado River Headwaters (Rocky Mountain NP)', () => `
         <strong>Region:</strong> Rocky Mountain National Park / Continental Divide, CO<br>
         <strong>Natural Basin Yield:</strong> ~15.0 MAF/yr aggregate historical basin runoff<br>
         <strong>Headwater Source:</strong> High-altitude snowpack, Blue &amp; Fraser River basins<br>
         <strong>Accounting:</strong> Feeds Upper Division State apportionments under 1922 &amp; 1948 Compacts
-      `);
+      `, {
+        label: 'USGS Station #09070500 (Dotsero)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09070500/'
+      });
 
-      attachTooltip('div-frontrange', 'Denver & Front Range Diversions', () => `
+      attachElement('div-frontrange', 'Denver & Front Range Diversions', () => `
         <strong>Structures:</strong> Adams Tunnel (C-BT), Roberts Tunnel (Denver), Moffat &amp; Boustead Tunnels<br>
         <strong>Annual Diversion:</strong> ~0.55 MAF/yr (~550,000 acre-feet / ~760 cfs)<br>
         <strong>Destination:</strong> Trans-mountain export to Denver, Fort Collins, Boulder, Colorado Springs<br>
         <strong>Impact:</strong> Transfers wet water out of the Colorado River basin into the South Platte and Arkansas basins
-      `);
+      `, {
+        label: 'CDSS Telemetry #ROBTUNCO',
+        url: 'https://dwr.state.co.us/Tools/Stations?station=ROBTUNCO'
+      });
 
-      attachTooltip('river-green', 'Green River (Largest Tributary Basin)', () => `
+      attachElement('river-green', 'Green River (Largest Tributary Basin)', () => `
         <strong>Headwaters:</strong> Wind River Range (WY) and Uinta Mountains (UT)<br>
         <strong>Annual Runoff:</strong> ~4.90 MAF/yr (Delivers ~40% of total flow into Lake Powell)<br>
         <strong>Major Inflow:</strong> Joined by Yampa River in Dinosaur National Monument<br>
         <strong>Storage:</strong> Regulated by Flaming Gorge Dam (3.78M AF capacity)
-      `);
+      `, {
+        label: 'USGS Station #09315000 (Green River, UT)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09315000/'
+      });
 
-      attachTooltip('river-yampa', 'Yampa River (Wild Tributary)', () => `
+      attachElement('river-yampa', 'Yampa River (Wild Tributary)', () => `
         <strong>Drainage:</strong> Northwest Colorado (Flat Tops &amp; Park Range)<br>
         <strong>Annual Yield:</strong> ~1.30 MAF/yr<br>
         <strong>Significance:</strong> The largest remaining free-flowing, undammed major tributary in the Colorado River system
-      `);
+      `, {
+        label: 'USGS Station #09260050 (Deerlodge Park)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09260050/'
+      });
 
-      attachTooltip('river-gunnison', 'Gunnison River Basin', () => `
+      attachElement('river-upper-main', 'Colorado River Upper Mainstem', () => `
+        <strong>Reach:</strong> Dotsero to Grand Valley and Utah State Line<br>
+        <strong>Annual Flow:</strong> ~9.0 MAF/yr (before Green River confluence)<br>
+        <strong>Major Inflows:</strong> Roaring Fork, Eagle, and Gunnison Rivers
+      `, {
+        label: 'USGS Station #09180500 (Cisco, UT)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09180500/'
+      });
+
+      attachElement('river-gunnison', 'Gunnison River Basin', () => `
         <strong>Drainage:</strong> Central Colorado West Slope (Gunnison, Uncompahgre, Crested Butte)<br>
         <strong>Annual Runoff:</strong> ~2.10 MAF/yr<br>
         <strong>Regulation:</strong> Blue Mesa, Morrow Point, and Crystal Reservoirs (Aspinall Unit)
-      `);
+      `, {
+        label: 'USGS Station #09152500 (Grand Junction)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09152500/'
+      });
 
-      attachTooltip('river-sanjuan', 'San Juan River Basin', () => `
+      attachElement('river-sanjuan', 'San Juan River Basin', () => `
         <strong>Origin:</strong> San Juan Mountains in Southwest Colorado and Northwest New Mexico<br>
         <strong>Annual Runoff:</strong> ~2.10 - 2.50 MAF/yr (including Animas River)<br>
         <strong>Regulation:</strong> Navajo Dam (1.70M AF capacity)
-      `);
+      `, {
+        label: 'USGS Station #09379500 (Bluff, UT)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09379500/'
+      });
 
-      attachTooltip('dam-glencanyon', 'Lake Powell & Glen Canyon Dam', () => `
+      attachElement('river-cataract', 'Cataract Canyon (Combined Powell Inflow)', () => `
+        <strong>Reach:</strong> Confluence of Green and Colorado Rivers in Canyonlands NP<br>
+        <strong>Annual Inflow:</strong> ~14.8 MAF total combined runoff entering Lake Powell<br>
+        <strong>Significance:</strong> Gatekeeper canyon representing the full combined yield of Upper Basin rivers
+      `, {
+        label: 'USGS Station #09180500 (Inflow Control)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09180500/'
+      });
+
+      attachElement('dam-glencanyon', 'Lake Powell & Glen Canyon Dam', () => `
         <strong>Total Capacity:</strong> 24.32 Million Acre-Feet<br>
         <strong>Function:</strong> Master regulatory storage bank for the Upper Basin states<br>
         <strong>Evaporative Loss:</strong> ~0.38 MAF/yr (~380,000 AF) lost to intense desert sunlight<br>
         <strong>Minimum Power Pool:</strong> Elevation 3,490 ft (threat of losing hydroelectric generation)
-      `);
+      `, {
+        label: 'USBR Glen Canyon / Lake Powell Portal',
+        url: 'https://www.usbr.gov/uc/water/crsp/cs/gcd.html'
+      });
 
-      attachTooltip('node-leesferry', "Lee's Ferry (1922 Colorado River Compact Point)", () => `
+      attachElement('node-leesferry', "Lee's Ferry (1922 Colorado River Compact Point)", () => `
         <strong>Location:</strong> 1 mile downstream of Paria River confluence, Arizona<br>
         <strong>Legal Cornerstone:</strong> Constitutional divider separating the Upper Division (CO, UT, WY, NM) from the Lower Division (AZ, CA, NV)<br>
         <strong>Statutory Obligation:</strong> Upper Division must not cause flow at Lee's Ferry to be depleted below 75.0 MAF over any consecutive 10-year period
-      `);
+      `, {
+        label: 'USGS Station #09380000 (Lees Ferry)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09380000/'
+      });
 
-      attachTooltip('dam-hoover', 'Lake Mead & Hoover Dam', () => `
+      attachElement('river-grandcanyon', 'Grand Canyon Reach', () => `
+        <strong>Reach:</strong> Lees Ferry through Grand Canyon to Lake Mead (277 miles)<br>
+        <strong>Regulated Discharge:</strong> Governed by Glen Canyon Dam Adaptive Management releases (~8.23 – 9.0 MAF/yr)<br>
+        <strong>Tributaries:</strong> Little Colorado River and Kanab Creek
+      `, {
+        label: 'USGS Station #09402500 (Diamond Creek)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09402500/'
+      });
+
+      attachElement('river-littleco', 'Little Colorado River', () => `
+        <strong>Origin:</strong> White Mountains of eastern Arizona<br>
+        <strong>Annual Runoff:</strong> ~0.25 MAF/yr<br>
+        <strong>Ecological Role:</strong> Critical habitat for endangered Humpback Chub
+      `, {
+        label: 'USGS Station #09402000 (Cameron, AZ)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09402000/'
+      });
+
+      attachElement('river-virgin', 'Virgin River', () => `
+        <strong>Origin:</strong> Southwestern Utah (Zion National Park) to Lake Mead<br>
+        <strong>Annual Runoff:</strong> ~0.18 MAF/yr<br>
+        <strong>Lower Basin Inflow:</strong> Flow tributary enters Lake Mead Overton Arm
+      `, {
+        label: 'USGS Station #09415000 (Littlefield, AZ)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09415000/'
+      });
+
+      attachElement('dam-hoover', 'Lake Mead & Hoover Dam', () => `
         <strong>Total Capacity:</strong> 26.13 Million Acre-Feet (Largest reservoir in the US by volume)<br>
         <strong>Function:</strong> Primary distribution hub for Lower Basin municipal &amp; agricultural deliveries<br>
         <strong>Evaporative Loss:</strong> ~0.65 MAF/yr (~650,000 AF) evaporated annually into desert air<br>
         <strong>Dead Pool Elevation:</strong> 895 ft (water cannot physically pass through intake towers)
-      `);
+      `, {
+        label: 'USBR Hoover Dam / Lake Mead Portal',
+        url: 'https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html'
+      });
 
-      attachTooltip('div-cap', 'Central Arizona Project (CAP)', () => `
+      attachElement('dam-parker', 'Parker Dam & Lake Havasu', () => `
+        <strong>Reservoir Capacity:</strong> 619,400 Acre-Feet<br>
+        <strong>Function:</strong> Primary forebay pumping pool for CRA (Southern California) and CAP (Central Arizona)<br>
+        <strong>Impounds:</strong> Lake Havasu on the Arizona-California border
+      `, {
+        label: 'USBR Parker Dam / Lake Havasu Portal',
+        url: 'https://www.usbr.gov/lc/region/g4000/hourly/havasu-elv.html'
+      });
+
+      attachElement('div-cap', 'Central Arizona Project (CAP)', () => `
         <strong>Intake:</strong> Mark Wilmer Pumping Plant at Lake Havasu / Parker Dam<br>
         <strong>Aqueduct Length:</strong> 336 miles across the Sonoran Desert to Phoenix, Pinal County, and Tucson<br>
         <strong>Annual Diversion:</strong> ~1.50 MAF/yr (~1,500 - 2,200 cfs)<br>
         <strong>Legal Priority:</strong> Junior priority under the 1968 Colorado River Basin Project Act; absorbs mandatory cuts first during shortages
-      `);
+      `, {
+        label: 'USGS Station #09426650 (CAP Intake)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09426650/'
+      });
 
-      attachTooltip('div-cra', 'Colorado River Aqueduct (CRA)', () => `
+      attachElement('div-cra', 'Colorado River Aqueduct (CRA)', () => `
         <strong>Operator:</strong> Metropolitan Water District of Southern California (MWD)<br>
         <strong>Intake:</strong> Whitsett Intake Pumping Plant at Lake Havasu<br>
         <strong>Aqueduct Length:</strong> 242 miles across Mojave Desert to Lake Mathews<br>
         <strong>Annual Diversion:</strong> ~1.05 MAF/yr (supplies drinking water to 19 million Southern Californians)
-      `);
+      `, {
+        label: 'USGS Station #09424150 (CRA Intake)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09424150/'
+      });
 
-      attachTooltip('div-aac', 'All-American Canal (AAC)', () => `
+      attachElement('dam-imperial', 'Imperial Dam & Desilting Works', () => `
+        <strong>Location:</strong> 18 miles north of Yuma, AZ<br>
+        <strong>Function:</strong> Master diversion headworks diverting ~80% of Lower Colorado River flow into the All-American Canal and Gila Gravity Canal
+      `, {
+        label: 'USBR Imperial Dam / Yuma Area Office',
+        url: 'https://www.usbr.gov/lc/yuma/'
+      });
+
+      attachElement('div-aac', 'All-American Canal (AAC)', () => `
         <strong>Intake:</strong> Imperial Dam (north of Yuma, AZ)<br>
         <strong>Capacity:</strong> 26,155 cfs (largest irrigation canal in the world)<br>
         <strong>Annual Diversion:</strong> ~2.90 - 3.10 MAF/yr<br>
         <strong>Beneficiaries:</strong> Imperial Irrigation District (IID) &amp; Coachella Valley (~500,000 acres of high-yield winter agriculture)<br>
         <strong>Seniority:</strong> Senior Present Perfected Rights (Priority 1 &amp; 2)
-      `);
+      `, {
+        label: 'USGS Station #09527700 (All-American Canal)',
+        url: 'https://waterdata.usgs.gov/monitoring-location/09527700/'
+      });
 
-      attachTooltip('div-mexico', '1944 Mexican Water Treaty Delivery', () => `
+      attachElement('div-mexico', '1944 Mexican Water Treaty Delivery', () => `
         <strong>Delivery Location:</strong> Morelos Dam (Northern International Boundary near Yuma)<br>
         <strong>Guaranteed Treaty Allocation:</strong> 1.500 Million Acre-Feet annually<br>
         <strong>Beneficiary:</strong> Mexicali Valley agriculture &amp; municipal water users in Baja California &amp; Sonora
-      `);
+      `, {
+        label: 'IBWC Morelos Dam Operations',
+        url: 'https://www.ibwc.gov/'
+      });
 
-      attachTooltip('river-delta-dry', 'Colorado River Delta (Historic Channel)', () => `
+      attachElement('loss-powell', 'Lake Powell Evaporative Losses', () => `
+        <strong>Volume Lost:</strong> ~0.38 MAF/yr (~380,000 Acre-Feet)<br>
+        <strong>Mechanism:</strong> Surface evaporation from 160,000+ acres of canyon water under high-altitude desert sunlight<br>
+        <strong>Bank Storage:</strong> Significant additional volume absorbs into porous Navajo Sandstone canyon walls
+      `, {
+        label: 'USBR HydroData Lake Powell Dashboard',
+        url: 'https://www.usbr.gov/uc/water/hydrodata/reservoir_data/919/dashboard.html'
+      });
+
+      attachElement('loss-mead', 'Lake Mead Evaporative Losses', () => `
+        <strong>Volume Lost:</strong> ~0.65 MAF/yr (~650,000 Acre-Feet)<br>
+        <strong>Mechanism:</strong> Extreme Mojave Desert solar irradiance and low humidity drive huge surface losses<br>
+        <strong>Scale:</strong> Evaporation from Lake Mead exceeds the entire municipal consumption of the state of Nevada
+      `, {
+        label: 'USBR Lake Mead Operations Dashboard',
+        url: 'https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html'
+      });
+
+      attachElement('loss-lower', 'Lower Basin Transit & Phreatophyte Loss', () => `
+        <strong>Volume Lost:</strong> ~0.55 MAF/yr (~550,000 Acre-Feet)<br>
+        <strong>Causes:</strong> Channel bed seepage, evaporation between Hoover and Morelos Dam, and transpiration by tamarisk/willow along the riverbank
+      `, {
+        label: 'USBR Lower Colorado Operations Accounting',
+        url: 'https://www.usbr.gov/lc/region/g4000/hourly/'
+      });
+
+      attachElement('river-delta-dry', 'Colorado River Delta (Historic Channel)', () => `
         <strong>Status:</strong> 100% dewatered in normal years (0 MAF reaches the sea)<br>
         <strong>Ecological History:</strong> Once a 2-million-acre lush estuarine ecosystem described by Aldo Leopold<br>
         <strong>Modern Restoration:</strong> Minute 319 (2014) and Minute 323 (2017) pulse flows provide occasional environmental pulse waters
-      `);
+      `, {
+        label: 'IBWC / CILA Minute 323 Delta Restoration',
+        url: 'https://www.ibwc.gov/'
+      });
     }
 
-    // Initialize tooltips
+    // Initialize tooltips & interactive portals
     setupTooltips();
   </script>
 </body>

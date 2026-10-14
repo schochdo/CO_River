@@ -151,6 +151,11 @@ function initMap() {
     if (window.location.search.includes('expand_table=1')) {
       toggleTableCollapse();
     }
+    if (window.location.search.includes('expand_sidebar=1')) {
+      toggleCardCollapse('outflows-card', 'outflows-body', 'outflows-collapse-icon');
+      toggleCardCollapse('reservoirs-card', 'reservoirs-body', 'reservoirs-collapse-icon');
+      toggleCardCollapse('front-range-card', 'front-range-body', 'front-range-collapse-icon');
+    }
     if (window.location.search.includes('show_tunnels=1')) {
       const toggle = document.getElementById("toggle-tunnels");
       if (toggle) {
@@ -731,7 +736,19 @@ async function loadData(forceLive = false) {
   try {
     const t = Date.now();
     
-    // 1. Fetch static base geometries on first load
+    // 1. Fetch metrics snapshot immediately in parallel with heavy geometries
+    const metricsPromise = fetch(`./data/latest_metrics.json?t=${t}`)
+      .then(r => r.json())
+      .then(metrics => {
+        cachedMetrics = metrics;
+        populateTelemetryTable(metrics);
+        updateSidebar(metrics);
+        const initialDateStr = formatTimestamp(metrics.fetched_at);
+        if (syncElem) syncElem.textContent = `Telemetry Snapshot (${initialDateStr})`;
+        return metrics;
+      });
+
+    // 2. Fetch static base geometries on first load
     if (!cachedGeography || !cachedRiverNetwork || !cachedLakes) {
       const [geoRes, riverRes, lakesRes, normalsRes] = await Promise.all([
         fetch(`./data/geography.json?t=${t}`),
@@ -746,18 +763,13 @@ async function loadData(forceLive = false) {
       renderGeography(cachedGeography, cachedRiverNetwork, cachedLakes);
     }
 
-    // 2. Load base metrics JSON snapshot
-    const metricsRes = await fetch(`./data/latest_metrics.json?t=${t}`);
-    const metrics = await metricsRes.json();
-    cachedMetrics = metrics;
+    const metrics = await metricsPromise;
 
-    // 3. Immediately render cached metrics so the map and UI are 100% interactive instantly!
+    // 3. Immediately render cached metrics on map layers
     applyLiveHydrology(cachedRiverNetwork, metrics);
     renderMetrics(metrics);
     renderFlowHealthLayer(cachedRiverNetwork, metrics);
     updateBadgePlacements();
-    populateTelemetryTable(metrics);
-    updateSidebar(metrics);
 
     const initialDateStr = formatTimestamp(metrics.fetched_at);
     if (syncElem) syncElem.textContent = `Telemetry Snapshot (${initialDateStr})`;
@@ -812,6 +824,227 @@ function formatTimestamp(isoString) {
   } catch (e) {
     return "Today";
   }
+}
+
+// ─── Authoritative Water Data Portal Link Helper ────────────────────────────
+function getPortalInfo(item) {
+  if (!item) return null;
+  const id = String(item.id || item.gauge_id || item.station_id || '');
+  const name = String(item.name || '').toLowerCase();
+
+  // Specific Canal Names & Stations
+  if (id === '09527700' || name.includes('all-american')) {
+    return {
+      name: 'USGS National Water Information System',
+      url: 'https://waterdata.usgs.gov/monitoring-location/09527700/',
+      label: 'USGS All-American Canal Station #09527700'
+    };
+  }
+  if (id === '09424150' || name.includes('colorado river aqueduct')) {
+    return {
+      name: 'USGS National Water Information System',
+      url: 'https://waterdata.usgs.gov/monitoring-location/09424150/',
+      label: 'USGS Colorado River Aqueduct Station #09424150'
+    };
+  }
+  if (id === '09426650' || name.includes('central arizona project') || name.includes('cap')) {
+    return {
+      name: 'USGS National Water Information System',
+      url: 'https://waterdata.usgs.gov/monitoring-location/09426650/',
+      label: 'USGS Central Arizona Project Station #09426650'
+    };
+  }
+
+  // 1. USGS Real-Time Streamflow & Canal Gauges (8-digit USGS station number)
+  if (/^\d{8}$/.test(id)) {
+    return {
+      name: 'USGS National Water Information System',
+      url: `https://waterdata.usgs.gov/monitoring-location/${id}/`,
+      label: `USGS Station #${id}`
+    };
+  }
+
+  // 2. Colorado DWR / CDSS Trans-Mountain Tunnels & Surface Stations
+  if (id.endsWith('CO') || id.endsWith('TUNCO') || id.endsWith('DIVCO') || name.includes('front range tunnels') || name.includes('trans-mountain')) {
+    const stationId = (id.endsWith('CO') || id.endsWith('TUNCO') || id.endsWith('DIVCO')) ? id : 'ROBTUNCO';
+    return {
+      name: 'Colorado DWR / CDSS Surface Water Portal',
+      url: `https://dwr.state.co.us/Tools/Stations?station=${encodeURIComponent(stationId)}`,
+      label: `CDSS Telemetry #${stationId}`
+    };
+  }
+
+  // 3. Major Storage Reservoirs
+  const resUrls = {
+    lake_powell: {
+      name: 'USBR Upper Colorado Water Operations',
+      url: 'https://www.usbr.gov/uc/water/crsp/cs/gcd.html',
+      label: 'USBR Glen Canyon / Lake Powell Portal'
+    },
+    lake_mead: {
+      name: 'USBR Lower Colorado River Operations',
+      url: 'https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html',
+      label: 'USBR Hoover Dam / Lake Mead Portal'
+    },
+    flaming_gorge: {
+      name: 'USBR Water Operations',
+      url: 'https://www.usbr.gov/uc/water/hydrodata/reservoir_data/917/dashboard.html',
+      label: 'USBR Flaming Gorge Reservoir Dashboard'
+    },
+    navajo_reservoir: {
+      name: 'USBR Water Operations',
+      url: 'https://www.usbr.gov/uc/water/hydrodata/reservoir_data/924/dashboard.html',
+      label: 'USBR Navajo Reservoir Dashboard'
+    },
+    lake_mohave: {
+      name: 'USBR Lower Colorado River Operations',
+      url: 'https://www.usbr.gov/lc/region/g4000/hourly/mohave-elv.html',
+      label: 'USBR Lake Mohave / Davis Dam Portal'
+    },
+    blue_mesa: {
+      name: 'USBR Water Operations',
+      url: 'https://www.usbr.gov/uc/water/hydrodata/reservoir_data/913/dashboard.html',
+      label: 'USBR Blue Mesa Reservoir Dashboard'
+    },
+    lake_havasu: {
+      name: 'USBR Lower Colorado River Operations',
+      url: 'https://www.usbr.gov/lc/region/g4000/hourly/havasu-elv.html',
+      label: 'USBR Lake Havasu / Parker Dam Portal'
+    },
+    dillon_reservoir: {
+      name: 'Denver Water Operations',
+      url: 'https://www.denverwater.org/recreation/dillon-reservoir',
+      label: 'Denver Water Dillon Reservoir'
+    },
+    lake_granby: {
+      name: 'Northern Water / USBR C-BT Project',
+      url: 'https://www.northernwater.org/what-we-do/deliver-water/c-bt-project',
+      label: 'Northern Water C-BT Granby Portal'
+    },
+    green_mountain: {
+      name: 'USBR Water Operations',
+      url: 'https://www.usbr.gov/uc/water/hydrodata/reservoir_data/923/dashboard.html',
+      label: 'USBR Green Mountain Reservoir Dashboard'
+    },
+    homestake_reservoir: {
+      name: 'Colorado DWR / CDSS Stations',
+      url: 'https://dwr.state.co.us/Tools/Stations?station=HOMRESCO',
+      label: 'CDSS Homestake Reservoir Portal'
+    }
+  };
+  if (resUrls[id]) return resUrls[id];
+
+  // 4. Major Storage Dams
+  const damUrls = {
+    hoover_dam: {
+      name: 'USBR Hoover Dam Operations',
+      url: 'https://www.usbr.gov/lc/hooverdam/',
+      label: 'USBR Hoover Dam Official Portal'
+    },
+    glen_canyon_dam: {
+      name: 'USBR Glen Canyon Dam Operations',
+      url: 'https://www.usbr.gov/uc/rm/crsp/gc/',
+      label: 'USBR Glen Canyon Dam Official Portal'
+    },
+    parker_dam: {
+      name: 'USBR Parker-Davis Project',
+      url: 'https://www.usbr.gov/lc/region/g4000/hourly/havasu-elv.html',
+      label: 'USBR Parker Dam / Lake Havasu'
+    },
+    imperial_dam: {
+      name: 'USBR Yuma Area Office',
+      url: 'https://www.usbr.gov/lc/yuma/',
+      label: 'USBR Imperial Dam & Desilting Works'
+    },
+    green_mountain_dam: {
+      name: 'USBR Colorado-Big Thompson Project',
+      url: 'https://www.usbr.gov/projects/index.php?id=391',
+      label: 'USBR Green Mountain Dam'
+    },
+    dillon_dam: {
+      name: 'Denver Water Operations',
+      url: 'https://www.denverwater.org/recreation/dillon-reservoir',
+      label: 'Denver Water Dillon Dam'
+    },
+    granby_dam: {
+      name: 'Northern Water C-BT Project',
+      url: 'https://www.northernwater.org/what-we-do/deliver-water/c-bt-project',
+      label: 'Northern Water Granby Dam'
+    },
+    ruedi_dam: {
+      name: 'USBR Fryingpan-Arkansas Project',
+      url: 'https://www.usbr.gov/projects/index.php?id=336',
+      label: 'USBR Ruedi Dam'
+    },
+    homestake_dam: {
+      name: 'Aurora Water / Colorado Springs Utilities',
+      url: 'https://dwr.state.co.us/Tools/Stations?station=HOMRESCO',
+      label: 'CDSS Homestake Dam Portal'
+    },
+    flaming_gorge_dam: {
+      name: 'USBR CRSP Flaming Gorge Unit',
+      url: 'https://www.usbr.gov/uc/water/crsp/cs/fgd.html',
+      label: 'USBR Flaming Gorge Dam'
+    },
+    navajo_dam: {
+      name: 'USBR CRSP Navajo Unit',
+      url: 'https://www.usbr.gov/uc/water/crsp/cs/nvd.html',
+      label: 'USBR Navajo Dam'
+    },
+    davis_dam: {
+      name: 'USBR Parker-Davis Project',
+      url: 'https://www.usbr.gov/lc/region/g4000/hourly/mohave-elv.html',
+      label: 'USBR Davis Dam / Lake Mohave'
+    },
+    morelos_dam: {
+      name: 'International Boundary & Water Commission (IBWC)',
+      url: 'https://www.ibwc.gov/',
+      label: 'IBWC / CILA Morelos Dam Deliveries'
+    },
+    blue_mesa_dam: {
+      name: 'USBR Aspinall Unit',
+      url: 'https://www.usbr.gov/uc/rm/crsp/gunnison/',
+      label: 'USBR Blue Mesa Dam'
+    },
+    mcphee_dam: {
+      name: 'USBR Dolores Project',
+      url: 'https://www.usbr.gov/projects/index.php?id=381',
+      label: 'USBR McPhee Dam'
+    },
+    theodore_roosevelt_dam: {
+      name: 'Salt River Project (SRP) Water Operations',
+      url: 'https://www.srpnet.com/water-irrigation/water-operations',
+      label: 'SRP Roosevelt Dam Operations'
+    }
+  };
+  if (damUrls[id]) return damUrls[id];
+
+  // Fuzzy match reservoir/dam names
+  if (name.includes('powell')) return resUrls.lake_powell;
+  if (name.includes('mead')) return resUrls.lake_mead;
+  if (name.includes('flaming gorge')) return resUrls.flaming_gorge;
+  if (name.includes('navajo')) return resUrls.navajo_reservoir;
+  if (name.includes('mohave')) return resUrls.lake_mohave;
+  if (name.includes('blue mesa')) return resUrls.blue_mesa;
+  if (name.includes('havasu')) return resUrls.lake_havasu;
+  if (name.includes('dillon')) return resUrls.dillon_reservoir;
+  if (name.includes('granby')) return resUrls.lake_granby;
+  if (name.includes('green mountain')) return resUrls.green_mountain;
+  if (name.includes('homestake')) return resUrls.homestake_reservoir;
+
+  return null;
+}
+
+function formatPortalHtml(portal, accentColor = '#0284c7') {
+  if (!portal) return '';
+  return `
+    <div style="margin-top:8px; padding-top:6px; border-top:1px solid #e2e8f0; font-size:11px; line-height:1.4;">
+      <span style="color:#64748b; font-weight:600;">Data Portal:</span> 
+      <a href="${portal.url}" target="_blank" rel="noopener" style="color:${accentColor}; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:2px;">
+        ${portal.label} <span style="font-size:10px;">↗</span>
+      </a>
+    </div>
+  `;
 }
 
 function renderGeography(geo, riverNetwork, lakes) {
@@ -986,6 +1219,7 @@ function renderGeography(geo, riverNetwork, lakes) {
         r.name.toLowerCase().includes(name.toLowerCase()) || 
         name.toLowerCase().includes(r.name.split('(')[0].trim().toLowerCase())
       );
+      const portal = getPortalInfo(matchRes || { name: name });
       if (matchRes) {
         new maplibregl.Popup({ offset: 8 })
           .setLngLat(e.lngLat)
@@ -1009,6 +1243,19 @@ function renderGeography(geo, riverNetwork, lakes) {
                 <strong>Active Capacity:</strong> ${Math.round(matchRes.capacity_af || 0).toLocaleString()} Acre-Feet<br>
                 <strong>Operational Role:</strong> ${matchRes.role || 'Basin Storage'}
               </div>
+              ${formatPortalHtml(portal, '#0284c7')}
+            </div>
+          `)
+          .addTo(map);
+      } else {
+        const area = p.AREASQKM ? `${Math.round(p.AREASQKM)} sq km` : "";
+        new maplibregl.Popup({ offset: 8 })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div style="font-family:'Inter',sans-serif; min-width:190px; padding:2px;">
+              <strong style="font-size:13px; color:#0f172a; display:block;">${name}</strong>
+              <span style="font-size:11px; color:#64748b;">USGS NHD Shoreline ${area ? '(' + area + ')' : ''}</span>
+              ${formatPortalHtml(portal, '#0284c7')}
             </div>
           `)
           .addTo(map);
@@ -1178,6 +1425,55 @@ function renderGeography(geo, riverNetwork, lakes) {
       map.on('mouseleave', layerId, () => {
         map.getCanvas().style.cursor = '';
         tooltipPopup.remove();
+      });
+
+      map.on('click', layerId, (e) => {
+        if (!e.features.length) return;
+        const p = e.features[0].properties;
+        const gaugeId = p.gauge_id;
+        const portal = getPortalInfo({ id: gaugeId, name: p.name });
+        const catBadge = p.category === 'mainstem'
+          ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:2px 6px;border-radius:4px;">Mainstem Reach</span>'
+          : (p.category === 'major_tributary'
+              ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:2px 6px;border-radius:4px;">Major Tributary</span>'
+              : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:2px 6px;border-radius:4px;">Secondary Stream</span>');
+
+        const sourceBadge = p.source_label ? `<div style="font-size:10px;font-weight:700;color:#0369a1;background:#f0f9ff;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-top:4px;">${p.source_label}</div>` : '';
+        const stationHtml = p.gauge_info ? `<div style="font-size:11px;color:#475569;margin-top:4px;line-height:1.35;"><strong>Control / Station:</strong> ${p.gauge_info}</div>` : '';
+        const timeHtml = p.timestamp ? `<div style="font-size:10px;color:#64748b;margin-top:2px;"><strong>Measured:</strong> ${formatTimestamp(p.timestamp)}</div>` : '';
+        const notesHtml = p.notes && p.notes !== p.gauge_info ? `<div style="font-size:11px;color:#64748b;margin-top:4px;line-height:1.35;">${p.notes}</div>` : '';
+
+        const norm = gaugeId ? getHistoricalNormal(gaugeId) : null;
+        let healthHtml = '';
+        if (norm && norm > 0 && p.flow_cfs != null) {
+          const pct = Math.round((Number(p.flow_cfs) / norm) * 100);
+          const color = flowHealthColor(pct);
+          const label = flowHealthLabel(pct);
+          healthHtml = `<div style="margin-top:6px;padding:5px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:10px;color:#64748b;font-weight:600;">vs. Hist. Daily Avg</span>
+            <span style="font-size:13px;font-weight:800;color:${color};">${pct}% <span style="font-size:10px;font-weight:600;">(${label})</span></span>
+          </div>`;
+        }
+
+        new maplibregl.Popup({ offset: 10 })
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <div style="font-family:'Inter',sans-serif; min-width: 220px; max-width: 280px; padding:2px;">
+              <div style="margin-bottom:4px;">${catBadge}</div>
+              <strong style="font-size:13.5px;color:#0f172a;line-height:1.35;display:block;">${p.name}</strong>
+              <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+                <span style="font-size:11px; color:#64748b; font-weight:600;">Streamflow:</span>
+                <span style="font-size:16px; font-weight:800; color:#0284c7;">${Number(p.flow_cfs).toLocaleString()} <span style="font-size:10px; font-weight:600; color:#64748b;">cfs</span></span>
+              </div>
+              ${sourceBadge}
+              ${stationHtml}
+              ${healthHtml}
+              ${timeHtml}
+              ${notesHtml}
+              ${formatPortalHtml(portal, '#0284c7')}
+            </div>
+          `)
+          .addTo(map);
       });
     });
   }
@@ -1384,6 +1680,7 @@ function renderGeography(geo, riverNetwork, lakes) {
         const statusText = flowVal > 0 
           ? (flowVal >= (Number(t.capacity_cfs) || 1000) * 0.8 ? 'Near Peak Trans-Divide Conveyance' : 'Active Trans-Divide Conveyance')
           : 'Gates Closed / Seasonal Low Flow';
+        const portal = getPortalInfo(t);
 
         new maplibregl.Popup({ offset: 8 })
           .setLngLat(e.lngLat)
@@ -1406,6 +1703,7 @@ function renderGeography(geo, riverNetwork, lakes) {
                 <strong>Design Capacity:</strong> ${capDisplay}<br>
                 <strong>Operational Status:</strong> ${statusText}
               </div>
+              ${formatPortalHtml(portal, '#b45309')}
             </div>
           `)
           .addTo(map);
@@ -1502,6 +1800,7 @@ function renderGeography(geo, riverNetwork, lakes) {
         if (!e.features.length) return;
         const t = e.features[0].properties;
         const flowVal = Number(t.flow_cfs || 0);
+        const portal = getPortalInfo(t);
         new maplibregl.Popup({ offset: 8 })
           .setLngLat(e.lngLat)
           .setHTML(`
@@ -1524,6 +1823,7 @@ function renderGeography(geo, riverNetwork, lakes) {
                 <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : '1,600 cfs (Whitsett Pumping Plant)'}<br>
                 <strong>Infrastructure:</strong> Major Inter-Basin Conveyance Aqueduct
               </div>
+              ${formatPortalHtml(portal, '#0284c7')}
             </div>
           `)
           .addTo(map);
@@ -1574,10 +1874,11 @@ function renderGeography(geo, riverNetwork, lakes) {
     map.on('click', 'dams-layer', (e) => {
       if (!e.features.length) return;
       const d = e.features[0].properties;
+      const portal = getPortalInfo(d);
       new maplibregl.Popup({ offset: 14 })
         .setLngLat(e.lngLat)
         .setHTML(`
-          <div style="font-family:'Inter',sans-serif; min-width: 170px;">
+          <div style="font-family:'Inter',sans-serif; min-width: 180px;">
             <strong style="font-size:13px;color:#0f172a;">${d.name}</strong><br>
             <span style="font-size:11px;color:#64748b;font-weight:600;">${d.operator}</span>
             <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
@@ -1586,6 +1887,7 @@ function renderGeography(geo, riverNetwork, lakes) {
               <strong>Height:</strong> ${d.height_ft} ft | <strong>Built:</strong> ${d.year}<br>
               <strong>Purpose:</strong> ${d.purpose}
             </div>
+            ${formatPortalHtml(portal, '#0284c7')}
           </div>
         `)
         .addTo(map);
@@ -1928,6 +2230,7 @@ function renderMetrics(metrics) {
     el.className = 'cfs-marker-wrap';
     el.innerHTML = `<div class="cfs-badge ${badgeClass}"><span class="cfs-val">${t.flow_cfs.toLocaleString()}</span> <span class="cfs-unit">cfs</span></div>`;
 
+    const portal = getPortalInfo(t);
     const popup = new maplibregl.Popup({ offset: 12 }).setHTML(`
       <div style="font-family:'Inter',sans-serif; min-width: 220px; padding: 2px;">
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
@@ -1946,6 +2249,7 @@ function renderMetrics(metrics) {
           ${toText}<br>
           <strong>Last Measured:</strong> ${formatTimestamp(t.timestamp)}
         </div>
+        ${formatPortalHtml(portal, isFrontRange ? '#d97706' : '#0284c7')}
       </div>
     `);
 
@@ -2002,13 +2306,15 @@ function updateSidebar(metrics) {
   const flowChartElem = document.getElementById("flow-dest-chart");
   if (flowChartElem) {
     const maxFlow = Math.max(tunnelsExport, aacFlow, craFlow, capFlow, leesFlow) || 1;
-    const makeBar = (name, flow, color, label1, label2, center, zoomLevel) => {
+    const makeBar = (name, flow, color, label1, label2, center, zoomLevel, meta) => {
       const pct = Math.max(2, (flow / maxFlow) * 100);
       const onClick = center ? `onclick="if(window.map) window.map.flyTo({center: [${center[0]}, ${center[1]}], zoom: ${zoomLevel || 9}, duration: 1400})"` : '';
+      const portal = getPortalInfo(meta || { name: name });
+      const portalLink = portal ? `<a href="${portal.url}" target="_blank" rel="noopener" title="Open official ${portal.name}" onclick="event.stopPropagation();" style="margin-left:6px; color:${color}; text-decoration:none; font-size:12px; font-weight:800;">↗</a>` : '';
       return `
         <div class="flow-bar-row interactive" ${onClick} title="Click to fly to ${name}">
           <div class="flow-bar-labels">
-            <span class="flow-bar-name">${name} <span class="flow-bar-sub">(${label1})</span></span>
+            <span class="flow-bar-name">${name}${portalLink} <span class="flow-bar-sub">(${label1})</span></span>
             <span class="flow-bar-val" style="color: ${color}">${Math.round(flow).toLocaleString()} cfs</span>
           </div>
           <div class="flow-bar-track">
@@ -2020,11 +2326,11 @@ function updateSidebar(metrics) {
 
     flowChartElem.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
-        ${makeBar("Lees Ferry", leesFlow, "var(--color-primary)", "Upper \u2192 Lower Basin", "", [-111.587, 36.865], 9.5)}
-        ${makeBar("All-American Canal", aacFlow, "var(--color-emerald)", "Ag Export", "", [-114.467, 32.883], 9)}
-        ${makeBar("Central AZ Project", capFlow, "var(--color-emerald)", "AZ Municipal/Ag", "", [-114.111, 34.289], 9)}
-        ${makeBar("CO River Aqueduct", craFlow, "var(--color-emerald)", "Urban Export", "", [-114.162, 34.314], 9)}
-        ${makeBar("Front Range Tunnels", tunnelsExport, "var(--color-amber)", "Divide Export", "", [-105.7, 39.8], 8)}
+        ${makeBar("Lees Ferry", leesFlow, "var(--color-primary)", "Upper \u2192 Lower Basin", "", [-111.587, 36.865], 9.5, { id: "09380000", name: "Lees Ferry" })}
+        ${makeBar("All-American Canal", aacFlow, "var(--color-emerald)", "Ag Export", "", [-114.467, 32.883], 9, { id: "09527700", name: "All-American Canal" })}
+        ${makeBar("Central AZ Project", capFlow, "var(--color-emerald)", "AZ Municipal/Ag", "", [-114.111, 34.289], 9, { id: "09426650", name: "Central Arizona Project" })}
+        ${makeBar("CO River Aqueduct", craFlow, "var(--color-emerald)", "Urban Export", "", [-114.162, 34.314], 9, { id: "09424150", name: "Colorado River Aqueduct" })}
+        ${makeBar("Front Range Tunnels", tunnelsExport, "var(--color-amber)", "Divide Export", "", [-105.7, 39.8], 8, { id: "ROBTUNCO", name: "Front Range Tunnels" })}
       </div>
     `;
   }
@@ -2099,9 +2405,14 @@ function updateSidebar(metrics) {
       const elevText = r.elevation_ft ? `Elev: ${Math.round(r.elevation_ft).toLocaleString()} ft` : (r.stage_ft ? `Stage: ${r.stage_ft} ft` : '');
       const downText = r.feet_below_full != null ? `<span style="color:#b45309;font-weight:600;"> &bull; ${r.feet_below_full} ft down</span>` : '';
 
+      const portal = getPortalInfo(r);
+      const portalLink = portal 
+        ? `<a href="${portal.url}" target="_blank" rel="noopener" title="Open official ${portal.name}" onclick="event.stopPropagation();" style="margin-left:6px; color:#0284c7; text-decoration:none; font-size:11px; font-weight:800;">↗</a>`
+        : '';
+
       row.innerHTML = `
         <div class="res-row-head">
-          <span class="res-row-name">${cleanName}</span>
+          <span class="res-row-name">${cleanName}${portalLink}</span>
           <span class="res-row-val ${statusClass}">${pct}%</span>
         </div>
         <div class="res-row-sub">
@@ -2177,9 +2488,14 @@ function populateTelemetryTable(metrics) {
   document.getElementById("node-count").textContent = allNodes.length;
 
   allNodes.forEach(node => {
+    const portal = getPortalInfo(node);
+    const portalLink = portal 
+      ? `<a href="${portal.url}" target="_blank" rel="noopener" title="Open official ${portal.name}" onclick="event.stopPropagation();" style="margin-left:6px; color:#0284c7; text-decoration:none; font-size:12px; font-weight:700;">↗</a>`
+      : '';
+
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><strong>${node.name}</strong></td>
+      <td><strong>${node.name}</strong>${portalLink}</td>
       <td><span class="type-pill ${node.type}">${node.type.replace('_', ' ')}</span></td>
       <td>${node.basin}</td>
       <td><strong>${node.reading}</strong></td>
