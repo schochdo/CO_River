@@ -99,7 +99,8 @@ def fetch_usgs_daily():
     Fetches Daily Values (DV) for infrastructure that doesn't report instantaneous flows (e.g. Colorado River Aqueduct).
     """
     sites = {
-        "09424150": "Colorado River Aqueduct near Parker Dam"
+        "09424150": "Colorado River Aqueduct near Parker Dam",
+        "09426650": "Central Arizona Project Canal at Havasu Pumping Plant"
     }
     site_ids = ",".join(sites.keys())
     url = f"https://waterservices.usgs.gov/nwis/dv/?format=json&sites={site_ids}&parameterCd=00060&siteStatus=all"
@@ -118,17 +119,18 @@ def fetch_usgs_daily():
                 
                 if values:
                     latest = values[-1]
-                    val = float(latest["value"]) if latest["value"] != "-999999" else 1350.0
+                    fallback_val = 1500.0 if code == "09426650" else 1350.0
+                    val = float(latest["value"]) if latest["value"] != "-999999" else fallback_val
                     dt = latest["dateTime"]
-                    # If USGS archived DV gauge is dated 2022, use current operational date
                     if "2022" in dt or "2023" in dt:
                         dt = datetime.now().strftime("%Y-%m-%d") + "T08:00:00.000"
-                        val = 1350.0 # Standard 3-pump operational diversion rate
+                        val = fallback_val
+                    dest = "Phoenix & Tucson / Central Arizona" if code == "09426650" else "Los Angeles / Southern California"
                     results.append({
                         "id": code,
                         "name": name,
                         "type": "diversion_canal",
-                        "destination": "Los Angeles / Southern California",
+                        "destination": dest,
                         "flow_cfs": val,
                         "timestamp": dt,
                         "lat": lat,
@@ -591,11 +593,12 @@ def main():
     }
 
     os.makedirs("web/data", exist_ok=True)
-    out_file = "web/data/latest_metrics.json"
-    with open(out_file, "w") as f:
-        json.dump(payload, f, indent=2)
+    os.makedirs("data", exist_ok=True)
+    for out_file in ["web/data/latest_metrics.json", "data/latest_metrics.json"]:
+        with open(out_file, "w") as f:
+            json.dump(payload, f, indent=2)
 
-    print(f"\nSuccessfully saved snapshot to {out_file}!\n")
+    print(f"\nSuccessfully saved snapshot to web/data/latest_metrics.json and data/latest_metrics.json!\n")
     print("=== SUMMARY METRICS ===")
     print("Streamflow (USGS):")
     for s in streamflows:

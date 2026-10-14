@@ -1976,11 +1976,15 @@ function updateSidebar(metrics) {
   const craFlow = (metrics.canals || []).find(c => c.id === "09424150")?.flow_cfs 
     || 1350;
 
+  const capFlow = (metrics.canals || []).find(c => c.id === "09426650")?.flow_cfs
+    || (metrics.streamflows || []).find(s => s.id === "09426650")?.flow_cfs
+    || 1500;
+
   const leesFlow = (metrics.streamflows || []).find(s => s.id === "09380000")?.flow_cfs || 9770;
 
   const flowChartElem = document.getElementById("flow-dest-chart");
   if (flowChartElem) {
-    const maxFlow = Math.max(tunnelsExport, aacFlow, craFlow, leesFlow) || 1;
+    const maxFlow = Math.max(tunnelsExport, aacFlow, craFlow, capFlow, leesFlow) || 1;
     const makeBar = (name, flow, color, label1, label2, center, zoomLevel) => {
       const pct = Math.max(2, (flow / maxFlow) * 100);
       const onClick = center ? `onclick="if(window.map) window.map.flyTo({center: [${center[0]}, ${center[1]}], zoom: ${zoomLevel || 9}, duration: 1400})"` : '';
@@ -2001,6 +2005,7 @@ function updateSidebar(metrics) {
       <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
         ${makeBar("Lees Ferry", leesFlow, "var(--color-primary)", "Upper \u2192 Lower Basin", "", [-111.587, 36.865], 9.5)}
         ${makeBar("All-American Canal", aacFlow, "var(--color-emerald)", "Ag Export", "", [-114.467, 32.883], 9)}
+        ${makeBar("Central AZ Project", capFlow, "var(--color-emerald)", "AZ Municipal/Ag", "", [-114.111, 34.289], 9)}
         ${makeBar("CO River Aqueduct", craFlow, "var(--color-emerald)", "Urban Export", "", [-114.162, 34.314], 9)}
         ${makeBar("Front Range Tunnels", tunnelsExport, "var(--color-amber)", "Divide Export", "", [-105.7, 39.8], 8)}
       </div>
