@@ -1,0 +1,10 @@
+{
+  "name": "colorado-river-basin-explorer",
+  "version": "1.0.0",
+  "description": "3D Basin Explorer and Hydrologic Transit Schematic for the Colorado River Basin",
+  "scripts": {
+    "test": "node scripts/test_sankey_clearance.js"
+  },
+  "author": "",
+  "license": "MIT"
+}
