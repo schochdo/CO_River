@@ -1,7 +1,9 @@
 import requests
 import json
 import os
+import re
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 (DAT1001-Research)"
 
@@ -175,34 +177,37 @@ def fetch_cdwr_tunnels():
         }
     }
     
+    meas_map = {}
+    abbrev_param = ",".join(tunnels.keys())
+    for endpoint in ["telemetrytimeserieshour", "telemetrytimeseriesday"]:
+        url = f"https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/{endpoint}/?format=json&abbrev={abbrev_param}"
+        try:
+            r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=8)
+            if r.status_code == 200:
+                items = r.json().get("ResultList", [])
+                for x in items:
+                    if x.get("parameter") == "DISCHRG":
+                        abb = x.get("abbrev")
+                        dt = x.get("measDateTime") or x.get("measDate")
+                        val = max(0.0, float(x.get("measValue", 0.0)))
+                        if abb not in meas_map or (dt and dt > meas_map[abb].get("dt", "")):
+                            meas_map[abb] = {"val": val, "dt": dt}
+                if len(meas_map) == len(tunnels):
+                    break
+        except Exception:
+            pass
+
     results = []
     for abbrev, meta in tunnels.items():
-        meas_val = 0.0
-        meas_dt = None
-        for endpoint in ["telemetrytimeseriesraw", "telemetrytimeserieshour", "telemetrytimeseriesday"]:
-            url = f"https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/{endpoint}/?format=json&abbrev={abbrev}"
-            try:
-                r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=8)
-                if r.status_code == 200:
-                    items = r.json().get("ResultList", [])
-                    d_items = [x for x in items if x.get("parameter") == "DISCHRG"]
-                    if d_items:
-                        d_items.sort(key=lambda x: x.get("measDateTime", x.get("measDate", "")))
-                        latest = d_items[-1]
-                        meas_val = max(0.0, float(latest.get("measValue", 0.0)))
-                        meas_dt = latest.get("measDateTime") or latest.get("measDate")
-                        break
-            except Exception as e:
-                pass
-        
+        m = meas_map.get(abbrev, {})
         results.append({
             "id": abbrev,
             "name": meta["name"],
             "destination": meta["destination"],
             "type": "diversion_tunnel",
             "capacity_cfs": meta.get("capacity_cfs"),
-            "flow_cfs": round(meas_val, 1),
-            "timestamp": meas_dt or datetime.now().isoformat(),
+            "flow_cfs": round(m.get("val", 0.0), 1),
+            "timestamp": m.get("dt") or datetime.now().isoformat(),
             "lat": meta["lat"],
             "lon": meta["lon"]
         })
@@ -211,39 +216,94 @@ def fetch_cdwr_tunnels():
 
 def fetch_reservoirs():
     """
-    Fetches live storage, elevation, and capacity metrics for the 7 major Colorado River Basin reservoirs.
+    Fetches live storage, elevation, and capacity metrics for the Colorado River Basin reservoirs.
+    Uses parallel fetching and live hourly operations feeds where available.
     """
+    def get_csv(url):
+        try:
+            r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=8)
+            lines = [l.strip() for l in r.text.splitlines() if l.strip() and "," in l]
+            if len(lines) > 1:
+                return lines[-1].split(",")[0], float(lines[-1].split(",")[1])
+        except Exception:
+            pass
+        return None, None
+
+    def get_usbr_hourly():
+        try:
+            url_hourly = "https://www.usbr.gov/lc/region/g4000/hourly/hourly.html"
+            r = requests.get(url_hourly, headers={"User-Agent": USER_AGENT}, timeout=8)
+            if r.status_code == 200:
+                latest = None
+                for line in r.text.splitlines():
+                    m = re.match(r'^\s*(\d{4}-\d{4})\s+([\d\.]+)\s+(\d+)\s+([\d\.]+)\s+([\d\.]+)\s+(\d+)\s+([\d\.]+)\s+([\d\.]+)', line)
+                    if m:
+                        time_slot, mead_el, hoover_rel, mohave_el, mohave_af, davis_rel, havasu_el, havasu_af = m.groups()
+                        end_hr = time_slot.split("-")[1][:2]
+                        latest = {
+                            "dt": f"{datetime.now().strftime('%Y-%m-%d')}T{end_hr}:00:00",
+                            "mead_elev": float(mead_el),
+                            "mohave_elev": float(mohave_el),
+                            "mohave_storage_af": float(mohave_af) * 1000.0,
+                            "havasu_elev": float(havasu_el),
+                            "havasu_storage_af": float(havasu_af) * 1000.0
+                        }
+                return latest
+        except Exception:
+            pass
+        return None
+
+    def get_usgs_lake(site, param="62614"):
+        try:
+            url = f"https://waterservices.usgs.gov/nwis/iv/?format=json&sites={site}&parameterCd={param}&siteStatus=all"
+            r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=8)
+            if r.status_code == 200:
+                ts = r.json().get("value", {}).get("timeSeries", [])
+                if ts and ts[0]["values"][0]["value"]:
+                    latest = ts[0]["values"][0]["value"][-1]
+                    return latest["dateTime"], float(latest["value"])
+        except Exception:
+            pass
+        return None, None
+
+    csv_jobs = {
+        "powell_af": "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/919/csv/17.csv",
+        "fg_af": "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/917/csv/17.csv",
+        "fg_elev": "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/917/csv/49.csv",
+        "nav_af": "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/920/csv/17.csv",
+        "nav_elev": "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/920/csv/49.csv",
+        "bm_af": "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/913/csv/17.csv",
+        "bm_elev": "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/913/csv/49.csv"
+    }
+
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        csv_futures = {k: pool.submit(get_csv, u) for k, u in csv_jobs.items()}
+        f_usbr_hourly = pool.submit(get_usbr_hourly)
+        f_powell_usgs = pool.submit(get_usgs_lake, "09379900", "62614")
+        f_mohave_usgs = pool.submit(get_usgs_lake, "09422500", "00054")
+        f_havasu_usgs = pool.submit(get_usgs_lake, "09427500", "00054")
+
+        csv_data = {k: f.result() for k, f in csv_futures.items()}
+        usbr_hourly = f_usbr_hourly.result()
+        powell_usgs_dt, powell_usgs_elev = f_powell_usgs.result()
+        mohave_usgs_dt, mohave_usgs_af = f_mohave_usgs.result()
+        havasu_usgs_dt, havasu_usgs_af = f_havasu_usgs.result()
+
     results = []
 
     # 1. Lake Powell (Glen Canyon Dam)
-    powell_elev = 3518.1
-    powell_af = 5155018.0
-    powell_dt = datetime.now().isoformat()
-    try:
-        url_powell_usgs = "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09379900&parameterCd=62614&siteStatus=all"
-        r = requests.get(url_powell_usgs, headers={"User-Agent": USER_AGENT}, timeout=6)
-        if r.status_code == 200:
-            ts = r.json().get("value", {}).get("timeSeries", [])
-            if ts and ts[0]["values"][0]["value"]:
-                latest = ts[0]["values"][0]["value"][-1]
-                powell_elev = float(latest["value"])
-                powell_dt = latest["dateTime"]
-    except Exception:
-        pass
-    try:
-        url_powell_csv = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/919/csv/17.csv"
-        r = requests.get(url_powell_csv, headers={"User-Agent": USER_AGENT}, timeout=6)
-        lines = [l.strip() for l in r.text.splitlines() if l.strip() and "," in l]
-        if len(lines) > 1:
-            powell_af = float(lines[-1].split(",")[1])
-    except Exception:
-        pass
+    powell_elev = powell_usgs_elev or 3518.9
+    powell_dt = powell_usgs_dt or datetime.now().isoformat()
+    powell_af = csv_data["powell_af"][1] or 5223099.0
+    if csv_data["powell_af"][0] and not powell_usgs_dt:
+        powell_dt = csv_data["powell_af"][0]
 
     results.append({
         "id": "lake_powell",
         "name": "Lake Powell (Glen Canyon Dam)",
         "river": "Colorado River (AZ/UT)",
         "type": "reservoir",
+        "category": "system",
         "elevation_ft": round(powell_elev, 1),
         "storage_af": round(powell_af, 0),
         "capacity_af": 24322000.0,
@@ -255,27 +315,33 @@ def fetch_reservoirs():
     })
 
     # 2. Lake Mead (Hoover Dam)
-    mead_elev = 1037.8
-    mead_af = 8580000.0
+    mead_elev = 1037.6
+    mead_af = 8600000.0
     mead_dt = datetime.now().strftime("%Y-%m-%d")
-    try:
-        url_mead = "https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html"
-        r = requests.get(url_mead, headers={"User-Agent": USER_AGENT}, timeout=6)
-        if r.status_code == 200:
-            for line in r.text.splitlines():
-                if "2026" in line and "<TD>" in line:
-                    tds = [td.replace("<TD>", "").replace("</TD>", "").strip() for td in line.split("</TR>")[0].split("<TD>")[1:] if td.strip()]
-                    if tds:
-                        mead_elev = float(tds[-1])
-                        mead_af = round((mead_elev - 895.0) * 59800.0 + 80000.0, -4)
-    except Exception:
-        pass
+    if usbr_hourly and usbr_hourly.get("mead_elev"):
+        mead_elev = usbr_hourly["mead_elev"]
+        mead_af = round((mead_elev - 895.0) * 59800.0 + 80000.0, -4)
+        mead_dt = usbr_hourly["dt"]
+    else:
+        try:
+            url_mead = "https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html"
+            r = requests.get(url_mead, headers={"User-Agent": USER_AGENT}, timeout=6)
+            if r.status_code == 200:
+                for line in r.text.splitlines():
+                    if "2026" in line and "<TD>" in line:
+                        tds = [td.replace("<TD>", "").replace("</TD>", "").strip() for td in line.split("</TR>")[0].split("<TD>")[1:] if td.strip()]
+                        if tds:
+                            mead_elev = float(tds[-1])
+                            mead_af = round((mead_elev - 895.0) * 59800.0 + 80000.0, -4)
+        except Exception:
+            pass
 
     results.append({
         "id": "lake_mead",
         "name": "Lake Mead (Hoover Dam)",
         "river": "Colorado River (AZ/NV)",
         "type": "reservoir",
+        "category": "system",
         "elevation_ft": round(mead_elev, 1),
         "storage_af": round(mead_af, 0),
         "capacity_af": 26134000.0,
@@ -287,33 +353,16 @@ def fetch_reservoirs():
     })
 
     # 3. Flaming Gorge Reservoir (Flaming Gorge Dam)
-    fg_elev = 6007.2
-    fg_af = 2497542.0
+    fg_af = csv_data["fg_af"][1] or 2460597.0
+    fg_elev = csv_data["fg_elev"][1] or 6006.0
+    fg_dt = csv_data["fg_af"][0] or datetime.now().strftime("%Y-%m-%d")
     fg_cap = 3749000.0
-    fg_dt = datetime.now().strftime("%Y-%m-%d")
-    try:
-        url_fg_storage = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/917/csv/17.csv"
-        r = requests.get(url_fg_storage, headers={"User-Agent": USER_AGENT}, timeout=6)
-        lines = [l.strip() for l in r.text.splitlines() if l.strip() and "," in l]
-        if len(lines) > 1:
-            fg_dt = lines[-1].split(",")[0]
-            fg_af = float(lines[-1].split(",")[1])
-    except Exception:
-        pass
-    try:
-        url_fg_elev = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/917/csv/49.csv"
-        r = requests.get(url_fg_elev, headers={"User-Agent": USER_AGENT}, timeout=6)
-        lines = [l.strip() for l in r.text.splitlines() if l.strip() and "," in l]
-        if len(lines) > 1:
-            fg_elev = float(lines[-1].split(",")[1])
-    except Exception:
-        pass
-
     results.append({
         "id": "flaming_gorge",
         "name": "Flaming Gorge Reservoir (Flaming Gorge Dam)",
         "river": "Green River (UT/WY)",
         "type": "reservoir",
+        "category": "system",
         "elevation_ft": round(fg_elev, 1),
         "storage_af": round(fg_af, 0),
         "capacity_af": fg_cap,
@@ -325,33 +374,16 @@ def fetch_reservoirs():
     })
 
     # 4. Navajo Reservoir (Navajo Dam)
-    nav_elev = 6015.2
-    nav_af = 824398.0
+    nav_af = csv_data["nav_af"][1] or 856394.0
+    nav_elev = csv_data["nav_elev"][1] or 6018.9
+    nav_dt = csv_data["nav_af"][0] or datetime.now().strftime("%Y-%m-%d")
     nav_cap = 1696000.0
-    nav_dt = datetime.now().strftime("%Y-%m-%d")
-    try:
-        url_nav_csv = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/920/csv/17.csv"
-        r = requests.get(url_nav_csv, headers={"User-Agent": USER_AGENT}, timeout=6)
-        lines = [l.strip() for l in r.text.splitlines() if l.strip() and "," in l]
-        if len(lines) > 1:
-            nav_dt = lines[-1].split(",")[0]
-            nav_af = float(lines[-1].split(",")[1])
-    except Exception:
-        pass
-    try:
-        url_nav_elev = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/920/csv/49.csv"
-        r = requests.get(url_nav_elev, headers={"User-Agent": USER_AGENT}, timeout=6)
-        lines = [l.strip() for l in r.text.splitlines() if l.strip() and "," in l]
-        if len(lines) > 1:
-            nav_elev = float(lines[-1].split(",")[1])
-    except Exception:
-        pass
-
     results.append({
         "id": "navajo_reservoir",
         "name": "Navajo Reservoir (Navajo Dam)",
         "river": "San Juan River (NM/CO)",
         "type": "reservoir",
+        "category": "system",
         "elevation_ft": round(nav_elev, 1),
         "storage_af": round(nav_af, 0),
         "capacity_af": nav_cap,
@@ -363,31 +395,18 @@ def fetch_reservoirs():
     })
 
     # 5. Lake Mohave (Davis Dam)
-    mohave_elev = 638.2
-    mohave_af = 1570000.0
+    mohave_elev = 638.9
+    mohave_af = mohave_usgs_af or (usbr_hourly and usbr_hourly.get("mohave_storage_af")) or 1582000.0
+    if usbr_hourly and usbr_hourly.get("mohave_elev"):
+        mohave_elev = usbr_hourly["mohave_elev"]
+    mohave_dt = mohave_usgs_dt or (usbr_hourly and usbr_hourly.get("dt")) or datetime.now().strftime("%Y-%m-%d")
     mohave_cap = 1810000.0
-    mohave_dt = datetime.now().strftime("%Y-%m-%d")
-    try:
-        url_moh = "https://waterservices.usgs.gov/nwis/dv/?format=json&sites=09422500&parameterCd=00054,62614&siteStatus=all"
-        r = requests.get(url_moh, headers={"User-Agent": USER_AGENT}, timeout=8)
-        if r.status_code == 200:
-            for ts in r.json()["value"]["timeSeries"]:
-                p = ts["variable"]["variableCode"][0]["value"]
-                vals = ts["values"][0]["value"]
-                if vals:
-                    mohave_dt = vals[-1]["dateTime"].split("T")[0]
-                    if p == "00054":
-                        mohave_af = float(vals[-1]["value"])
-                    elif p == "62614":
-                        mohave_elev = float(vals[-1]["value"])
-    except Exception:
-        pass
-
     results.append({
         "id": "lake_mohave",
         "name": "Lake Mohave (Davis Dam)",
         "river": "Lower Colorado River (AZ/NV)",
         "type": "reservoir",
+        "category": "system",
         "elevation_ft": round(mohave_elev, 1),
         "storage_af": round(mohave_af, 0),
         "capacity_af": mohave_cap,
@@ -399,33 +418,16 @@ def fetch_reservoirs():
     })
 
     # 6. Blue Mesa Reservoir (Wayne N. Aspinall Unit)
-    bm_elev = 7413.1
-    bm_af = 143498.0
+    bm_af = csv_data["bm_af"][1] or 140029.0
+    bm_elev = csv_data["bm_elev"][1] or 7412.1
+    bm_dt = csv_data["bm_af"][0] or datetime.now().strftime("%Y-%m-%d")
     bm_cap = 829500.0
-    bm_dt = datetime.now().strftime("%Y-%m-%d")
-    try:
-        url_bm_storage = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/913/csv/17.csv"
-        r = requests.get(url_bm_storage, headers={"User-Agent": USER_AGENT}, timeout=6)
-        lines = [l.strip() for l in r.text.splitlines() if l.strip() and "," in l]
-        if len(lines) > 1:
-            bm_dt = lines[-1].split(",")[0]
-            bm_af = float(lines[-1].split(",")[1])
-    except Exception:
-        pass
-    try:
-        url_bm_elev = "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/913/csv/49.csv"
-        r = requests.get(url_bm_elev, headers={"User-Agent": USER_AGENT}, timeout=6)
-        lines = [l.strip() for l in r.text.splitlines() if l.strip() and "," in l]
-        if len(lines) > 1:
-            bm_elev = float(lines[-1].split(",")[1])
-    except Exception:
-        pass
-
     results.append({
         "id": "blue_mesa",
         "name": "Blue Mesa Reservoir (Blue Mesa Dam)",
         "river": "Gunnison River (CO)",
         "type": "reservoir",
+        "category": "system",
         "elevation_ft": round(bm_elev, 1),
         "storage_af": round(bm_af, 0),
         "capacity_af": bm_cap,
@@ -437,21 +439,12 @@ def fetch_reservoirs():
     })
 
     # 7. Lake Havasu (Parker Dam)
-    havasu_elev = 448.9
-    havasu_af = 587200.0
+    havasu_elev = 448.7
+    havasu_af = havasu_usgs_af or (usbr_hourly and usbr_hourly.get("havasu_storage_af")) or 595800.0
+    if usbr_hourly and usbr_hourly.get("havasu_elev"):
+        havasu_elev = usbr_hourly["havasu_elev"]
+    havasu_dt = havasu_usgs_dt or (usbr_hourly and usbr_hourly.get("dt")) or datetime.now().strftime("%Y-%m-%d")
     havasu_cap = 619400.0
-    havasu_dt = datetime.now().strftime("%Y-%m-%d")
-    try:
-        url_hav = "https://waterservices.usgs.gov/nwis/iv/?format=json&sites=09427500&parameterCd=00054&siteStatus=all"
-        r = requests.get(url_hav, headers={"User-Agent": USER_AGENT}, timeout=6)
-        if r.status_code == 200:
-            vals = r.json()["value"]["timeSeries"][0]["values"][0]["value"]
-            if vals:
-                havasu_af = float(vals[-1]["value"])
-                havasu_dt = vals[-1]["dateTime"]
-    except Exception:
-        pass
-
     results.append({
         "id": "lake_havasu",
         "name": "Lake Havasu (Parker Dam)",
@@ -468,12 +461,7 @@ def fetch_reservoirs():
         "lon": -114.1678
     })
 
-    # Tag earlier system reservoirs
-    for r in results:
-        if "category" not in r:
-            r["category"] = "system"
-
-    # --- Front Range & Denver Collection Reservoirs (West Slope Diversion Sources) ---
+    # --- Front Range & Denver Collection Reservoirs ---
     front_range_res = [
         {
             "id": "dillon_reservoir",
@@ -525,28 +513,41 @@ def fetch_reservoirs():
         }
     ]
 
-    for fr in front_range_res:
-        af_val = 0.0
-        elev_val = 0.0
-        dt_str = datetime.now().strftime("%Y-%m-%d")
-        url_cdwr = f"https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrytimeseriesday/?format=json&abbrev={fr['abbrev']}"
+    fr_meas_map = {}
+    fr_abbrev_param = ",".join(fr["abbrev"] for fr in front_range_res)
+    for endpoint in ["telemetrytimeserieshour", "telemetrytimeseriesday"]:
+        url_cdwr = f"https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/{endpoint}/?format=json&abbrev={fr_abbrev_param}"
         try:
-            r = requests.get(url_cdwr, headers={"User-Agent": USER_AGENT}, timeout=7)
+            r = requests.get(url_cdwr, headers={"User-Agent": USER_AGENT}, timeout=8)
             if r.status_code == 200:
                 items = r.json().get("ResultList", [])
                 for x in items:
+                    abb = x.get("abbrev")
                     p = x.get("parameter")
+                    dt = x.get("measDateTime") or x.get("measDate")
+                    val = float(x.get("measValue", 0.0))
+                    if abb not in fr_meas_map:
+                        fr_meas_map[abb] = {"af": 0.0, "elev": 0.0, "dt": datetime.now().strftime("%Y-%m-%d")}
                     if p == "STORAGE":
-                        af_val = float(x.get("measValue", 0.0))
-                        dt_str = x.get("measDate", dt_str).split("T")[0]
+                        fr_meas_map[abb]["af"] = val
+                        if dt:
+                            fr_meas_map[abb]["dt"] = dt
                     elif p == "ELEV":
-                        elev_val = float(x.get("measValue", 0.0))
+                        fr_meas_map[abb]["elev"] = val
+                        if dt and not fr_meas_map[abb]["dt"]:
+                            fr_meas_map[abb]["dt"] = dt
+                if len(fr_meas_map) == len(front_range_res) and endpoint == "telemetrytimeserieshour":
+                    break
         except Exception:
             pass
 
+    for fr in front_range_res:
+        m = fr_meas_map.get(fr["abbrev"], {})
+        af_val = m.get("af", 0.0)
+        elev_val = m.get("elev", 0.0)
+        dt_str = m.get("dt", datetime.now().strftime("%Y-%m-%d"))
+
         pct_val = round((af_val / fr["capacity_af"]) * 100, 1) if fr["capacity_af"] > 0 else 0.0
-        
-        # Calculate elevation in ft MSL or gauge stage
         is_stage = elev_val > 0 and elev_val < 500
         elev_msl = round(fr["full_pool_elev"] - (126.0 - elev_val), 1) if (is_stage and fr.get("full_pool_elev")) else (round(elev_val, 1) if elev_val > 500 else None)
         feet_down = round(fr["full_pool_elev"] - elev_msl, 1) if (elev_msl and fr.get("full_pool_elev")) else None
@@ -592,13 +593,21 @@ def main():
         "reservoirs": reservoirs
     }
 
-    os.makedirs("web/data", exist_ok=True)
-    os.makedirs("data", exist_ok=True)
-    for out_file in ["web/data/latest_metrics.json", "data/latest_metrics.json"]:
-        with open(out_file, "w") as f:
-            json.dump(payload, f, indent=2)
+    out_candidates = [
+        "web/data/latest_metrics.json",
+        "data/latest_metrics.json",
+        "public/colorado_river/data/latest_metrics.json"
+    ]
+    saved_to = []
+    for out_file in out_candidates:
+        parent = os.path.dirname(out_file)
+        if os.path.exists(parent) or parent in ["web/data", "data"]:
+            os.makedirs(parent, exist_ok=True)
+            with open(out_file, "w") as f:
+                json.dump(payload, f, indent=2)
+            saved_to.append(out_file)
 
-    print(f"\nSuccessfully saved snapshot to web/data/latest_metrics.json and data/latest_metrics.json!\n")
+    print(f"\nSuccessfully saved snapshot to {', '.join(saved_to)}!\n")
     print("=== SUMMARY METRICS ===")
     print("Streamflow (USGS):")
     for s in streamflows:
