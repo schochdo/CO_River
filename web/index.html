@@ -42,6 +42,10 @@
         <span class="btn-icon">〰</span>
         <span class="btn-text">Flow Diagram</span>
       </button>
+      <button class="nav-header-btn telemetry-btn" onclick="window.open('./telemetry.html','_blank')" title="Open Gage &amp; Telemetry Registry Table">
+        <span class="btn-icon">📊</span>
+        <span class="btn-text">Gage Registry</span>
+      </button>
 
       <div class="sync-badge">
         <span class="status-dot"></span>
@@ -229,7 +233,7 @@
         <button class="sidebar-close-btn" onclick="closeSidebar()" aria-label="Close sidebar">✕</button>
       </div>
 
-      <!-- Mobile Quick Actions: Law, Code & Flow -->
+      <!-- Mobile Quick Actions: Law, Code, Flow & Gage Registry -->
       <div class="sidebar-mobile-actions">
         <button class="nav-header-btn law-btn" onclick="openLegalModal(); closeSidebar();" title="View Law of the River &amp; Compact Framework">
           <span class="btn-icon">⚖️</span>
@@ -242,6 +246,10 @@
         <button class="nav-header-btn flow-btn" onclick="window.open('./sankey.html','_blank')" title="Open Minard-style flow diagram">
           <span class="btn-icon">〰</span>
           <span class="btn-text">Flow Diagram</span>
+        </button>
+        <button class="nav-header-btn telemetry-btn" onclick="window.open('./telemetry.html','_blank')" title="Open Gage &amp; Telemetry Registry Table">
+          <span class="btn-icon">📊</span>
+          <span class="btn-text">Gage Registry</span>
         </button>
       </div>
       <!-- Camera Presets in Sidebar -->
@@ -432,9 +440,14 @@
         <h3>ACTIVE TELEMETRY NODES (<span id="node-count">30</span>)</h3>
         <span class="table-sub" id="table-hint">Hidden by default • Click to expand table &amp; click any row to fly to gauge</span>
       </div>
-      <button class="collapse-btn" id="collapse-btn" title="Toggle telemetry table">
-        <span id="collapse-icon">▲</span>
-      </button>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <button class="nav-header-btn telemetry-btn" onclick="event.stopPropagation(); window.open('./telemetry.html','_blank')" style="height: 24px; padding: 0 8px; font-size: 11px;" title="Open Dedicated Full-Page Gage Registry Tab">
+          <span>Open Full Page ↗</span>
+        </button>
+        <button class="collapse-btn" id="collapse-btn" title="Toggle telemetry table">
+          <span id="collapse-icon">▲</span>
+        </button>
+      </div>
     </div>
     
     <div class="table-container collapsed" id="table-wrap">

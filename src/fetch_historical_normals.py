@@ -13,29 +13,55 @@ from datetime import datetime
 USER_AGENT = "DAT1001-Research (Colorado River Dashboard)"
 
 GAUGE_SITES = [
-    "09057500",  # Blue River below Green Mtn Reservoir
-    "09070000",  # Eagle River below Gypsum
-    "09070500",  # Colorado River near Dotsero
-    "09085000",  # Roaring Fork at Glenwood Springs
+    # Mainstem Upper Basin
+    "09034250",  # Colorado River at Windy Gap near Granby, CO
+    "09058000",  # Colorado River near Kremmling, CO
+    "09070500",  # Colorado River near Dotsero, CO
+    "09085100",  # Colorado River below Glenwood Springs, CO
     "09095500",  # Colorado River near Cameo (sentinel)
-    "09152500",  # Gunnison River near Grand Junction
-    "09180000",  # Dolores River near Cisco
+    "09163500",  # Colorado River near CO-UT State Line
     "09180500",  # Colorado River near Cisco
+    "09380000",  # Colorado River at Lees Ferry (sentinel)
+    "09402500",  # Colorado River near Grand Canyon (Phantom Ranch)
+    "09404200",  # Colorado River above Diamond Creek near Peach Springs
+    "09429100",  # Colorado River below Palo Verde Dam
+    "09429500",  # Colorado River below Imperial Dam
+    
+    # Major Upper Basin Tributaries
+    "09211200",  # Green River below Fontenelle Reservoir, WY
+    "09217000",  # Green River near Green River, WY
+    "09234500",  # Green River near Greendale, UT (Flaming Gorge Dam)
     "09260050",  # Yampa River at Deerlodge Park
+    "09261000",  # Green River near Jensen, UT (below Yampa)
+    "09307000",  # Green River near Ouray, UT
     "09302000",  # Duchesne River near Randlett
     "09306500",  # White River near Watson
     "09315000",  # Green River at Green River, UT
+    "09128000",  # Gunnison River below Gunnison Tunnel
+    "09152500",  # Gunnison River near Grand Junction
+    "09180000",  # Dolores River near Cisco
+    "09355500",  # San Juan River near Archuleta (Navajo Dam)
     "09364500",  # Animas River at Farmington
+    "09365000",  # San Juan River at Farmington
+    "09368000",  # San Juan River at Shiprock
     "09379500",  # San Juan River near Bluff
-    "09380000",  # Colorado River at Lees Ferry (sentinel)
+    
+    # Headwaters & West Slope Tributaries
+    "09057500",  # Blue River below Green Mtn Reservoir
+    "09070000",  # Eagle River below Gypsum
+    "09085000",  # Roaring Fork at Glenwood Springs
+    
+    # Grand Canyon, Desert & Lower Basin Tributaries
+    "09382000",  # Paria River at Lees Ferry
     "09402000",  # Little Colorado near Cameron
     "09415000",  # Virgin River at Littlefield
     "09426000",  # Bill Williams River below Alamo Dam
-    "09429100",  # Colorado River below Palo Verde Dam
     "09474000",  # Gila River at Kelvin
     "09498500",  # Salt River near Roosevelt
     "09511300",  # Verde River near Scottsdale
     "09520500",  # Gila River near Dome
+    
+    # Major Conveyance / Diversion Canal
     "09527700",  # All-American Canal
 ]
 
