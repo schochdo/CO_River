@@ -3513,6 +3513,7 @@ function updateSidebar(metrics) {
 
 function populateTelemetryTable(metrics) {
   const tbody = document.getElementById("telemetry-rows");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   const allNodes = [
@@ -3574,7 +3575,8 @@ function populateTelemetryTable(metrics) {
     }))
   ];
 
-  document.getElementById("node-count").textContent = allNodes.length;
+  const countElem = document.getElementById("node-count");
+  if (countElem) countElem.textContent = allNodes.length;
 
   allNodes.forEach(node => {
     const portal = getPortalInfo(node);

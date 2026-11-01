@@ -430,45 +430,6 @@
     </aside>
   </main>
 
-  <!-- Bottom Collapsible & Resizable Station Table (Hidden by Default) -->
-  <footer class="app-table-panel" id="table-panel">
-    <div class="panel-resizer" id="table-resizer" title="Drag up or down to resize table panel">
-      <div class="resizer-handle"></div>
-    </div>
-    <div class="table-header" id="table-header">
-      <div class="table-title">
-        <h3>ACTIVE TELEMETRY NODES (<span id="node-count">30</span>)</h3>
-        <span class="table-sub" id="table-hint">Hidden by default • Click to expand table &amp; click any row to fly to gauge</span>
-      </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <button class="nav-header-btn telemetry-btn" onclick="event.stopPropagation(); window.open('./telemetry.html','_blank')" style="height: 24px; padding: 0 8px; font-size: 11px;" title="Open Dedicated Full-Page Gage Registry Tab">
-          <span>Open Full Page ↗</span>
-        </button>
-        <button class="collapse-btn" id="collapse-btn" title="Toggle telemetry table">
-          <span id="collapse-icon">▲</span>
-        </button>
-      </div>
-    </div>
-    
-    <div class="table-container collapsed" id="table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Station / Structure</th>
-            <th>Type</th>
-            <th>Basin / Region</th>
-            <th>Flow / Storage Reading</th>
-            <th>Notes / Destination</th>
-            <th>Latest Timestamp</th>
-          </tr>
-        </thead>
-        <tbody id="telemetry-rows">
-          <tr><td colspan="6" style="text-align:center; padding: 20px;">Loading telemetry nodes...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </footer>
-
   <!-- Law of the River & Institutional Framework Modal -->
   <div class="modal-overlay" id="legal-modal" onclick="closeLegalModal(event)">
     <div class="modal-card" onclick="event.stopPropagation()">
