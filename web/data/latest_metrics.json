@@ -885,7 +885,7 @@
       "capacity_pct": 47.8,
       "role": "C-BT Project Primary Storage -> Adams Tunnel",
       "timestamp": "2026-11-13T17:00:00",
-      "lat": 40.1488,
+      "lat": 40.1481,
       "lon": -105.8675
     },
     {
@@ -904,7 +904,7 @@
       "role": "Primary West Slope Storage -> Roberts Tunnel to Denver",
       "timestamp": "2026-11-13T18:00:00",
       "lat": 39.6183,
-      "lon": -106.0656
+      "lon": -106.065
     },
     {
       "id": "green_mountain",
@@ -939,8 +939,8 @@
       "capacity_pct": 35.9,
       "role": "Homestake Project Storage -> Homestake Tunnel to Arkansas Basin",
       "timestamp": "2026-11-13T18:00:00",
-      "lat": 39.369,
-      "lon": -106.463
+      "lat": 39.355,
+      "lon": -106.47
     }
   ]
 }

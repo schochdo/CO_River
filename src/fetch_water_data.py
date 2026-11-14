@@ -640,8 +640,8 @@ def fetch_reservoirs():
             "full_pool_elev": 10260.0,
             "operator": "Aurora & Colorado Springs Utilities",
             "role": "Homestake Project Storage -> Homestake Tunnel to Arkansas Basin",
-            "lat": 39.3690,
-            "lon": -106.4630
+            "lat": 39.3550,
+            "lon": -106.4700
         }
     ]
 
