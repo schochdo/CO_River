@@ -56,6 +56,7 @@ GAUGE_SITES = [
     "09379500",  # San Juan River near Bluff
     
     # Headwaters & West Slope Tributaries
+    "09033300",  # Fraser River below Crooked Creek
     "09037500",  # Williams Fork near Parshall, CO
     "09041400",  # Muddy Creek below Wolford Mtn Reservoir
     "09046600",  # Blue River near Dillon, CO
@@ -63,12 +64,22 @@ GAUGE_SITES = [
     "09057500",  # Blue River below Green Mtn Reservoir
     "09070000",  # Eagle River below Gypsum
     "09085000",  # Roaring Fork at Glenwood Springs
+    "09149500",  # Uncompahgre River at Delta
+    "09260000",  # Little Snake River near Lily
+    "09304500",  # White River near Meeker
     
     # Grand Canyon, Desert & Lower Basin Tributaries
     "09382000",  # Paria River at Lees Ferry
+    "09384000",  # Little Colorado above Lyman Lake (St. Johns)
+    "09400000",  # Little Colorado near Winslow
     "09402000",  # Little Colorado near Cameron
+    "09403850",  # Kanab Creek above mouth
+    "09404115",  # Havasu Creek above mouth
+    "09406000",  # Virgin River at Virgin, UT
     "09415000",  # Virgin River at Littlefield
+    "09419000",  # Muddy River near Glendale, NV
     "09426000",  # Bill Williams River below Alamo Dam
+    "09471000",  # San Pedro River at Charleston
     "09474000",  # Gila River at Kelvin
     "09498500",  # Salt River near Roosevelt
     "09511300",  # Verde River near Scottsdale

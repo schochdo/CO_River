@@ -134,7 +134,7 @@ def process():
         json.dump(output_collection, f, indent=2)
 
     print(f"\n{'='*90}")
-    print(f"HYDROLOGIC AUDIT: 83 PHYSICAL REACHES PROCESSED")
+    print(f"HYDROLOGIC AUDIT: {len(calibrated_features)} PHYSICAL REACHES PROCESSED")
     print(f"{'='*90}")
     print(f"Decoupled Submerged Reservoir Thalwegs: {submerged_count}")
     print(f"Total Network Features: {len(calibrated_features)}")

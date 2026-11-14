@@ -91,6 +91,7 @@ def fetch_usgs_streamflow():
         "09379500": "San Juan River near Bluff, UT",
         
         # Headwaters & West Slope Tributaries
+        "09033300": "Fraser River below Crooked Creek at Tabernash, CO",
         "09037500": "Williams Fork near Parshall, CO",
         "09041400": "Muddy Creek below Wolford Mountain Reservoir, CO",
         "09046600": "Blue River near Dillon, CO (Breckenridge Inflow)",
@@ -99,12 +100,22 @@ def fetch_usgs_streamflow():
         "09085000": "Roaring Fork River at Glenwood Springs, CO",
         "09070000": "Eagle River below Gypsum, CO",
         "09057500": "Blue River below Green Mtn Reservoir, CO",
+        "09149500": "Uncompahgre River at Delta, CO",
+        "09260000": "Little Snake River near Lily, CO",
+        "09304500": "White River near Meeker, CO",
         
         # Grand Canyon, Desert & Lower Basin Tributaries
         "09382000": "Paria River at Lees Ferry, AZ",
+        "09384000": "Little Colorado River above Lyman Lake near St. Johns, AZ",
+        "09400000": "Little Colorado River near Winslow, AZ",
         "09402000": "Little Colorado River near Cameron, AZ",
+        "09403850": "Kanab Creek above the mouth near Supai, AZ",
+        "09404115": "Havasu Creek above the mouth, near Supai, AZ",
+        "09406000": "Virgin River at Virgin, UT",
         "09415000": "Virgin River at Littlefield, AZ",
+        "09419000": "Muddy River near Glendale, NV",
         "09426000": "Bill Williams River below Alamo Dam, AZ",
+        "09471000": "San Pedro River at Charleston, AZ",
         "09474000": "Gila River at Kelvin, AZ",
         "09520500": "Gila River near Dome, AZ",
         "09498500": "Salt River near Roosevelt, AZ",

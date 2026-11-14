@@ -774,7 +774,7 @@ async function fetchLiveUSGS() {
   const timeoutId = setTimeout(() => controller.abort(), 6000);
 
   try {
-    const sites = "09034250,09058000,09070500,09085100,09095500,09163500,09180500,09380000,09402500,09404200,09429100,09429500,09211200,09217000,09234500,09261000,09307000,09315000,09260050,09306500,09302000,09128000,09152500,09180000,09355500,09364500,09365000,09368000,09379500,09085000,09070000,09057500,09382000,09402000,09415000,09426000,09474000,09520500,09498500,09511300,09527700,09379900,09422500,09427500,09010500,09046600,09050700,09080400,09114500,09166500,09169500,09188500,09209400,09251000,09272400,09421500,09423000,09427520,09502000,09506000,09510000,09342500,09037500,09041400";
+    const sites = "09034250,09058000,09070500,09085100,09095500,09163500,09180500,09380000,09402500,09404200,09429100,09429500,09211200,09217000,09234500,09261000,09307000,09315000,09260050,09306500,09302000,09128000,09152500,09180000,09355500,09364500,09365000,09368000,09379500,09085000,09070000,09057500,09382000,09402000,09415000,09426000,09474000,09520500,09498500,09511300,09527700,09379900,09422500,09427500,09010500,09046600,09050700,09080400,09114500,09166500,09169500,09188500,09209400,09251000,09272400,09421500,09423000,09427520,09502000,09506000,09510000,09342500,09037500,09041400,09033300,09149500,09260000,09304500,09314500,09328500,09333500,09337500,09384000,09400000,09403850,09404115,09406000,09419000,09471000";
     const url = `https://waterservices.usgs.gov/nwis/iv/?format=json&sites=${sites}&parameterCd=00060,62614,00054&siteStatus=all`;
     const res = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: controller.signal });
     clearTimeout(timeoutId);
@@ -809,11 +809,17 @@ async function fetchLiveUSGS() {
       "09261000": "Green River near Jensen, UT (below Yampa)",
       "09272400": "Green River at Ouray, UT",
       "09307000": "Green River near Ouray, UT",
+      "09304500": "White River near Meeker, CO",
       "09306500": "White River near Watson, UT",
       "09302000": "Duchesne River near Randlett, UT",
+      "09314500": "Price River at Woodside, UT",
       "09315000": "Green River at Green River, UT",
+      "09328500": "San Rafael River near Green River, UT",
+      "09333500": "Dirty Devil River near Hanksville, UT",
+      "09337500": "Escalante River near Escalante, UT",
       "09114500": "Gunnison River near Gunnison, CO",
       "09128000": "Gunnison River below Gunnison Tunnel, CO",
+      "09149500": "Uncompahgre River at Delta, CO",
       "09152500": "Gunnison River near Grand Junction, CO",
       "09166500": "Dolores River at Dolores, CO",
       "09169500": "Dolores River at Bedrock, CO",
@@ -825,6 +831,7 @@ async function fetchLiveUSGS() {
       "09368000": "San Juan River at Shiprock, NM",
       "09379500": "San Juan River near Bluff, UT",
       // Headwaters & West Slope Tributaries
+      "09033300": "Fraser River below Crooked Creek at Tabernash, CO",
       "09046600": "Blue River near Dillon, CO",
       "09050700": "Blue River below Dillon, CO",
       "09080400": "Fryingpan River near Ruedi, CO",
@@ -833,11 +840,19 @@ async function fetchLiveUSGS() {
       "09057500": "Blue River below Green Mtn Reservoir, CO",
       "09037500": "Williams Fork near Parshall, CO",
       "09041400": "Muddy Creek below Wolford Mountain Reservoir, CO",
+      "09260000": "Little Snake River near Lily, CO",
       // Grand Canyon, Desert & Lower Basin Tributaries
       "09382000": "Paria River at Lees Ferry, AZ",
+      "09384000": "Little Colorado River above Lyman Lake near St. Johns, AZ",
+      "09400000": "Little Colorado River near Winslow, AZ",
       "09402000": "Little Colorado River near Cameron, AZ",
+      "09403850": "Kanab Creek above mouth near Supai, AZ",
+      "09404115": "Havasu Creek above mouth near Supai, AZ",
+      "09406000": "Virgin River at Virgin, UT",
       "09415000": "Virgin River at Littlefield, AZ",
+      "09419000": "Muddy River near Glendale, NV",
       "09426000": "Bill Williams River below Alamo Dam, AZ",
+      "09471000": "San Pedro River at Charleston, AZ",
       "09474000": "Gila River at Kelvin, AZ",
       "09520500": "Gila River near Dome, AZ",
       "09498500": "Salt River near Roosevelt, AZ",
@@ -1050,6 +1065,17 @@ function applyLiveHydrology(riverNetwork, metrics) {
   const sanRafaelGage = byId["09328500"];
   const dirtyDevilGage = byId["09333500"];
   const escalanteGage = byId["09337500"];
+  const muddyRiverGage = byId["09419000"];
+  const havasuCreekGage = byId["09404115"];
+  const kanabCreekGage = byId["09403850"];
+  const littleSnakeGage = byId["09260000"];
+  const uncompahgreGage = byId["09149500"];
+  const fraserGage = byId["09033300"];
+  const sanPedroGage = byId["09471000"];
+  const lcrUpperGage = byId["09384000"];
+  const lcrMiddleGage = byId["09400000"];
+  const virginUpperGage = byId["09406000"];
+  const whiteUpperGage = byId["09304500"];
 
   // Secondary tributary fallback mapping to basin gage
   const reachGauges = {
@@ -1085,6 +1111,7 @@ function applyLiveHydrology(riverNetwork, metrics) {
     green_river: "09315000",
     yampa_upper: "09251000",
     yampa_river: "09260050",
+    white_river_upper: "09304500",
     white_river: "09306500",
     duchesne_river: "09302000",
     gunnison_headwaters: "09114500",
@@ -1110,7 +1137,11 @@ function applyLiveHydrology(riverNetwork, metrics) {
     roaring_fork_river: "09085000",
     fryingpan_river: "09080400",
     paria_river: "09382000",
+    little_colorado_upper: "09384000",
+    little_colorado_middle: "09400000",
+    little_colorado_lower: "09402000",
     little_colorado_river: "09402000",
+    virgin_river_upper: "09406000",
     virgin_river: "09415000",
     bill_williams_river: "09426000",
     salt_headwaters: "09498500",
@@ -1120,16 +1151,16 @@ function applyLiveHydrology(riverNetwork, metrics) {
     verde_river: "09510000",
     gila_river: "09474000",
     price_river: "09314500",
-    little_snake_river: "09260050",
-    uncompahgre_river: "09152500",
+    little_snake_river: "09260000",
+    uncompahgre_river: "09149500",
     san_rafael_river: "09328500",
     dirty_devil_river: "09333500",
     escalante_river: "09337500",
-    muddy_river: "09415000",
-    kanab_creek: "09380000",
-    havasu_creek: "09380000",
-    san_pedro_river: "09474000",
-    fraser_river: "09070500"
+    muddy_river: "09419000",
+    kanab_creek: "09403850",
+    havasu_creek: "09404115",
+    san_pedro_river: "09471000",
+    fraser_river: "09033300"
   };
 
   riverNetwork.features.forEach(f => {
@@ -1450,12 +1481,36 @@ function applyLiveHydrology(riverNetwork, metrics) {
       gaugeInfo = "USGS #09260050 at Deerlodge Park, CO";
       timestamp = yampa ? yampa.timestamp : null;
       gaugeId = "09260050";
+    } else if (r === "white_river_upper") {
+      flow = whiteUpperGage ? whiteUpperGage.flow_cfs : 251.0;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09304500 White River near Meeker, CO";
+      timestamp = whiteUpperGage ? whiteUpperGage.timestamp : null;
+      gaugeId = "09304500";
     } else if (r === "white_river") {
       flow = white ? white.flow_cfs : 339;
       sourceLabel = "USGS Gage";
       gaugeInfo = "USGS #09306500 near Watson, UT";
       timestamp = white ? white.timestamp : null;
       gaugeId = "09306500";
+    } else if (r === "uncompahgre_river") {
+      flow = uncompahgreGage ? uncompahgreGage.flow_cfs : 525.0;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09149500 Uncompahgre River at Delta, CO (Gunnison confluence)";
+      timestamp = uncompahgreGage ? uncompahgreGage.timestamp : null;
+      gaugeId = "09149500";
+    } else if (r === "little_snake_river") {
+      flow = littleSnakeGage ? littleSnakeGage.flow_cfs : 116.0;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09260000 Little Snake River near Lily, CO (Yampa confluence)";
+      timestamp = littleSnakeGage ? littleSnakeGage.timestamp : null;
+      gaugeId = "09260000";
+    } else if (r === "fraser_river") {
+      flow = fraserGage ? fraserGage.flow_cfs : 18.7;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09033300 Fraser River below Crooked Creek at Tabernash, CO";
+      timestamp = fraserGage ? fraserGage.timestamp : null;
+      gaugeId = "09033300";
     } else if (r === "duchesne_river") {
       flow = duchesne ? duchesne.flow_cfs : 845;
       sourceLabel = "USGS Gage";
@@ -1597,18 +1652,60 @@ function applyLiveHydrology(riverNetwork, metrics) {
       gaugeInfo = "USGS #09382000 at Lees Ferry, AZ";
       timestamp = paria ? paria.timestamp : null;
       gaugeId = "09382000";
-    } else if (r === "little_colorado_river") {
-      flow = littleColorado ? littleColorado.flow_cfs : 9020;
+    } else if (r === "little_colorado_upper") {
+      flow = lcrUpperGage ? lcrUpperGage.flow_cfs : 18.3;
       sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09402000 near Cameron, AZ";
+      gaugeInfo = "USGS #09384000 Little Colorado River above Lyman Lake near St. Johns, AZ";
+      timestamp = lcrUpperGage ? lcrUpperGage.timestamp : null;
+      gaugeId = "09384000";
+    } else if (r === "little_colorado_middle") {
+      flow = lcrMiddleGage ? lcrMiddleGage.flow_cfs : 13.0;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09400000 Little Colorado River near Winslow, AZ";
+      timestamp = lcrMiddleGage ? lcrMiddleGage.timestamp : null;
+      gaugeId = "09400000";
+    } else if (r === "little_colorado_lower" || r === "little_colorado_river") {
+      flow = littleColorado ? littleColorado.flow_cfs : 59.0;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09402000 Little Colorado River near Cameron, AZ (mouth into Marble Canyon)";
       timestamp = littleColorado ? littleColorado.timestamp : null;
       gaugeId = "09402000";
+    } else if (r === "virgin_river_upper") {
+      flow = virginUpperGage ? virginUpperGage.flow_cfs : 152.0;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09406000 Virgin River at Virgin, UT (Zion Canyon)";
+      timestamp = virginUpperGage ? virginUpperGage.timestamp : null;
+      gaugeId = "09406000";
     } else if (r === "virgin_river") {
       flow = virgin ? virgin.flow_cfs : 502;
       sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09415000 at Littlefield, AZ";
+      gaugeInfo = "USGS #09415000 Virgin River at Littlefield, AZ (Virgin River Gorge into Lake Mead)";
       timestamp = virgin ? virgin.timestamp : null;
       gaugeId = "09415000";
+    } else if (r === "muddy_river") {
+      flow = muddyRiverGage ? muddyRiverGage.flow_cfs : 43.7;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09419000 Muddy River near Glendale, NV (Lake Mead inflow)";
+      timestamp = muddyRiverGage ? muddyRiverGage.timestamp : null;
+      gaugeId = "09419000";
+    } else if (r === "kanab_creek") {
+      flow = kanabCreekGage ? kanabCreekGage.flow_cfs : 12.8;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09403850 Kanab Creek above mouth near Supai, AZ";
+      timestamp = kanabCreekGage ? kanabCreekGage.timestamp : null;
+      gaugeId = "09403850";
+    } else if (r === "havasu_creek") {
+      flow = havasuCreekGage ? havasuCreekGage.flow_cfs : 70.3;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09404115 Havasu Creek above mouth near Supai, AZ";
+      timestamp = havasuCreekGage ? havasuCreekGage.timestamp : null;
+      gaugeId = "09404115";
+    } else if (r === "san_pedro_river") {
+      flow = sanPedroGage ? sanPedroGage.flow_cfs : 7.2;
+      sourceLabel = "USGS Gage";
+      gaugeInfo = "USGS #09471000 San Pedro River at Charleston, AZ";
+      timestamp = sanPedroGage ? sanPedroGage.timestamp : null;
+      gaugeId = "09471000";
     } else if (r === "bill_williams_river") {
       flow = billWilliams ? billWilliams.flow_cfs : 17.5;
       sourceLabel = "USGS Gage";
