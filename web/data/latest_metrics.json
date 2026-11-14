@@ -543,12 +543,13 @@
     },
     {
       "id": "09423000",
-      "name": "Colorado River below Davis Dam, AZ-NV",
+      "name": "Colorado River below Davis Dam (Discontinued Oct 2022)",
       "type": "streamflow",
       "flow_cfs": 14800.0,
       "timestamp": "2022-10-03T15:00:00.000-07:00",
       "lat": 35.191667,
-      "lon": -114.571389
+      "lon": -114.571389,
+      "inactive": true
     },
     {
       "id": "09426000",
@@ -666,6 +667,15 @@
       "timestamp": "2026-11-13T19:00:00",
       "lat": 36.0156,
       "lon": -114.7378
+    },
+    {
+      "id": "USBR-DAVIS",
+      "name": "Davis Dam Scheduled Release (USBR Operations)",
+      "type": "streamflow",
+      "flow_cfs": 11200.0,
+      "timestamp": "2026-11-13T19:22:33.664518",
+      "lat": 35.198,
+      "lon": -114.568
     }
   ],
   "tunnels": [

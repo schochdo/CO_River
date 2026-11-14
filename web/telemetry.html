@@ -334,6 +334,27 @@
       const id = String(item.id || item.gauge_id || item.station_id || '');
       const name = String(item.name || '').toLowerCase();
 
+      if (id === 'USBR-DAVIS' || id === '09423000' || name.includes('davis dam')) {
+        return {
+          name: 'USBR Lower Colorado Water Operations',
+          url: 'https://www.usbr.gov/lc/region/g4000/hourly/rivops.html',
+          label: 'USBR Operations (Davis Dam) ↗'
+        };
+      }
+      if (id === 'USBR-HOOVER' || id === '09421500' || name.includes('hoover dam')) {
+        return {
+          name: 'USBR Lower Colorado Water Operations',
+          url: 'https://www.usbr.gov/lc/region/g4000/hourly/rivops.html',
+          label: 'USBR Operations (Hoover Dam) ↗'
+        };
+      }
+      if (id === 'USBR-PARKER' || id === '09427520' || name.includes('parker dam')) {
+        return {
+          name: 'USBR Lower Colorado Water Operations',
+          url: 'https://www.usbr.gov/lc/region/g4000/hourly/rivops.html',
+          label: 'USBR Operations (Parker Dam) ↗'
+        };
+      }
       if (id === '09527700' || name.includes('all-american')) {
         return {
           name: 'USGS NWIS',
@@ -470,7 +491,7 @@
           groupId = 'compact';
           groupName = '1922 Compact Divide';
           order = 10;
-        } else if (['09402000', '09415000', '09421500', '09423000', '09426000', '09427520', '09429100', '09429490', '09474000', '09520500', '09522000', '09498500', '09511300'].includes(s.id)) {
+        } else if (['09402000', '09415000', '09421500', '09423000', 'USBR-DAVIS', '09426000', '09427520', '09429100', '09429490', '09474000', '09520500', '09522000', '09498500', '09511300'].includes(s.id)) {
           groupId = 'lower_mainstem';
           groupName = 'Lower Basin Deliveries';
           order = 200 + idx;

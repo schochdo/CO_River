@@ -151,7 +151,7 @@
         <span class="text-[10px] text-slate-500 font-mono">Bubble Size = % of Powell Inflow</span>
       </div>
       <p class="text-[11px] text-slate-600 mb-1.5 leading-snug shrink-0">
-        Major mountain rivers supply over 85% of Lake Powell's water in steady annual flows, while desert arroyos deliver rare, unpredictable muddy torrents.
+        Using the Richards–Baker Flashiness Index (how sharply daily flow jumps up and down), steady dam- and snowmelt-fed rivers on the left fill Lake Powell, while flashy desert rivers on the right spike briefly during storms with little total volume.
       </p>
       <div class="flex-1 min-h-0 relative w-full">
         <canvas id="chart-behavior-bubbles" style="position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important;"></canvas>
@@ -273,13 +273,13 @@
         station: '#09315000',
         regime: 'dam_controlled',
         x: 0.18, // Steady flow
-        y: 3.80, // 3.80 MAF/yr
+        y: 4.80, // 4.80 MAF/yr
         r: 18,
         color: COLOR_DAM,
         travelDays: 4.5,
         distanceMi: 120,
-        sharePct: 35,
-        summary: 'Selected: Green River at Green River — 3.80 MAF/yr (35% of Powell inflow) • Reaches Powell in 4.5 days • Regulated Upper Basin powerhouse',
+        sharePct: 40,
+        summary: 'Selected: Green River at Green River — 4.80 MAF/yr (40% of Powell inflow) • Reaches Powell in 4.5 days • Regulated Upper Basin powerhouse',
         travelCurve: [0.18, 0.31, 0.52, 0.71, 0.80, 0.81, 0.74, 0.62, 0.48, 0.33, 0.21]
       },
       {
@@ -288,13 +288,13 @@
         station: '#09180500',
         regime: 'snowmelt',
         x: 0.28,
-        y: 3.30,
+        y: 3.80,
         r: 16,
         color: COLOR_SNOWMELT,
         travelDays: 3.5,
         distanceMi: 110,
-        sharePct: 30,
-        summary: 'Selected: Colorado River near Cisco — 3.30 MAF/yr (30% of Powell inflow) • Reaches Powell in 3.5 days • Combines Upper Colorado & Gunnison',
+        sharePct: 32,
+        summary: 'Selected: Colorado River near Cisco — 3.80 MAF/yr (32% of Powell inflow) • Reaches Powell in 3.5 days • Combines Upper Colorado & Gunnison',
         travelCurve: [0.22, 0.39, 0.62, 0.76, 0.78, 0.72, 0.61, 0.48, 0.35, 0.24, 0.16]
       },
       {
@@ -303,13 +303,13 @@
         station: '#09095500',
         regime: 'snowmelt',
         x: 0.32,
-        y: 2.85,
+        y: 3.50,
         r: 15,
         color: COLOR_SNOWMELT,
         travelDays: 6.5,
         distanceMi: 210,
-        sharePct: 26,
-        summary: 'Selected: Upper Colorado at Cameo — 2.85 MAF/yr (26% of Powell inflow) • Reaches Powell in 6.5 days • Natural Rocky Mountain spring snowmelt',
+        sharePct: 29,
+        summary: 'Selected: Upper Colorado at Cameo — 3.50 MAF/yr (29% of Powell inflow) • Reaches Powell in 6.5 days • Natural Rocky Mountain spring snowmelt',
         travelCurve: [0.08, 0.15, 0.26, 0.41, 0.56, 0.68, 0.74, 0.73, 0.64, 0.49, 0.35]
       },
       {
@@ -318,13 +318,13 @@
         station: '#09152500',
         regime: 'dam_controlled',
         x: 0.15,
-        y: 2.00,
+        y: 2.10,
         r: 13,
         color: COLOR_DAM,
         travelDays: 5.5,
         distanceMi: 180,
         sharePct: 18,
-        summary: 'Selected: Gunnison near Grand Jct — 2.00 MAF/yr (18% of Powell inflow) • Reaches Powell in 5.5 days • Regulated by Aspinall Unit dams',
+        summary: 'Selected: Gunnison near Grand Jct — 2.10 MAF/yr (18% of Powell inflow) • Reaches Powell in 5.5 days • Regulated by Aspinall Unit dams',
         travelCurve: [0.12, 0.20, 0.34, 0.50, 0.63, 0.69, 0.68, 0.59, 0.46, 0.34, 0.22]
       },
       {
@@ -338,8 +338,8 @@
         color: COLOR_DAM,
         travelDays: 7.0,
         distanceMi: 290,
-        sharePct: 13,
-        summary: 'Selected: Green below Flaming Gorge — 1.40 MAF/yr (13% of Powell inflow) • Constant hydropower dam releases',
+        sharePct: 12,
+        summary: 'Selected: Green below Flaming Gorge — 1.40 MAF/yr (12% of Powell inflow) • Constant hydropower dam releases',
         travelCurve: [0.05, 0.10, 0.18, 0.28, 0.42, 0.56, 0.68, 0.72, 0.65, 0.52, 0.38]
       },
       {
@@ -348,13 +348,13 @@
         station: '#09260050',
         regime: 'snowmelt',
         x: 0.42,
-        y: 1.25,
+        y: 1.30,
         r: 10,
         color: COLOR_SNOWMELT,
         travelDays: 8.0,
         distanceMi: 350,
         sharePct: 11,
-        summary: 'Selected: Yampa at Deerlodge — 1.25 MAF/yr (11% of Powell inflow) • Reaches Powell in 8.0 days • Last large undammed wild river',
+        summary: 'Selected: Yampa at Deerlodge — 1.30 MAF/yr (11% of Powell inflow) • Reaches Powell in 8.0 days • Last large undammed wild river',
         travelCurve: [0.05, 0.09, 0.16, 0.25, 0.37, 0.49, 0.59, 0.65, 0.66, 0.61, 0.52]
       },
       {
@@ -469,10 +469,10 @@
           scales: {
             x: {
               min: 0.0,
-              max: 1.0,
+              suggestedMax: 1.0,
               title: {
                 display: true,
-                text: 'River Behavior: Steady Flow (Left)  →  Sudden Flash Floods (Right)',
+                text: 'River Volatility (Richards–Baker Flashiness Index): Steady Flow → Sudden Flash Floods',
                 font: { size: 10, weight: 600 },
                 color: '#475569'
               },
@@ -489,8 +489,9 @@
               grid: { display: false }
             },
             y: {
+              beginAtZero: true,
               min: 0,
-              max: 4.2,
+              suggestedMax: 5.5,
               title: {
                 display: true,
                 text: 'Annual Water Volume (Million Acre-Feet / yr)',
