@@ -16703,6 +16703,41 @@
       "legal_priority": "Junior 1968 Priority (Subordinated to California 4.4 MAF)",
       "historical_note": "336-mile canal lifting water 2,900 vertical feet to Phoenix and Tucson. In exchange for federal construction authorization, Arizona accepted that CAP is legally junior to California, absorbing the first mandatory shortage cuts under Lake Mead restrictions.",
       "year": 1985
+    },
+    {
+      "id": "09522000",
+      "name": "Canal Alimentador Central (Central Feeder Canal)",
+      "length_miles": 45.0,
+      "operator": "Comisión Nacional del Agua (CONAGUA) / CILA (IBWC)",
+      "from": "Morelos Dam Diversion Works / Northerly International Boundary",
+      "to": "Mexicali Valley Irrigation District 014 (Baja California & Sonora)",
+      "destination": "Mexicali Valley Agriculture & Municipal Users (District 014)",
+      "capacity_cfs": 7500,
+      "coords": [
+        [-114.72917, 32.70556],
+        [-114.7335, 32.7032],
+        [-114.7412, 32.6985],
+        [-114.7520, 32.6918],
+        [-114.7685, 32.6812],
+        [-114.7920, 32.6668],
+        [-114.8210, 32.6495],
+        [-114.8560, 32.6280],
+        [-114.8980, 32.6025],
+        [-114.9450, 32.5740],
+        [-114.9980, 32.5420],
+        [-115.0560, 32.5110],
+        [-115.1180, 32.4820],
+        [-115.1850, 32.4540],
+        [-115.2280, 32.4410],
+        [-115.26258, 32.43592]
+      ],
+      "era": "Era 3 (1947–1953): Mexican Treaty & C-BT Era",
+      "tier": "Tier 4: International Treaty Diversion Canal (1.5 MAF/yr)",
+      "legal_priority": "1944 Mexican Water Treaty Sovereign Commitment (Guaranteed 1.5 MAF/yr)",
+      "historical_note": "Primary Mexican diversion canal distributing Colorado River water diverted at Morelos Dam across 500,000+ acres in the Mexicali and San Luis valleys. Conveyance is guaranteed under the 1944 United States–Mexico Water Treaty.",
+      "year": 1950,
+      "lat": 32.70556,
+      "lon": -114.72917
     }
   ],
   "upper_basin_outline": [

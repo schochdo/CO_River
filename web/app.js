@@ -1018,6 +1018,13 @@ function computeTunnelWeight(flowCfs) {
   return Math.min(8.0, 2.5 + Math.sqrt(flowCfs) * 0.28);
 }
 
+function computeCanalWeight(flowCfs) {
+  // Proportional square-root scaling matching our river & tunnel hydrology;
+  // 2.2px minimum keeps shut-down/maintenance canals clearly visible and clickable
+  if (!flowCfs || flowCfs <= 0) return 2.2;
+  return Math.round(Math.min(7.5, Math.max(2.2, 1.8 + Math.sqrt(flowCfs) * 0.065)) * 10) / 10;
+}
+
 // 3-Tier Hydrologic Station Telemetry Resolver
 function resolveStation(st) {
   if (!st) {
@@ -1758,11 +1765,13 @@ function applyLiveHydrology(riverNetwork, metrics) {
       const flow = isDead ? null : metric.flow_cfs;
       const status = metric?.data_status || (isDead ? 'offline' : 'live');
       const timestamp = metric?.timestamp || t.timestamp || null;
+      const weight = computeCanalWeight(flow);
       return {
         type: 'Feature',
         properties: {
           ...t,
           flow_cfs: flow,
+          weight: weight,
           data_status: status,
           status: status,
           timestamp: timestamp,
@@ -2116,6 +2125,13 @@ function getPortalInfo(item) {
       name: 'USGS National Water Information System',
       url: 'https://waterdata.usgs.gov/monitoring-location/09426650/',
       label: 'USGS NWIS #09426650'
+    };
+  }
+  if (id === '09522000' || name.includes('alimentador') || name.includes('canal central') || name.includes('morelos')) {
+    return {
+      name: 'USGS / CILA Water Data',
+      url: 'https://waterdata.usgs.gov/monitoring-location/09522000/',
+      label: 'USGS NWIS #09522000 at Northerly International Boundary'
     };
   }
 
@@ -3409,20 +3425,26 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
       map.on('click', 'tunnels-portals-layer', handleTunnelClick);
     }
 
-    // 5b. Major Conveyance Canals (All-American Canal & Colorado River Aqueduct)
+    // 5b. Major Conveyance Canals (All-American Canal, CRA, CAP & Canal Alimentador Central)
     if (!map.getSource('canals')) {
       const canalsGeoJSON = {
         type: 'FeatureCollection',
-        features: canalFeats.map(t => ({
-          type: 'Feature',
-          properties: { ...t },
-          geometry: { type: 'LineString', coordinates: t.coords }
-        }))
+        features: canalFeats.map(t => {
+          const flow = t.flow_cfs || 0;
+          return {
+            type: 'Feature',
+            properties: { 
+              ...t,
+              weight: computeCanalWeight(flow)
+            },
+            geometry: { type: 'LineString', coordinates: t.coords }
+          };
+        })
       };
 
       map.addSource('canals', { type: 'geojson', data: canalsGeoJSON });
       const showCanals = document.getElementById('toggle-canals')?.checked ?? true;
-      // Crisp, pure blue dotted line for canals (no underlying casing or shadows)
+      // Crisp, pure blue dotted line for canals (dynamic line-width scaled with flow)
       map.addLayer({
         id: 'canals-line',
         type: 'line',
@@ -3434,7 +3456,12 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
         },
         paint: {
           'line-color': '#0284c7',
-          'line-width': 3.5,
+          'line-width': [
+            'interpolate', ['linear'], ['zoom'],
+            6, ['coalesce', ['get', 'weight'], 2.8],
+            10, ['*', ['coalesce', ['get', 'weight'], 2.8], 1.25],
+            13, ['*', ['coalesce', ['get', 'weight'], 2.8], 1.6]
+          ],
           'line-dasharray': [3, 2.5],
           'line-opacity': 1.0
         }
@@ -3453,7 +3480,12 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
         },
         paint: {
           'line-color': '#00f0ff',
-          'line-width': 12,
+          'line-width': [
+            'interpolate', ['linear'], ['zoom'],
+            6, ['*', ['coalesce', ['get', 'weight'], 2.8], 2.8],
+            10, ['*', ['coalesce', ['get', 'weight'], 2.8], 3.4],
+            13, ['*', ['coalesce', ['get', 'weight'], 2.8], 4.0]
+          ],
           'line-blur': 2.0,
           'line-opacity': 0.95
         }
@@ -3470,7 +3502,12 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
         },
         paint: {
           'line-color': '#ffffff',
-          'line-width': 5,
+          'line-width': [
+            'interpolate', ['linear'], ['zoom'],
+            6, ['*', ['coalesce', ['get', 'weight'], 2.8], 1.4],
+            10, ['*', ['coalesce', ['get', 'weight'], 2.8], 1.7],
+            13, ['*', ['coalesce', ['get', 'weight'], 2.8], 2.0]
+          ],
           'line-dasharray': [3, 2.5],
           'line-opacity': 1.0
         }
@@ -3528,7 +3565,7 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
               ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
             </div>
             <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-              <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : '1,600 cfs (Whitsett Pumping Plant)')}<br>
+              <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : (t.id === "09522000" ? '7,500 cfs (Morelos Dam Headgates)' : '1,600 cfs (Whitsett Pumping Plant)'))}<br>
               <strong>Infrastructure:</strong> Major Inter-Basin Conveyance Aqueduct
             </div>
           </div>
@@ -3566,7 +3603,7 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
              </div>`
           : `<div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
                <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
-               <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} cfs ${(t.data_status === 'delayed' || t.status === 'delayed') ? '<span style="font-size:10px; color:#b45309; font-weight:700;">(Delayed)</span>' : ''}</span>
+               <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} cfs ${(t.data_status === 'delayed' || t.status === 'delayed') ? '<span style="font-size:10px; color:#b45309; font-weight:700;">(Delayed / Treaty Accounting)</span>' : ''}</span>
              </div>
              <div style="font-size:11px; color:#64748b; margin-bottom:6px;">
                <strong>Measured:</strong> ${t.timestamp ? formatTimestamp(t.timestamp) : 'Live'}
@@ -3589,7 +3626,7 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
               ${t.historical_note ? `<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-left:3px solid #0284c7;font-size:10.5px;color:#334155;line-height:1.4;">${t.historical_note}</div>` : ''}
             </div>
             <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-              <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : '1,600 cfs (Whitsett Pumping Plant)')}<br>
+              <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : (t.id === "09522000" ? '7,500 cfs (Morelos Dam Headgates)' : '1,600 cfs (Whitsett Pumping Plant)'))}<br>
               <strong>Infrastructure:</strong> Major Inter-Basin Conveyance Aqueduct
             </div>
             ${highlightBadge}
@@ -3597,11 +3634,14 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
           </div>
         `;
         const cleanCName = (t.name || '').replace(/["\\]/g, '');
-        const endpoint = `https://waterservices.usgs.gov/nwis/iv/?sites=${t.id}&parameterCd=00060&format=json`;
+        const isDvStation = t.id === "09522000" || t.id === "09426650" || t.id === "09424150";
+        const endpoint = isDvStation 
+          ? `https://waterservices.usgs.gov/nwis/dv/?sites=${t.id}&parameterCd=00060&format=json`
+          : `https://waterservices.usgs.gov/nwis/iv/?sites=${t.id}&parameterCd=00060&format=json`;
         const pyCode = `import requests
 
-# USGS Canal Telemetry Station #${t.id}
-url = "https://waterservices.usgs.gov/nwis/iv/"
+# ${t.id === "09522000" ? "USGS / CILA Border Station" : "USGS Canal Telemetry Station"} #${t.id}
+url = "${isDvStation ? "https://waterservices.usgs.gov/nwis/dv/" : "https://waterservices.usgs.gov/nwis/iv/"}"
 params = {
     "sites": "${t.id}",       # ${cleanCName}
     "parameterCd": "00060",  # Canal Flow (cfs)
@@ -3617,10 +3657,10 @@ except Exception as e:
 
         const popupHtml = formatTabbedPopup({
           dataHtml,
-          codeTitle: `USGS Canal #${t.id}`,
+          codeTitle: t.id === "09522000" ? `USGS / CILA Border Station #${t.id}` : `USGS Canal #${t.id}`,
           endpointUrl: endpoint,
           pythonCode: pyCode,
-          notes: isOffline ? "Gage discontinued by USGS NWIS in Oct 2022." : "Major conveyance canal telemetry."
+          notes: t.id === "09522000" ? "1944 Treaty international diversion telemetry at Morelos Dam." : (isOffline ? "Gage discontinued by USGS NWIS in Oct 2022." : "Major conveyance canal telemetry.")
         });
         const popup = new maplibregl.Popup({ offset: 8 }).setHTML(popupHtml);
         showFeaturePopup(popup, e.lngLat);
@@ -4308,12 +4348,15 @@ function updateSidebar(metrics) {
   const capObj = (metrics.canals || []).find(c => c.id === "09426650") || (metrics.streamflows || []).find(s => s.id === "09426650");
   const capFlow = (capObj && capObj.flow_cfs != null && capObj.data_status !== 'offline') ? capObj.flow_cfs : null;
 
+  const cacObj = (metrics.canals || []).find(c => c.id === "09522000") || (metrics.streamflows || []).find(s => s.id === "09522000");
+  const cacFlow = (cacObj && cacObj.flow_cfs != null && cacObj.data_status !== 'offline') ? cacObj.flow_cfs : null;
+
   const leesObj = (metrics.streamflows || []).find(s => s.id === "09380000");
   const leesFlow = (leesObj && leesObj.flow_cfs != null && leesObj.data_status !== 'offline') ? leesObj.flow_cfs : null;
 
   const flowChartElem = document.getElementById("flow-dest-chart");
   if (flowChartElem) {
-    const validFlows = [tunnelsExport, aacFlow, craFlow, capFlow, leesFlow].filter(v => v != null && v > 0);
+    const validFlows = [tunnelsExport, aacFlow, craFlow, capFlow, cacFlow, leesFlow].filter(v => v != null && v > 0);
     const maxFlow = Math.max(...validFlows, 1000);
     const makeBar = (name, flow, color, label1, label2, center, zoomLevel, meta, conduitType, conduitId, statusLabel = null) => {
       const isOffline = flow == null;
@@ -4339,7 +4382,8 @@ function updateSidebar(metrics) {
     flowChartElem.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
         ${makeBar("Lees Ferry", leesFlow, "var(--color-primary)", "Upper \u2192 Lower Basin", "", [-111.587, 36.865], 9.5, { id: "09380000", name: "Lees Ferry" }, 'reach', 'lees_ferry')}
-        ${makeBar("All-American Canal", aacFlow, "var(--color-emerald)", "Ag Export", "", [-114.467, 32.883], 9, { id: "09527700", name: "All-American Canal" }, 'canal', '09527700')}
+        ${makeBar("All-American Canal", aacFlow, "var(--color-emerald)", "Imperial Valley Ag", "", [-114.467, 32.883], 9, { id: "09527700", name: "All-American Canal" }, 'canal', '09527700')}
+        ${makeBar("Canal Alimentador Central", cacFlow, "var(--color-emerald)", "1944 Treaty (Mexico)", "", [-114.729, 32.705], 9, { id: "09522000", name: "Canal Alimentador Central" }, 'canal', '09522000', cacObj?.data_status === 'delayed' ? 'Delayed' : null)}
         ${makeBar("Central AZ Project", capFlow, "var(--color-emerald)", "AZ Municipal/Ag", "", [-114.111, 34.289], 9, { id: "09426650", name: "Central Arizona Project" }, 'canal', '09426650', capObj?.data_status === 'delayed' ? 'Delayed' : null)}
         ${makeBar("CO River Aqueduct", craFlow, "var(--color-emerald)", "Urban Export", "", [-114.162, 34.314], 9, { id: "09424150", name: "Colorado River Aqueduct" }, 'canal', '09424150')}
         ${makeBar("Front Range Tunnels", tunnelsExport, "var(--color-primary)", "Divide Export", "", [-105.7, 39.8], 8.5, { id: "ROBTUNCO", name: "Front Range Tunnels" }, 'tunnel', 'ROBTUNCO')}
@@ -4749,30 +4793,42 @@ function findMatchingLakeGNIS(cleanName) {
 }
 
 function formatCanalPopupHtml(t) {
+  const isOffline = t.data_status === 'offline' || t.status === 'offline' || t.flow_cfs == null;
   const flowVal = Number(t.flow_cfs || 0);
   const portal = getPortalInfo(t);
   const highlightBadge = `<div style="font-size:9.5px; font-weight:700; color:#0e7490; background:#cffafe; border:1px solid #a5f3fc; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px; margin-top:5px;">
     <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#06b6d4;"></span>
     Segment Isolated &amp; Highlighted
   </div>`;
+  const isDelayed = t.data_status === 'delayed' || t.status === 'delayed';
   const dataHtml = `
     <div style="padding: 2px;">
       <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
       <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
       <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
-      ${flowVal > 0 ? `
-      <div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-        <span style="font-size:11px; color:#475569; font-weight:600;">Estimated Flow:</span>
-        <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} cfs</span>
-      </div>` : ''}
+      ${isOffline 
+        ? `<div style="margin: 8px 0; padding: 6px 10px; background:#fef2f2; border-radius:6px; border:1px solid #fecaca; display:flex; justify-content:space-between; align-items:baseline;">
+             <span style="font-size:11px; color:#991b1b; font-weight:600;">Status:</span>
+             <span style="font-size:12px; font-weight:700; color:#dc2626;">Offline (Gage Discontinued)</span>
+           </div>`
+        : `<div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+             <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
+             <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} cfs ${isDelayed ? '<span style="font-size:10px; color:#b45309; font-weight:700;">(Delayed / Treaty Accounting)</span>' : ''}</span>
+           </div>
+           <div style="font-size:11px; color:#64748b; margin-bottom:6px;">
+             <strong>Measured:</strong> ${t.timestamp ? formatTimestamp(t.timestamp) : 'Live'}
+           </div>`
+      }
       <div style="font-size:11px;line-height:1.45;color:#334155;margin-top:6px;">
         <strong>Destination:</strong> ${t.destination || t.to}<br>
         <strong>Length:</strong> ${t.length_miles} miles<br>
         <strong>Intake:</strong> ${t.from}<br>
-        <strong>Terminus:</strong> ${t.to}
+        <strong>Terminus:</strong> ${t.to}<br>
+        ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
+        ${t.historical_note ? `<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-left:3px solid #0284c7;font-size:10.5px;color:#334155;line-height:1.4;">${t.historical_note}</div>` : ''}
       </div>
       <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-        <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : '1,600 cfs (Whitsett Pumping Plant)')}<br>
+        <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : (t.id === "09522000" ? '7,500 cfs (Morelos Dam Headgates)' : '1,600 cfs (Whitsett Pumping Plant)'))}<br>
         <strong>Infrastructure:</strong> Major Inter-Basin Conveyance Aqueduct
       </div>
       ${highlightBadge}
@@ -4780,27 +4836,33 @@ function formatCanalPopupHtml(t) {
     </div>
   `;
   const cleanCName = (t.name || '').replace(/["\\]/g, '');
-  const endpoint = `https://waterservices.usgs.gov/nwis/iv/?sites=${t.id}&parameterCd=00060&format=json`;
+  const isDvStation = t.id === "09522000" || t.id === "09426650" || t.id === "09424150";
+  const endpoint = isDvStation 
+    ? `https://waterservices.usgs.gov/nwis/dv/?sites=${t.id}&parameterCd=00060&format=json`
+    : `https://waterservices.usgs.gov/nwis/iv/?sites=${t.id}&parameterCd=00060&format=json`;
   const pyCode = `import requests
 
-# USGS Canal Telemetry Station #${t.id}
-url = "https://waterservices.usgs.gov/nwis/iv/"
+# ${t.id === "09522000" ? "USGS / CILA Border Station" : "USGS Canal Telemetry Station"} #${t.id}
+url = "${isDvStation ? "https://waterservices.usgs.gov/nwis/dv/" : "https://waterservices.usgs.gov/nwis/iv/"}"
 params = {
     "sites": "${t.id}",       # ${cleanCName}
     "parameterCd": "00060",  # Canal Flow (cfs)
     "format": "json"
 }
 res = requests.get(url, params=params, timeout=10).json()
-val = res["value"]["timeSeries"][0]["values"][0]["value"][-1]
-flow_cfs = float(val["value"])
-print(f"${cleanCName}: {flow_cfs:,.0f} cfs")`;
+try:
+    val = res["value"]["timeSeries"][0]["values"][0]["value"][-1]
+    flow_cfs = float(val["value"])
+    print(f"${cleanCName}: {flow_cfs:,.0f} cfs at {val['dateTime']}")
+except Exception as e:
+    print(f"${cleanCName}: Telemetry offline or inactive ({e})")`;
 
   return formatTabbedPopup({
     dataHtml,
-    codeTitle: `USGS Canal #${t.id}`,
+    codeTitle: t.id === "09522000" ? `USGS / CILA Border Station #${t.id}` : `USGS Canal #${t.id}`,
     endpointUrl: endpoint,
     pythonCode: pyCode,
-    notes: "Major conveyance canal telemetry."
+    notes: t.id === "09522000" ? "1944 Treaty international diversion telemetry at Morelos Dam." : (isOffline ? "Gage discontinued by USGS NWIS in Oct 2022." : "Major conveyance canal telemetry.")
   });
 }
 

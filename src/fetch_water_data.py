@@ -332,10 +332,12 @@ def fetch_usgs_daily():
     Strictly parses real observation timestamps and assigns scientifically defensible status:
       - 09424150 (Colorado River Aqueduct): Discontinued Sep 2022 -> offline, flow_cfs = None
       - 09426650 (Central Arizona Project): Published monthly -> delayed telemetry with true date
+      - 09522000 (Canal Alimentador Central at Morelos Dam): International treaty accounting -> delayed telemetry
     """
     sites = {
         "09424150": "Colorado River Aqueduct near Parker Dam",
-        "09426650": "Central Arizona Project Canal at Havasu Pumping Plant"
+        "09426650": "Central Arizona Project Canal at Havasu Pumping Plant",
+        "09522000": "Canal Alimentador Central (Central Feeder Canal at Morelos Dam)"
     }
     site_ids = ",".join(sites.keys())
     url = f"https://waterservices.usgs.gov/nwis/dv/?format=json&sites={site_ids}&parameterCd=00060&siteStatus=all"
@@ -360,15 +362,29 @@ def fetch_usgs_daily():
                         dt = latest["dateTime"]
                         age_hours, status = compute_age_and_status(dt)
                         
-                        # Tier 3: If age > 14 days, flow is offline / unmonitored (Never invent fake numbers)
+                        # Treaty / Monthly regulatory accounting allowance for active international border deliveries
+                        if code in ["09426650", "09522000"] and age_hours <= 1440.0: # within 60-day monthly reporting cycle
+                            status = "delayed"
+                        
                         flow = val if status != "offline" else None
-                        dest = "Phoenix & Tucson / Central Arizona" if code == "09426650" else "Los Angeles / Southern California"
+                        
+                        if code == "09426650":
+                            dest = "Phoenix & Tucson / Central Arizona"
+                            c_name = "Central Arizona Project (CAP Aqueduct)"
+                        elif code == "09522000":
+                            dest = "Mexicali Valley Agriculture & Municipal Users (District 014)"
+                            c_name = "Canal Alimentador Central (Central Feeder Canal)"
+                            lat, lon = 32.7056, -114.7292  # Morelos Dam intake coordinates
+                        else:
+                            dest = "Los Angeles / Southern California"
+                            c_name = "Colorado River Aqueduct"
+
                         results.append({
                             "id": code,
-                            "name": name,
+                            "name": c_name,
                             "type": "diversion_canal",
                             "destination": dest,
-                            "provider": "USGS",
+                            "provider": "USGS / CILA" if code == "09522000" else "USGS",
                             "flow_cfs": flow,
                             "timestamp": dt,
                             "age_hours": age_hours,
@@ -1020,7 +1036,7 @@ def validate_hydrology(streamflows, dam_releases, canals, tunnels, river_network
         ("lower_basin_parker_paloverde", "USBR_PARKER", "Colorado River below Parker Dam", "Parker Dam", ["09426000"], ["09426650", "09424150"]),
         ("lower_basin_paloverde_imperial", "09429100", "Colorado River below Palo Verde Dam", "Palo Verde Dam", [], []),
         ("lower_basin_imperial_tailrace", "09429500", "Colorado River below Imperial Dam", "Imperial Dam", [], ["09527700"]),
-        ("lower_basin_taper", "09429500", "Colorado River below Imperial to Mexico", "Morelos Dam", ["09520500"], [])
+        ("lower_basin_taper", "09429500", "Colorado River below Imperial to Mexico", "Morelos Dam", ["09520500"], ["09522000"])
     ]
 
     prev_flow = None
@@ -1129,6 +1145,13 @@ def validate_hydrology(streamflows, dam_releases, canals, tunnels, river_network
             "aac_diversion_09527700_cfs": aac_flow,
             "tailrace_09429500_cfs": imp_tail_flow,
             "continuity_check": "PASS" if pv_flow >= (aac_flow + imp_tail_flow) else "OVER_ALLOCATED"
+        },
+        "morelos_dam": {
+            "intake_canal": "Canal Alimentador Central",
+            "usgs_station": "09522000 (Colorado River at NIB above Morelos Dam)",
+            "treaty_delivery_cfs": by_id.get("09522000", {}).get("flow_cfs"),
+            "data_status": by_id.get("09522000", {}).get("data_status"),
+            "validation": "PASS" if by_id.get("09522000", {}).get("flow_cfs") else "DELAYED"
         }
     }
 

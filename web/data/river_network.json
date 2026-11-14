@@ -32429,7 +32429,7 @@
         "flow_cfs": 167.0,
         "weight": 4.4,
         "gauge_id": "09429500",
-        "notes": "Final U.S. reach flowing past Yuma to Northerly International Boundary and Morelos Dam."
+        "notes": "Final U.S. reach flowing past Yuma to Northerly International Boundary and Morelos Dam, where Mexico diverts its 1.5 MAF/yr treaty allocation into the Canal Alimentador Central."
       },
       "geometry": {
         "type": "MultiLineString",
