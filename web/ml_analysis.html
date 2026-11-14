@@ -329,7 +329,147 @@
 
         <!-- Compact 2-line bottom caption -->
         <div class="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-600 leading-normal">
-          <strong class="text-slate-900">Physical Reality:</strong> Volume equals the time-integral of discharge ($V = \int Q \, dt$). The spring snowmelt delivers <strong>67× more water</strong> than a fierce desert cloudburst. Only winter snowpack can replenish Lake Powell.
+          <strong class="text-slate-900">Physical Reality:</strong> Volume equals the time-integral of discharge (<em>V</em> = &int; <em>Q</em> <em>dt</em>). The spring snowmelt delivers <strong>67× more water</strong> than a fierce desert cloudburst. Only winter snowpack can replenish Lake Powell.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- SECTION DIVIDER: PART 2 FULL-SYSTEM ACCOUNTING & SEASONAL REGIMES -->
+    <!-- ============================================================== -->
+    <div class="mt-4 pt-4 border-t-2 border-slate-300 flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <div class="text-[10px] font-black uppercase tracking-widest text-indigo-700">Part 2: Full-System Accounting &amp; Seasonal Regimes</div>
+        <h2 class="text-sm sm:text-base font-black text-slate-900 tracking-tight leading-tight">
+          100-Year Compact Reality &amp; Full-System Seasonal Behavior (1922–2026)
+        </h2>
+        <p class="text-xs text-slate-600 mt-0.5 font-medium">
+          Empirical exceedance of the 16.5 MAF paper allocation, 365-day seasonal regime heartbeats, and spring refill surplus vs. structural deficit.
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="data/charts/compact_accounting_100yr.png" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition" title="View High-Res Matplotlib Export">
+          <span>📊 100-Yr Chart PNG ↗</span>
+        </a>
+        <a href="data/charts/seasonal_system_2x2_grid.png" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition" title="View 2x2 Grid PNG">
+          <span>📈 2x2 Grid PNG ↗</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- 2x2 Grid for Part 2 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1">
+
+      <!-- ============================================================== -->
+      <!-- PANEL 5: 100-YEAR WET WATER VS. PAPER WATER (1922–2026)         -->
+      <!-- ============================================================== -->
+      <div class="card-academic rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+            <div>
+              <span class="text-[10px] font-bold text-indigo-800 uppercase tracking-wider">100-Year Historical Accounting (1922–2026)</span>
+              <h3 class="text-sm sm:text-base font-black text-slate-900 leading-tight">
+                5. Wet Water vs. Paper Water: Reconstructed Supply vs. 16.5 MAF
+              </h3>
+            </div>
+            <span class="text-[11px] mono bg-indigo-100 text-indigo-900 border border-indigo-300 px-2 py-0.5 rounded font-bold">
+              USGS NWIS (1922–2026)
+            </span>
+          </div>
+          <p class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">
+            Reconstructed annual basin supply (<em>Q</em><sub>Cisco</sub> + <em>Q</em><sub>Green</sub> + <em>Q</em><sub>Bluff</sub> + Depletions) plotted against the 16.5 MAF/yr Compact + 1944 Treaty paper water allocation.
+          </p>
+        </div>
+
+        <!-- 100-Year Bar & Line Chart -->
+        <div class="relative w-full h-64 sm:h-72 my-3">
+          <canvas id="chart-compact-100yr"></canvas>
+        </div>
+
+        <!-- Empirical Exceedance Probability Cards -->
+        <div class="grid grid-cols-2 gap-2 text-[11px]">
+          <div class="p-2.5 rounded bg-blue-50 border border-blue-200">
+            <div class="font-bold text-blue-950 flex items-center justify-between">
+              <span>100-Year Exceedance (1922–2026)</span>
+              <span class="font-mono text-blue-700 font-black text-sm">25.7%</span>
+            </div>
+            <div class="text-[9.5px] text-slate-600 mt-0.5">
+              Natural supply met or exceeded the 16.5 MAF paper allocation in only <strong>27 out of 105 years</strong> (~1 in 4).
+            </div>
+          </div>
+          <div class="p-2.5 rounded bg-rose-50 border border-rose-200">
+            <div class="font-bold text-rose-950 flex items-center justify-between">
+              <span>21st-Century Exceedance (2000–2026)</span>
+              <span class="font-mono text-rose-700 font-black text-sm">3.7%</span>
+            </div>
+            <div class="text-[9.5px] text-slate-600 mt-0.5">
+              Only <strong>1 single year (2011)</strong> in the last 27 years yielded &ge; 16.5 MAF. 96.3% of 21st-century years have been in physical deficit.
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-600 leading-normal">
+          <strong class="text-slate-900">Compact Flaw:</strong> The 1922 delegates allocated 16.5 MAF based on an abnormally wet decade (1905–1920 avg ~18 MAF). In reality, post-1963 Glen Canyon Dam releases have flatlined at the ~8.23 MAF/yr compact delivery minimum.
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
+      <!-- PANEL 6: 365-DAY SEASONAL HEARTBEATS & SUPPLY-DEMAND MISMATCH  -->
+      <!-- ============================================================== -->
+      <div class="card-academic rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+            <div>
+              <span class="text-[10px] font-bold text-teal-800 uppercase tracking-wider">365-Day Climatology (Jan 1 &rarr; Dec 31)</span>
+              <h3 class="text-sm sm:text-base font-black text-slate-900 leading-tight">
+                6. Full-System Seasonal Heartbeats &amp; Supply-Demand Mismatch
+              </h3>
+            </div>
+            <div class="flex items-center gap-1 bg-slate-200 p-0.5 rounded text-[10px] font-bold">
+              <button id="btn-tab-regimes" onclick="switchSeasonalTab('regimes')" class="px-2 py-0.5 rounded bg-white text-slate-800 shadow-xs">5 Regimes</button>
+              <button id="btn-tab-mismatch" onclick="switchSeasonalTab('mismatch')" class="px-2 py-0.5 rounded text-slate-600 hover:text-slate-900">Supply vs Demand</button>
+            </div>
+          </div>
+          <p id="seasonal-desc" class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">
+            Normalized Day-of-Year hydrographs demonstrating the staggered arrival of Alpine Snowmelt, Front Range Trans-Mountain Tunnels, Monsoon Floods, Dam Releases, and Canal Demands.
+          </p>
+        </div>
+
+        <!-- Dynamic Chart Container -->
+        <div class="relative w-full h-64 sm:h-72 my-3">
+          <div id="container-regimes" class="w-full h-full">
+            <canvas id="chart-seasonal-heartbeats"></canvas>
+          </div>
+          <div id="container-mismatch" class="w-full h-full hidden">
+            <canvas id="chart-supply-demand"></canvas>
+          </div>
+        </div>
+
+        <!-- Summary Stat Cards -->
+        <div class="grid grid-cols-2 gap-2 text-[11px]">
+          <div class="p-2.5 rounded bg-emerald-50 border border-emerald-200">
+            <div class="font-bold text-emerald-950 flex items-center justify-between">
+              <span>Spring Refill Window</span>
+              <span class="font-mono text-emerald-700 font-bold">~96 Days</span>
+            </div>
+            <div class="text-[9.5px] text-slate-600 mt-0.5">
+              May 1 – Aug 5: Snowmelt inflows (up to 48,000 cfs) exceed steady ~15,000 cfs system demand, creating a brief annual refill surplus.
+            </div>
+          </div>
+          <div class="p-2.5 rounded bg-amber-50 border border-amber-200">
+            <div class="font-bold text-amber-950 flex items-center justify-between">
+              <span>Structural Deficit Period</span>
+              <span class="font-mono text-amber-700 font-bold">~269 Days</span>
+            </div>
+            <div class="text-[9.5px] text-slate-600 mt-0.5">
+              Aug 6 – Apr 30: Natural baseflow drops to 4,000–8,000 cfs while municipal and agricultural straws draft continuously, draining reservoir storage.
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-600 leading-normal">
+          <strong class="text-slate-900">Temporal Decoupling:</strong> Nature supplies 70% of basin water in a 90-day spring snowmelt window. Civilization consumes it across 365 days. Without multi-year escrow banking in Mead and Powell, the entire Lower Basin would run dry by August.
         </div>
       </div>
 
@@ -656,6 +796,319 @@
         }
       }
     });
+
+    // ================================================================
+    // PART 2 CHARTS: 100-YEAR COMPACT & SEASONAL REGIMES
+    // ================================================================
+    let seasonalData = null;
+    let chartCompact = null;
+    let chartHeartbeats = null;
+    let chartSupplyDemand = null;
+
+    function switchSeasonalTab(tab) {
+      const btnRegimes = document.getElementById('btn-tab-regimes');
+      const btnMismatch = document.getElementById('btn-tab-mismatch');
+      const cRegimes = document.getElementById('container-regimes');
+      const cMismatch = document.getElementById('container-mismatch');
+      const desc = document.getElementById('seasonal-desc');
+
+      if (tab === 'regimes') {
+        btnRegimes.className = 'px-2 py-0.5 rounded bg-white text-slate-800 shadow-xs';
+        btnMismatch.className = 'px-2 py-0.5 rounded text-slate-600 hover:text-slate-900';
+        cRegimes.classList.remove('hidden');
+        cMismatch.classList.add('hidden');
+        desc.textContent = 'Normalized Day-of-Year hydrographs demonstrating the staggered arrival of Alpine Snowmelt, Front Range Trans-Mountain Tunnels, Monsoon Floods, Dam Releases, and Canal Demands.';
+      } else {
+        btnMismatch.className = 'px-2 py-0.5 rounded bg-white text-slate-800 shadow-xs';
+        btnRegimes.className = 'px-2 py-0.5 rounded text-slate-600 hover:text-slate-900';
+        cMismatch.classList.remove('hidden');
+        cRegimes.classList.add('hidden');
+        desc.textContent = 'Supply vs. Demand Mismatch: Overlapping natural May–July snowmelt inflows against year-round municipal/ag consumption, showing the ~96-day refill window vs. 269-day structural deficit.';
+      }
+    }
+
+    async function initPart2Charts() {
+      try {
+        const resp = await fetch('data/seasonal_regimes.json');
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        seasonalData = await resp.json();
+      } catch (err) {
+        console.warn('Could not load data/seasonal_regimes.json directly, attempting fallback path:', err);
+        try {
+          const resp2 = await fetch('./data/seasonal_regimes.json');
+          if (resp2.ok) seasonalData = await resp2.json();
+        } catch (e2) {
+          console.error('Failed to load seasonal data:', e2);
+        }
+      }
+
+      if (!seasonalData) return;
+
+      // 1. Chart Compact 100-Year
+      const comp = seasonalData.compact_accounting_100yr;
+      const ts = comp.annual_time_series;
+      const labels = ts.map(d => d.wy);
+      const supplyVals = ts.map(d => d.supply_maf);
+      const releaseVals = ts.map(d => d.lees_ferry_release_maf);
+      const bgColors = ts.map(d => d.meets_compact ? 'rgba(2, 132, 199, 0.85)' : 'rgba(225, 29, 72, 0.85)');
+
+      const ctxCompact = document.getElementById('chart-compact-100yr').getContext('2d');
+      chartCompact = new Chart(ctxCompact, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Reconstructed Upper Basin Supply (MAF)',
+              data: supplyVals,
+              backgroundColor: bgColors,
+              borderRadius: 1.5,
+              barPercentage: 0.85,
+              order: 2
+            },
+            {
+              type: 'line',
+              label: 'Lees Ferry Actual Release (MAF)',
+              data: releaseVals,
+              borderColor: '#0f172a',
+              borderWidth: 1.8,
+              pointRadius: 0,
+              tension: 0.1,
+              order: 1
+            },
+            {
+              type: 'line',
+              label: '16.5 MAF Paper Allocation (Compact + 1944 Treaty)',
+              data: labels.map(() => 16.5),
+              borderColor: '#dc2626',
+              borderWidth: 2,
+              borderDash: [6, 4],
+              pointRadius: 0,
+              fill: false,
+              order: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { boxWidth: 12, font: { size: 9 }, color: '#334155' }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => {
+                  if (ctx.dataset.type === 'bar') {
+                    const item = ts[ctx.dataIndex];
+                    return `Water Year ${item.wy}: Supply ${item.supply_maf.toFixed(2)} MAF (${item.meets_compact ? 'Meets' : 'Below'} 16.5 MAF Paper Target)`;
+                  }
+                  return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} MAF`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                callback: (val, idx) => {
+                  const y = labels[idx];
+                  return (y % 10 === 0 || y === 1922 || y === 2026) ? y : '';
+                },
+                font: { size: 9.5 },
+                color: '#64748b'
+              },
+              grid: { display: false }
+            },
+            y: {
+              min: 0,
+              max: 26,
+              title: { display: true, text: 'Annual Volume (MAF/yr)', font: { size: 9.5, weight: 600 }, color: '#475569' },
+              ticks: {
+                callback: (v) => `${v} MAF`,
+                font: { size: 9.5 },
+                color: '#64748b'
+              },
+              grid: { color: '#f1f5f9' }
+            }
+          }
+        }
+      });
+
+      // 2. Chart Seasonal Heartbeats (5 Regimes)
+      const sh = seasonalData.seasonal_heartbeats;
+      const doys = sh.doy;
+      const monthTicks = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+      const ctxHeartbeats = document.getElementById('chart-seasonal-heartbeats').getContext('2d');
+      chartHeartbeats = new Chart(ctxHeartbeats, {
+        type: 'line',
+        data: {
+          labels: doys,
+          datasets: [
+            {
+              label: 'Alpine Snowmelt (Cameo / Yampa)',
+              data: sh.regimes.alpine_snowmelt,
+              borderColor: '#0284c7',
+              borderWidth: 2.2,
+              pointRadius: 0,
+              tension: 0.3
+            },
+            {
+              label: 'Front Range Tunnels (Adams / Moffat / Roberts)',
+              data: sh.regimes.front_range_tunnels,
+              borderColor: '#0d9488',
+              borderWidth: 1.8,
+              pointRadius: 0,
+              tension: 0.3
+            },
+            {
+              label: 'Monsoon Tributaries (San Juan / Little CO)',
+              data: sh.regimes.monsoon_tributaries,
+              borderColor: '#e11d48',
+              borderWidth: 1.8,
+              pointRadius: 0,
+              tension: 0.3
+            },
+            {
+              label: 'Regulated Dam Releases (Lees Ferry)',
+              data: sh.regimes.regulated_dam_releases,
+              borderColor: '#475569',
+              borderWidth: 1.8,
+              borderDash: [4, 3],
+              pointRadius: 0,
+              tension: 0.2
+            },
+            {
+              label: 'Lower Basin Canals (All-American / CAP / CRA)',
+              data: sh.regimes.lower_basin_canals,
+              borderColor: '#d97706',
+              borderWidth: 1.8,
+              pointRadius: 0,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { boxWidth: 12, font: { size: 9 }, color: '#334155' }
+            },
+            tooltip: {
+              callbacks: {
+                title: (items) => `Day of Year: ${items[0].label}`,
+                label: (ctx) => `${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(0)}% of annual peak`
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                callback: (val, idx) => {
+                  const mIdx = monthTicks.indexOf(idx + 1);
+                  return mIdx !== -1 ? monthNames[mIdx] : '';
+                },
+                font: { size: 9.5 },
+                color: '#64748b'
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            y: {
+              min: 0,
+              max: 1.05,
+              title: { display: true, text: 'Normalized Flow Index (0.0 to 1.0)', font: { size: 9.5, weight: 600 }, color: '#475569' },
+              ticks: {
+                callback: (v) => `${(v * 100).toFixed(0)}%`,
+                font: { size: 9.5 },
+                color: '#64748b'
+              },
+              grid: { color: '#f1f5f9' }
+            }
+          }
+        }
+      });
+
+      // 3. Chart Supply vs Demand Mismatch
+      const sdm = seasonalData.supply_demand_mismatch;
+      const ctxMismatch = document.getElementById('chart-supply-demand').getContext('2d');
+      chartSupplyDemand = new Chart(ctxMismatch, {
+        type: 'line',
+        data: {
+          labels: sdm.doy,
+          datasets: [
+            {
+              label: 'Upper Basin Inflow Supply (cfs)',
+              data: sdm.supply_cfs,
+              borderColor: '#0284c7',
+              backgroundColor: 'rgba(2, 132, 199, 0.15)',
+              fill: true,
+              borderWidth: 2.2,
+              pointRadius: 0,
+              tension: 0.3
+            },
+            {
+              label: 'Downstream Draft & Demand (cfs)',
+              data: sdm.demand_cfs,
+              borderColor: '#dc2626',
+              borderWidth: 2,
+              borderDash: [5, 4],
+              pointRadius: 0,
+              fill: false,
+              tension: 0.2
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: { boxWidth: 12, font: { size: 9 }, color: '#334155' }
+            },
+            tooltip: {
+              callbacks: {
+                title: (items) => `Day of Year: ${items[0].label}`,
+                label: (ctx) => `${ctx.dataset.label}: ${Math.round(ctx.parsed.y).toLocaleString()} cfs`
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: {
+                callback: (val, idx) => {
+                  const mIdx = monthTicks.indexOf(idx + 1);
+                  return mIdx !== -1 ? monthNames[mIdx] : '';
+                },
+                font: { size: 9.5 },
+                color: '#64748b'
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            y: {
+              min: 0,
+              max: 52000,
+              title: { display: true, text: 'Discharge Q (cfs)', font: { size: 9.5, weight: 600 }, color: '#475569' },
+              ticks: {
+                callback: (v) => `${(v / 1000).toFixed(0)}k cfs`,
+                font: { size: 9.5 },
+                color: '#64748b'
+              },
+              grid: { color: '#f1f5f9' }
+            }
+          }
+        }
+      });
+    }
+
+    // Initialize Part 2 Charts
+    initPart2Charts();
   </script>
 </body>
 </html>

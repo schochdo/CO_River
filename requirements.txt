@@ -16,3 +16,6 @@ geopandas>=0.14.0
 # Interactive Analysis & Visualization
 jupyter>=1.0.0
 matplotlib>=3.7.0
+seaborn>=0.13.0
+scikit-learn>=1.3.0
+dataretrieval>=1.0.0

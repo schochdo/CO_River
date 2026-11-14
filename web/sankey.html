@@ -217,32 +217,32 @@
 
       const nodes = [
         // --- Tier 1: Inflow Sources & Storage Deficit ---
-        { name: "Upper Colorado Mainstem", category: "inflow", desc: "Alpine snowpack originating in the Colorado Rockies" },
-        { name: "Green River Basin", category: "inflow", desc: "Wind River & Uinta snowpack across WY, UT, and CO" },
-        { name: "San Juan River Basin", category: "inflow", desc: "Alpine snowmelt from the San Juan Mountains in CO and NM" },
-        { name: "Reservoir Storage Deficit (Mined Water)", category: "deficit", desc: "Annual net drawdown of Lake Mead & Lake Powell storage" },
+        { name: "Upper Colorado Mainstem", category: "inflow", desc: "Alpine snowpack originating in the Colorado Rockies", tier: "Tier 1: Basin Headwaters (50% Upper Inflow)", era: "Natural Hydrologic Regime", legal_priority: "Originating Source Waters" },
+        { name: "Green River Basin", category: "inflow", desc: "Wind River & Uinta snowpack across WY, UT, and CO", tier: "Tier 1: Largest Tributary Basin (34% Upper Inflow)", era: "Natural Hydrologic Regime", legal_priority: "Originating Source Waters" },
+        { name: "San Juan River Basin", category: "inflow", desc: "Alpine snowmelt from the San Juan Mountains in CO and NM", tier: "Tier 1: Monsoon & Alpine Basin (16% Upper Inflow)", era: "Natural Hydrologic Regime", legal_priority: "Originating Source Waters" },
+        { name: "Reservoir Storage Deficit (Mined Water)", category: "deficit", desc: "Annual net drawdown of Lake Mead & Lake Powell storage", tier: "System-Wide Storage Depletion", era: "21st-Century Structural Deficit Era (2000–Present)", legal_priority: "Overdraft bridging ~1.2–2.0 MAF/yr structural gap" },
 
         // --- Tier 2: 1922 Compact Divisions ---
-        { name: "Upper Basin Allocations", category: "inflow", desc: "Water diverted in CO, WY, UT, NM before reaching Lees Ferry" },
-        { name: "Lees Ferry Compact Delivery", category: "inflow", desc: "Glen Canyon Dam release mandated for Lower Basin" },
-        { name: "Lower Basin Storage Drawdown", category: "deficit", desc: "Water drafted from storage beyond Lees Ferry delivery" },
+        { name: "Upper Basin Allocations", category: "inflow", desc: "Water diverted in CO, WY, UT, NM before reaching Lees Ferry", tier: "Upper Basin Percentage Division (CO 51.75%, UT 23%, WY 14%, NM 11.25%)", era: "1948 Upper Colorado River Basin Compact", legal_priority: "Upper Basin Compact Entitlements (~4.5 MAF/yr actual)" },
+        { name: "Lees Ferry Compact Delivery", category: "inflow", desc: "Glen Canyon Dam release mandated for Lower Basin", tier: "Tier 1: Upper Basin Escrow Bank (Lake Powell 24.32 MAF)", era: "Era 4 (1962–1972): CRSP Act / Glen Canyon Dam (1963)", legal_priority: "Article III(d) 1922 Compact 75 MAF / 10-Year Rolling Mandate" },
+        { name: "Lower Basin Storage Drawdown", category: "deficit", desc: "Water drafted from storage beyond Lees Ferry delivery", tier: "Tier 1: Lower Basin Reservoir Depletion", era: "Structural Overdraft Period", legal_priority: "Consumptive demand exceeding compact physical yield" },
 
         // --- Tier 3: Regional Conveyance & Mainstem Hubs ---
-        { name: "Western Slope In-Basin Canals", category: "ag", desc: "Direct gravity irrigation canals across the Western Slope" },
-        { name: "Trans-Mountain Tunnels", category: "municipal", desc: "Adams, Roberts, Moffat, and Boustead tunnels exporting to Front Range" },
-        { name: "Lake Mead & Lower Mainstem Hub", category: "inflow", desc: "Lake Mead storage pool, Hoover Dam releases, & regulatory dams" },
+        { name: "Western Slope In-Basin Canals", category: "ag", desc: "Direct gravity irrigation canals across the Western Slope", tier: "Tier 3: Direct Gravity In-Basin Diversions", era: "Era 1 (1901–1915): Pre-Compact Ag & Salton Sea Trigger", legal_priority: "Senior 1901–1915 Present Perfected In-Basin Rights" },
+        { name: "Trans-Mountain Tunnels", category: "municipal", desc: "Adams, Roberts, Moffat, and Boustead tunnels exporting to Front Range", tier: "Tier 3: Trans-Mountain Collection & Export", era: "Era 2–4 (1936–1972): Trans-Divide Municipal Boom", legal_priority: "Denver Water, Northern Water & Fryingpan-Arkansas Decrees" },
+        { name: "Lake Mead & Lower Mainstem Hub", category: "inflow", desc: "Lake Mead storage pool, Hoover Dam releases, & regulatory dams", tier: "Tier 1: Lower Basin Megabank (26.13 MAF)", era: "Era 2 (1935–1943): Boulder Canyon Project Act / CA First Mover", legal_priority: "Senior Statutory Lower Basin Anchor (1928 Act)" },
 
         // --- Tier 4: Consumptive Uses & System Losses ---
-        { name: "Western Slope Agriculture (CO, UT, WY, NM)", category: "ag", desc: "Cattle pasture, alfalfa, fruit orchards, & mountain communities" },
-        { name: "Front Range Cities (Denver, CO Springs, Northern)", category: "municipal", desc: "Trans-mountain municipal drinking water supply" },
-        { name: "California Agriculture (Imperial & Coachella)", category: "ag", desc: "All-American Canal winter produce & alfalfa in Imperial Valley" },
-        { name: "Arizona Agriculture (Palo Verde, Yuma, Gila)", category: "ag", desc: "Senior priority desert agriculture along the lower Colorado River" },
-        { name: "Central Arizona Project (Phoenix & Tucson)", category: "municipal", desc: "336-mile canal supplying central Arizona municipal & tribal water" },
-        { name: "Southern California CRA (Los Angeles, San Diego)", category: "municipal", desc: "Colorado River Aqueduct delivering to Metropolitan Water District" },
-        { name: "Nevada / SNWA (Las Vegas)", category: "municipal", desc: "Municipal straw intakes from Lake Mead for the Las Vegas Valley" },
-        { name: "1944 Mexico Treaty Delivery (Mexicali)", category: "treaty", desc: "International sovereign treaty commitment delivered at Morelos Dam" },
-        { name: "Reservoir Evaporation (Mead & Powell)", category: "loss", desc: "Net atmospheric evaporation from desert reservoir surfaces" },
-        { name: "River Transit Seepage & Riparian Loss", category: "loss", desc: "Channel infiltration, phreatophyte uptake, & lower river transit loss" }
+        { name: "Western Slope Agriculture (CO, UT, WY, NM)", category: "ag", desc: "Cattle pasture, alfalfa, fruit orchards, & mountain communities", tier: "Tier 3: In-Basin Agricultural Diversions", era: "Era 1 (1901–1915): Pre-Compact Agricultural Settlement", legal_priority: "Senior Western Slope In-Basin Water Rights" },
+        { name: "Front Range Cities (Denver, CO Springs, Northern)", category: "municipal", desc: "Trans-mountain municipal drinking water supply", tier: "Tier 3: Trans-Mountain Municipal Export", era: "Era 2–4 (1936–1972): Colorado Front Range Urban Growth", legal_priority: "Municipal Priorities (Denver, Colorado Springs, Northern Water)" },
+        { name: "California Agriculture (Imperial & Coachella)", category: "ag", desc: "All-American Canal winter produce & alfalfa in Imperial Valley", tier: "Tier 3: Trans-Basin Ag Canal Conveyance (11,500 cfs)", era: "Era 2 (1935–1943): Boulder Canyon Project Act (Imperial Dam / All-American Canal 1940)", legal_priority: "Senior 1901 Present Perfected Rights (3.1+ MAF/yr, uncurtailable)" },
+        { name: "Arizona Agriculture (Palo Verde, Yuma, Gila)", category: "ag", desc: "Senior priority desert agriculture along the lower Colorado River", tier: "Tier 4: Run-of-the-River Diversion Works", era: "Era 1–4 (1877–1968): Pre-Compact to Modern Diversions", legal_priority: "Senior 1877 Present Perfected Rights (Palo Verde first priority in CA)" },
+        { name: "Central Arizona Project (Phoenix & Tucson)", category: "municipal", desc: "336-mile canal supplying central Arizona municipal & tribal water", tier: "Tier 3: Trans-Basin Canal (3,000 cfs, 336 Miles)", era: "Era 5 (1985–1993): Junior Lower Basin Straw", legal_priority: "Junior 1968 Priority (Subordinated to California 4.4 MAF; absorbs first shortage cuts)" },
+        { name: "Southern California CRA (Los Angeles, San Diego)", category: "municipal", desc: "Colorado River Aqueduct delivering to Metropolitan Water District", tier: "Tier 3: Trans-Basin Municipal Aqueduct (1,600 cfs, 242 Miles)", era: "Era 2 (1935–1943): Parker Dam (1938) & Aqueduct (1941)", legal_priority: "Priority 4 & 5 (Metropolitan Water District of SoCal)" },
+        { name: "Nevada / SNWA (Las Vegas)", category: "municipal", desc: "Municipal straw intakes from Lake Mead for the Las Vegas Valley", tier: "Tier 3: Lake Mead Direct Municipal Pumpage", era: "Era 2 / Modern Third Straw Intake (2015)", legal_priority: "Nevada 300,000 AF/yr Statutory Allocation + Return Flow Credits" },
+        { name: "1944 Mexico Treaty Delivery (Mexicali)", category: "treaty", desc: "International sovereign treaty commitment delivered at Morelos Dam", tier: "Tier 4: International Treaty Diversion Dam", era: "Era 3 (1947–1953): Mexican Treaty & C-BT Era (Morelos Dam 1950)", legal_priority: "1944 Mexican Water Treaty Sovereign Commitment (1.5 MAF/yr)" },
+        { name: "Reservoir Evaporation (Mead & Powell)", category: "loss", desc: "Net atmospheric evaporation from desert reservoir surfaces", tier: "Atmospheric System Losses", era: "Post-Dam Construction Ongoing", legal_priority: "Unallocated System Loss (~1.0–1.4 MAF/yr)" },
+        { name: "River Transit Seepage & Riparian Loss", category: "loss", desc: "Channel infiltration, phreatophyte uptake, & lower river transit loss", tier: "Physical Channel Transit Losses", era: "Lower River Channel Dynamics", legal_priority: "Unallocated Lower Basin Transit Loss (~0.55 MAF/yr)" }
       ];
 
       const links = [
@@ -372,6 +372,9 @@
           tooltip.innerHTML = `
             <div class="font-bold text-stone-900 text-xs">${d.name}</div>
             <div class="text-[11px] text-stone-600 mt-0.5">${d.desc || ''}</div>
+            ${d.tier ? `<div class="text-[10px] font-bold text-cyan-700 mt-1">${d.tier}</div>` : ''}
+            ${d.era ? `<div class="text-[9.5px] font-semibold text-stone-500 mt-0.5">${d.era}</div>` : ''}
+            ${d.legal_priority ? `<div class="text-[10px] text-stone-600 mt-0.5"><span class="font-bold">Legal Priority:</span> ${d.legal_priority}</div>` : ''}
             <div class="mt-1.5 pt-1.5 border-t border-stone-200 flex items-baseline justify-between gap-4">
               <span class="text-stone-500 text-xs">Total Accounting:</span>
               <span class="font-mono font-bold text-sm" style="color: ${colorMap[d.category] || '#0f172a'}">${d.value.toFixed(2)} MAF/yr</span>

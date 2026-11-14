@@ -2377,11 +2377,19 @@ function renderGeography(geo, riverNetwork, lakes, powellContours) {
         r.name.toLowerCase().includes(name.toLowerCase()) || 
         name.toLowerCase().includes(r.name.split('(')[0].trim().toLowerCase())
       );
+      const matchedDam = matchRes ? geo?.dams?.find(d => 
+        (d.impounds && d.impounds.toLowerCase().includes(matchRes.name.split('(')[0].trim().toLowerCase())) ||
+        (d.name && matchRes.name.toLowerCase().includes(d.name.toLowerCase().replace(' dam', ''))) ||
+        (d.id && matchRes.id && matchRes.id.toLowerCase().includes(d.id.replace('_dam', '')))
+      ) : null;
+
       if (matchRes) {
         showHoverTooltip(`
           <div style="font-family:'Inter',sans-serif; min-width:200px;">
             <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">Major Storage Reservoir</span>
             <strong style="font-size:13px; color:#0f172a; display:block;">${matchRes.name}</strong>
+            ${matchedDam?.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${matchedDam.tier}</div>` : ''}
+            ${matchedDam?.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${matchedDam.era}</div>` : ''}
             <div style="margin: 6px 0; padding: 6px 8px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
               <span style="font-size:11px; color:#475569; font-weight:600;">Current Storage:</span>
               <span style="font-size:15px; font-weight:800; color:#0284c7;">${matchRes.capacity_pct}% <span style="font-size:11px; font-weight:600; color:#64748b;">Full</span></span>
@@ -2389,7 +2397,8 @@ function renderGeography(geo, riverNetwork, lakes, powellContours) {
             <div style="font-size:11px; color:#475569; line-height:1.4;">
               <strong>Storage:</strong> ${(matchRes.storage_af / 1e6).toFixed(2)}M Acre-Feet<br>
               <strong>Elevation:</strong> ${matchRes.elevation_ft ? matchRes.elevation_ft.toLocaleString() + ' ft' : 'USBR Telemetry'}<br>
-              <strong>Role:</strong> ${matchRes.role || 'Basin Storage'}
+              <strong>Role:</strong> ${matchRes.role || 'Basin Storage'}<br>
+              ${matchedDam?.legal_priority ? `<strong>Legal Priority:</strong> ${matchedDam.legal_priority}<br>` : ''}
             </div>
           </div>
         `, e.lngLat, 'lakes');
@@ -2418,6 +2427,11 @@ function renderGeography(geo, riverNetwork, lakes, powellContours) {
         r.name.toLowerCase().includes(name.toLowerCase()) || 
         name.toLowerCase().includes(r.name.split('(')[0].trim().toLowerCase())
       );
+      const matchedDam = matchRes ? geo?.dams?.find(d => 
+        (d.impounds && d.impounds.toLowerCase().includes(matchRes.name.split('(')[0].trim().toLowerCase())) ||
+        (d.name && matchRes.name.toLowerCase().includes(d.name.toLowerCase().replace(' dam', ''))) ||
+        (d.id && matchRes.id && matchRes.id.toLowerCase().includes(d.id.replace('_dam', '')))
+      ) : null;
 
       if (p.GNIS_NAME) {
         highlightSelectedReservoir(p.GNIS_NAME);
@@ -2435,6 +2449,8 @@ function renderGeography(geo, riverNetwork, lakes, powellContours) {
             <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">Major Storage Reservoir</span>
             <strong style="font-size:14px; color:#0f172a; display:block;">${matchRes.name}</strong>
             <span style="font-size:11px; color:#64748b; font-weight:600;">${matchRes.river || ''}</span>
+            ${matchedDam?.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${matchedDam.tier}</div>` : ''}
+            ${matchedDam?.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${matchedDam.era}</div>` : ''}
             <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;">
               <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
                 <span style="font-size:11px; color:#475569; font-weight:600;">Current Storage:</span>
@@ -2448,7 +2464,9 @@ function renderGeography(geo, riverNetwork, lakes, powellContours) {
               <strong>Elevation:</strong> ${matchRes.elevation_ft ? matchRes.elevation_ft.toLocaleString() + ' ft' : 'USBR'}<br>
               <strong>Volume Stored:</strong> ${Math.round(matchRes.storage_af).toLocaleString()} Acre-Feet<br>
               <strong>Active Capacity:</strong> ${Math.round(matchRes.capacity_af || 0).toLocaleString()} Acre-Feet<br>
-              <strong>Operational Role:</strong> ${matchRes.role || 'Basin Storage'}
+              <strong>Operational Role:</strong> ${matchRes.role || 'Basin Storage'}<br>
+              ${matchedDam?.legal_priority ? `<strong>Legal Priority:</strong> ${matchedDam.legal_priority}<br>` : ''}
+              ${matchedDam?.historical_note ? `<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-left:3px solid #0284c7;font-size:10.5px;color:#334155;line-height:1.4;">${matchedDam.historical_note}</div>` : ''}
             </div>
             ${highlightBadge}
             ${formatPortalHtml(portal, '#0284c7')}
@@ -3169,6 +3187,8 @@ print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")
             </div>
             <strong style="font-size:13.5px;color:#0f172a;display:block;">${t.name}</strong>
             <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
+            ${t.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${t.tier}</div>` : ''}
+            ${t.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${t.era}</div>` : ''}
             <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
               <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
               ${flowDisplay}
@@ -3177,7 +3197,8 @@ print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")
               <strong>Destination:</strong> ${t.destination || t.to}<br>
               <strong>Length:</strong> ${t.length_miles ? t.length_miles + ' miles under Divide' : 'Trans-Continental Divide Tunnel'}<br>
               <strong>West Portal:</strong> ${t.from || 'West Slope Intake'}<br>
-              <strong>East Portal:</strong> ${t.to || 'Front Range Outlet'}
+              <strong>East Portal:</strong> ${t.to || 'Front Range Outlet'}<br>
+              ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
             </div>
             <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
               <strong>Design Capacity:</strong> ${capDisplay}<br>
@@ -3221,6 +3242,8 @@ print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")
             <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
             <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
             <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
+            ${t.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${t.tier}</div>` : ''}
+            ${t.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${t.era}</div>` : ''}
             <div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
               <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
               <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} cfs</span>
@@ -3229,7 +3252,9 @@ print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")
               <strong>Destination:</strong> ${t.destination || t.to}<br>
               <strong>Length:</strong> ${t.length_miles ? t.length_miles + ' miles under Divide' : 'Trans-Continental Divide'}<br>
               <strong>West Portal:</strong> ${t.from || 'West Slope Intake'}<br>
-              <strong>East Portal:</strong> ${t.to || 'Front Range Outlet'}
+              <strong>East Portal:</strong> ${t.to || 'Front Range Outlet'}<br>
+              ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
+              ${t.historical_note ? `<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-left:3px solid #0284c7;font-size:10.5px;color:#334155;line-height:1.4;">${t.historical_note}</div>` : ''}
             </div>
             <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
               <strong>Design Capacity:</strong> ${capDisplay}<br>
@@ -3366,6 +3391,8 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
             <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
             <strong style="font-size:13px;color:#0f172a;display:block;">${t.name}</strong>
             <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
+            ${t.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${t.tier}</div>` : ''}
+            ${t.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${t.era}</div>` : ''}
             <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
               <span style="font-size:11px; color:#475569; font-weight:600;">Estimated Flow:</span>
               ${flowDisplay}
@@ -3374,7 +3401,8 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
               <strong>Destination:</strong> ${t.destination || t.to}<br>
               <strong>Length:</strong> ${t.length_miles} miles<br>
               <strong>Intake:</strong> ${t.from}<br>
-              <strong>Terminus:</strong> ${t.to}
+              <strong>Terminus:</strong> ${t.to}<br>
+              ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
             </div>
             <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
               <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : '1,600 cfs (Whitsett Pumping Plant)')}<br>
@@ -3409,6 +3437,8 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
             <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
             <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
             <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
+            ${t.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${t.tier}</div>` : ''}
+            ${t.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${t.era}</div>` : ''}
             ${flowVal > 0 ? `
             <div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
               <span style="font-size:11px; color:#475569; font-weight:600;">Estimated Flow:</span>
@@ -3418,7 +3448,9 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
               <strong>Destination:</strong> ${t.destination || t.to}<br>
               <strong>Length:</strong> ${t.length_miles} miles<br>
               <strong>Intake:</strong> ${t.from}<br>
-              <strong>Terminus:</strong> ${t.to}
+              <strong>Terminus:</strong> ${t.to}<br>
+              ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
+              ${t.historical_note ? `<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-left:3px solid #0284c7;font-size:10.5px;color:#334155;line-height:1.4;">${t.historical_note}</div>` : ''}
             </div>
             <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
               <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : '1,600 cfs (Whitsett Pumping Plant)')}<br>
@@ -3520,11 +3552,15 @@ print(f"${cleanCName}: {flow_cfs:,.0f} cfs")`;
         <div style="padding:2px;">
           <strong style="font-size:13px;color:#0f172a;">${d.name}</strong><br>
           <span style="font-size:11px;color:#64748b;font-weight:600;">${d.operator}</span>
+          ${d.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${d.tier}</div>` : ''}
+          ${d.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${d.era}</div>` : ''}
           <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
           <div style="font-size:11px;line-height:1.45;color:#334155;">
             <strong>Impounds:</strong> ${d.impounds}<br>
             <strong>Height:</strong> ${d.height_ft} ft | <strong>Built:</strong> ${d.year}<br>
-            <strong>Purpose:</strong> ${d.purpose}
+            <strong>Purpose:</strong> ${d.purpose}<br>
+            ${d.legal_priority ? `<strong>Legal Priority:</strong> ${d.legal_priority}<br>` : ''}
+            ${d.historical_note ? `<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-left:3px solid #0284c7;font-size:10.5px;color:#334155;line-height:1.4;">${d.historical_note}</div>` : ''}
           </div>
           ${formatPortalHtml(portal, '#0284c7')}
         </div>
@@ -3562,8 +3598,11 @@ params = {
         <div style="font-family:'Inter',sans-serif; min-width: 190px;">
           <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">Federal Dam</span>
           <strong style="font-size:13px; color:#0f172a; display:block;">${d.name}</strong>
+          ${d.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:1px;">${d.tier}</div>` : ''}
+          ${d.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${d.era}</div>` : ''}
           <div style="font-size:11px; color:#64748b; margin-top:3px;">${d.operator} • Impounds <strong>${d.impounds}</strong></div>
           <div style="font-size:10.5px; color:#475569; margin-top:4px;">Height: ${d.height_ft} ft • Built ${d.year}</div>
+          ${d.legal_priority ? `<div style="font-size:10px; color:#0369a1; margin-top:2px;"><strong>Priority:</strong> ${d.legal_priority}</div>` : ''}
         </div>
       `, e.lngLat, 'dams');
     };
