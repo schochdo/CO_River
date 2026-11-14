@@ -568,7 +568,7 @@
           <!-- FEATURED 1: MACRO BASIN MULTI-RESERVOIR STORAGE TIMELINE (MAF) -->
           <div class="card-academic rounded-xl p-5 shadow-sm bg-white">
             <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-stone-200">
-              <div>
+              <div class="max-w-2xl">
                 <div class="flex items-center gap-2">
                   <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
                   <span class="text-xs font-bold text-blue-900 uppercase tracking-wider">Macro Basin Water Bank</span>
@@ -581,17 +581,10 @@
                 </p>
               </div>
 
-              <!-- Multi-Reservoir Display Mode Toggle -->
-              <div class="flex items-center gap-2 bg-stone-100 p-1 rounded-lg border border-stone-300">
-                <button onclick="setMacroTimelineMode('lines')" id="btn-timeline-lines" class="px-3 py-1 text-xs font-bold rounded bg-white text-stone-900 shadow-sm border border-stone-300 transition">
-                  Individual Reservoirs
-                </button>
-                <button onclick="setMacroTimelineMode('stacked')" id="btn-timeline-stacked" class="px-3 py-1 text-xs font-medium rounded text-stone-600 hover:text-stone-900 transition">
-                  Stacked Total Bank
-                </button>
-                <button onclick="setMacroTimelineMode('system_total')" id="btn-timeline-total" class="px-3 py-1 text-xs font-medium rounded text-stone-600 hover:text-stone-900 transition">
-                  Combined Total Trajectory
-                </button>
+              <!-- Unified Palette Badge -->
+              <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-stone-50 border border-stone-200 text-xs text-stone-600">
+                <span class="w-2 h-2 rounded-full bg-[#0f172a]"></span>
+                <span class="font-semibold text-stone-800">Unified Stacked Breakdown &amp; Total Basin Trajectory</span>
               </div>
             </div>
 
@@ -624,7 +617,7 @@
               <canvas id="chart-macro-timeline"></canvas>
             </div>
             <div class="text-[11px] text-stone-500 flex flex-wrap justify-between items-center mt-2 pt-2 border-t border-stone-200 gap-2">
-              <span>Comparing: <strong>Lake Mead (26.1M)</strong>, <strong>Lake Powell (24.3M)</strong>, <strong>Flaming Gorge (3.75M)</strong>, <strong>Navajo (1.70M)</strong>, and <strong>Blue Mesa (0.83M)</strong>.</span>
+              <span>Comparing: <strong>Lake Mead (26.1M)</strong>, <strong>Lake Powell (24.3M)</strong>, and <strong>Upper CRSP (Flaming Gorge, Navajo, Blue Mesa: 6.3M)</strong> with <strong>Combined Total Trajectory</strong>.</span>
               <span class="font-bold text-stone-700">Source: USBR HydroData &amp; Hoover Teletype</span>
             </div>
             <div class="mt-2.5 p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/80 text-[11.5px] text-amber-950 leading-relaxed">
@@ -711,17 +704,18 @@
             <div id="container-mead-heatmap" class="hidden">
               <div class="overflow-x-auto pb-2">
                 <div class="min-w-[850px]">
-                  <div class="text-xs font-bold text-stone-800 mb-2">Month-by-Month Elevation Matrix (ft NGVD29): High Elevation (Blue) vs. Severe Depletion (Red)</div>
+                  <div class="text-xs font-bold text-stone-800 mb-2">Month-by-Month Elevation Matrix (ft NGVD29): Full Pool (Navy) to Critical Shortage (Burgundy)</div>
                   <div id="heatmap-grid" class="space-y-0.5"></div>
                 </div>
               </div>
               <div class="flex items-center justify-between text-xs text-stone-500 mt-3 pt-2 border-t border-stone-200">
                 <div class="flex items-center gap-2">
-                  <span class="text-[10px] font-bold">Color Scale:</span>
-                  <span class="w-4 h-3 bg-red-600 inline-block rounded-xs"></span> <span class="text-[10px]">&lt; 1,040 ft</span>
-                  <span class="w-4 h-3 bg-amber-500 inline-block rounded-xs"></span> <span class="text-[10px]">1,075 ft</span>
-                  <span class="w-4 h-3 bg-sky-400 inline-block rounded-xs"></span> <span class="text-[10px]">1,150 ft</span>
-                  <span class="w-4 h-3 bg-blue-700 inline-block rounded-xs"></span> <span class="text-[10px]">&gt; 1,200 ft</span>
+                  <span class="text-[10px] font-bold text-stone-600">Elevation Zones:</span>
+                  <span class="w-3.5 h-2.5 bg-[#991b1b] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">&lt; 1,050 ft (Critical)</span>
+                  <span class="w-3.5 h-2.5 bg-[#d97706] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">1,075 ft (Tier 1)</span>
+                  <span class="w-3.5 h-2.5 bg-[#cbd5e1] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">1,110 ft</span>
+                  <span class="w-3.5 h-2.5 bg-[#4299e1] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">1,150 ft</span>
+                  <span class="w-3.5 h-2.5 bg-[#1e3a5f] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">&gt; 1,200 ft (Full)</span>
                 </div>
                 <span class="text-[10px]">Hover any cell to inspect exact monthly elevation</span>
               </div>
@@ -782,17 +776,18 @@
             <div id="container-powell-heatmap" class="hidden">
               <div class="overflow-x-auto pb-2">
                 <div class="min-w-[850px]">
-                  <div class="text-xs font-bold text-stone-800 mb-2">Month-by-Month Elevation Matrix (ft Pool Elevation): High Storage (Teal/Blue) vs. Severe Depletion (Red)</div>
+                  <div class="text-xs font-bold text-stone-800 mb-2">Month-by-Month Elevation Matrix (ft Pool Elevation): Full Pool (Teal) to Min Power Pool (Burgundy)</div>
                   <div id="powell-heatmap-grid" class="space-y-0.5"></div>
                 </div>
               </div>
               <div class="flex items-center justify-between text-xs text-stone-500 mt-3 pt-2 border-t border-stone-200">
                 <div class="flex items-center gap-2">
-                  <span class="text-[10px] font-bold">Color Scale:</span>
-                  <span class="w-4 h-3 bg-red-600 inline-block rounded-xs"></span> <span class="text-[10px]">&lt; 3,525 ft</span>
-                  <span class="w-4 h-3 bg-amber-500 inline-block rounded-xs"></span> <span class="text-[10px]">3,560 ft</span>
-                  <span class="w-4 h-3 bg-teal-400 inline-block rounded-xs"></span> <span class="text-[10px]">3,620 ft</span>
-                  <span class="w-4 h-3 bg-teal-800 inline-block rounded-xs"></span> <span class="text-[10px]">&gt; 3,670 ft</span>
+                  <span class="text-[10px] font-bold text-stone-600">Elevation Zones:</span>
+                  <span class="w-3.5 h-2.5 bg-[#991b1b] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">&lt; 3,490 ft (Min Power)</span>
+                  <span class="w-3.5 h-2.5 bg-[#d97706] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">3,525 ft</span>
+                  <span class="w-3.5 h-2.5 bg-[#cbd5e1] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">3,560 ft</span>
+                  <span class="w-3.5 h-2.5 bg-[#0f766e] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">3,620 ft</span>
+                  <span class="w-3.5 h-2.5 bg-[#134e4a] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">&gt; 3,670 ft (Full)</span>
                 </div>
                 <span class="text-[10px]">Hover any cell to inspect exact monthly elevation</span>
               </div>
@@ -1743,23 +1738,6 @@ for ts in data["value"]["timeSeries"]:
       }
     }
 
-    // Toggle Multi-Reservoir Macro Timeline Mode ('lines', 'stacked', or 'system_total')
-    let macroTimelineMode = 'lines';
-    function setMacroTimelineMode(mode) {
-      macroTimelineMode = mode;
-      const btnLines = document.getElementById('btn-timeline-lines');
-      const btnStacked = document.getElementById('btn-timeline-stacked');
-      const btnTotal = document.getElementById('btn-timeline-total');
-
-      const inactiveClass = 'px-3 py-1 text-xs font-medium rounded text-stone-600 hover:text-stone-900 transition';
-      const activeClass = 'px-3 py-1 text-xs font-bold rounded bg-white text-stone-900 shadow-sm border border-stone-300 transition';
-
-      btnLines.className = (mode === 'lines') ? activeClass : inactiveClass;
-      btnStacked.className = (mode === 'stacked') ? activeClass : inactiveClass;
-      if (btnTotal) btnTotal.className = (mode === 'system_total') ? activeClass : inactiveClass;
-
-      renderMacroStorageTimeline();
-    }
 
     let portalData = null;
 
@@ -1989,9 +1967,7 @@ for ts in data["value"]["timeSeries"]:
       const years = timeline.map(d => d.year);
       const meadMaf = timeline.map(d => d.mead_maf);
       const powellMaf = timeline.map(d => d.powell_maf);
-      const fgMaf = timeline.map(d => d.flaming_gorge_maf);
-      const navajoMaf = timeline.map(d => d.navajo_maf);
-      const bmMaf = timeline.map(d => d.blue_mesa_maf);
+      const crspMaf = timeline.map(d => (d.flaming_gorge_maf || 0) + (d.navajo_maf || 0) + (d.blue_mesa_maf || 0));
       const totalMaf = timeline.map(d => d.total_major_storage_maf);
 
       // Update current total stat card if available
@@ -2010,99 +1986,66 @@ for ts in data["value"]["timeSeries"]:
         macroChartInstance = null;
       }
 
-      const isStacked = (macroTimelineMode === 'stacked');
-      const isSystemTotal = (macroTimelineMode === 'system_total');
+      // 4 Datasets:
+      // 0: Combined Total Storage - Crisp Charcoal Ink boundary line tracing the top of the stack
+      // 1: Lake Mead (26.1M AF) - Bottom stacked band: Deep Slate Blue
+      // 2: Lake Powell (24.3M AF) - Middle stacked band: Muted Alpine Teal
+      // 3: Upper CRSP Reservoirs (6.3M AF) - Top stacked band: Warm Cool-Grey
+      const datasets = [
+        {
+          label: 'Combined Total Storage',
+          data: totalMaf,
+          borderColor: '#0f172a',
+          backgroundColor: 'transparent',
+          borderWidth: 2.5,
+          fill: false,
+          stack: 'total_line',
+          order: 0,
+          tension: 0.15,
+          pointRadius: 0
+        },
+        {
+          label: 'Lake Mead (26.1M AF)',
+          data: meadMaf,
+          borderColor: '#1d4ed8',
+          backgroundColor: 'rgba(29, 78, 216, 0.16)',
+          borderWidth: 1.2,
+          fill: true,
+          stack: 'basin',
+          order: 3,
+          tension: 0.15,
+          pointRadius: 0
+        },
+        {
+          label: 'Lake Powell (24.3M AF)',
+          data: powellMaf,
+          borderColor: '#0f766e',
+          backgroundColor: 'rgba(15, 118, 110, 0.16)',
+          borderWidth: 1.2,
+          fill: true,
+          stack: 'basin',
+          order: 2,
+          tension: 0.15,
+          pointRadius: 0
+        },
+        {
+          label: 'Upper CRSP Reservoirs (6.3M AF)',
+          data: crspMaf,
+          borderColor: '#64748b',
+          backgroundColor: 'rgba(100, 116, 139, 0.14)',
+          borderWidth: 1.0,
+          fill: true,
+          stack: 'basin',
+          order: 1,
+          tension: 0.15,
+          pointRadius: 0
+        }
+      ];
 
-      let datasets = [];
-
-      if (isSystemTotal) {
-        // Pure single-line view of the entire basin storage bank
-        datasets = [
-          {
-            label: 'Combined Basin Total Storage',
-            data: totalMaf,
-            borderColor: '#1e293b',
-            backgroundColor: 'rgba(30, 41, 59, 0.16)',
-            borderWidth: 2.8,
-            fill: true,
-            tension: 0.15,
-            pointRadius: 0
-          }
-        ];
-      } else {
-        // Individual reservoirs or Stacked area (Okabe-Ito Colorblind-Safe Palette)
-        datasets = [
-          {
-            label: 'Lake Mead (26.1M AF)',
-            data: meadMaf,
-            borderColor: '#0072B2',
-            backgroundColor: isStacked ? 'rgba(0, 114, 178, 0.45)' : 'rgba(0, 114, 178, 0.16)',
-            borderWidth: isStacked ? 1 : 2.2,
-            fill: isStacked ? true : false,
-            tension: 0.15,
-            pointRadius: 0
-          },
-          {
-            label: 'Lake Powell (24.3M AF)',
-            data: powellMaf,
-            borderColor: '#009E73',
-            backgroundColor: isStacked ? 'rgba(0, 158, 115, 0.45)' : 'rgba(0, 158, 115, 0.16)',
-            borderWidth: isStacked ? 1 : 2.2,
-            fill: isStacked ? true : false,
-            tension: 0.15,
-            pointRadius: 0
-          },
-          {
-            label: 'Flaming Gorge (3.75M AF)',
-            data: fgMaf,
-            borderColor: '#E69F00',
-            backgroundColor: isStacked ? 'rgba(230, 159, 0, 0.45)' : 'rgba(230, 159, 0, 0.16)',
-            borderWidth: isStacked ? 1 : 1.8,
-            fill: isStacked ? true : false,
-            tension: 0.15,
-            pointRadius: 0
-          },
-          {
-            label: 'Navajo (1.70M AF)',
-            data: navajoMaf,
-            borderColor: '#56B4E9',
-            backgroundColor: isStacked ? 'rgba(86, 180, 233, 0.45)' : 'rgba(86, 180, 233, 0.16)',
-            borderWidth: isStacked ? 1 : 1.8,
-            fill: isStacked ? true : false,
-            tension: 0.15,
-            pointRadius: 0
-          },
-          {
-            label: 'Blue Mesa (0.83M AF)',
-            data: bmMaf,
-            borderColor: '#CC79A7',
-            backgroundColor: isStacked ? 'rgba(204, 121, 167, 0.45)' : 'rgba(204, 121, 167, 0.16)',
-            borderWidth: isStacked ? 1 : 1.8,
-            fill: isStacked ? true : false,
-            tension: 0.15,
-            pointRadius: 0
-          }
-        ];
-      }
-
-      // Configure scale and thresholds based on mode
-      let yMax = 30;
-      let thresholdLines = [];
-
-      if (isStacked || isSystemTotal) {
-        yMax = 65; // Accommodates full 56.2M AF peak without running off top
-        thresholdLines = [
-          { value: 60.0, label: 'Full System Capacity', color: '#1e293b', dash: [6, 4], width: 1.2, unit: 'M AF' },
-          { value: 6.0, label: 'Combined Min Power Limit', color: '#D55E00', dash: [5, 3], width: 1.5, customLabel: 'Combined Min Power Limit (~6.0 MAF)' }
-        ];
-      } else {
-        yMax = 30; // Accommodates individual Mead/Powell capacities (26.1M and 24.3M) cleanly
-        thresholdLines = [
-          { value: 26.1, label: 'Mead Capacity', color: '#0072B2', dash: [4, 4], width: 1.2, unit: 'M AF' },
-          { value: 24.3, label: 'Powell Capacity', color: '#009E73', dash: [4, 4], width: 1.2, unit: 'M AF' },
-          { value: 6.0, label: 'Combined Min Power Limit', color: '#D55E00', dash: [5, 3], width: 1.5, customLabel: 'Combined Min Power Limit (~6.0 MAF)' }
-        ];
-      }
+      const thresholdLines = [
+        { value: 60.0, customLabel: 'Full System Capacity (~60.0 MAF)', color: '#64748b', textColor: '#475569', width: 1.0, dash: [6, 4], noBox: true, yOffset: -5 },
+        { value: 6.0, customLabel: 'Combined Min Power Limit (~6.0 MAF)', color: '#b91c1c', textColor: '#991b1b', width: 1.5, dash: [5, 3], noBox: true, yOffset: -5 }
+      ];
 
       macroChartInstance = new Chart(ctx, {
         type: 'line',
@@ -2128,7 +2071,23 @@ for ts in data["value"]["timeSeries"]:
             },
             tooltip: {
               callbacks: {
-                label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y ? ctx.parsed.y.toFixed(2) + ' MAF' : '0.00 MAF'}`
+                label: (ctx) => {
+                  const idx = ctx.dataIndex;
+                  const point = timeline[idx];
+                  if (ctx.dataset.label.startsWith('Upper CRSP')) {
+                    const totalCrsp = ctx.parsed.y ? ctx.parsed.y.toFixed(2) : '0.00';
+                    const fg = point ? point.flaming_gorge_maf.toFixed(2) : '0.00';
+                    const nav = point ? point.navajo_maf.toFixed(2) : '0.00';
+                    const bm = point ? point.blue_mesa_maf.toFixed(2) : '0.00';
+                    return [
+                      ` Upper CRSP: ${totalCrsp} MAF total`,
+                      `   • Flaming Gorge: ${fg} MAF`,
+                      `   • Navajo: ${nav} MAF`,
+                      `   • Blue Mesa: ${bm} MAF`
+                    ];
+                  }
+                  return ` ${ctx.dataset.label}: ${ctx.parsed.y ? ctx.parsed.y.toFixed(2) + ' MAF' : '0.00 MAF'}`;
+                }
               }
             }
           },
@@ -2138,9 +2097,9 @@ for ts in data["value"]["timeSeries"]:
               ticks: { font: { size: 10 }, maxTicksLimit: 15 }
             },
             y: {
-              stacked: isStacked,
+              stacked: true,
               min: 0,
-              max: yMax,
+              max: 65,
               ticks: {
                 font: { size: 10 },
                 callback: (val) => val + 'M AF'
@@ -2192,15 +2151,18 @@ for ts in data["value"]["timeSeries"]:
             const labelText = line.customLabel || `${line.label} (${valStr}${unit})`;
             const textWidth = ctx.measureText(labelText).width;
             
-            // Background pill for label legibility
-            ctx.fillStyle = line.bgColor || 'rgba(255, 255, 255, 0.88)';
-            ctx.fillRect(right - textWidth - 10, yPos - 12, textWidth + 8, 11);
+            // Background pill for label legibility (skipped when noBox is set)
+            if (!line.noBox) {
+              ctx.fillStyle = line.bgColor || 'rgba(255, 255, 255, 0.88)';
+              ctx.fillRect(right - textWidth - 10, yPos - 12, textWidth + 8, 11);
+            }
             
             // Text
-            ctx.fillStyle = line.color || '#334155';
+            ctx.fillStyle = line.textColor || line.color || '#334155';
             ctx.textAlign = 'right';
             ctx.textBaseline = 'middle';
-            ctx.fillText(labelText, right - 6, yPos - 6);
+            const yOffset = line.yOffset !== undefined ? line.yOffset : -6;
+            ctx.fillText(labelText, right - 6, yPos + yOffset);
           }
         });
         ctx.restore();
@@ -2333,16 +2295,16 @@ for ts in data["value"]["timeSeries"]:
       });
       container.appendChild(headerRow);
 
-      // Function to get color from elevation (ft)
+      // Function to get color from elevation (ft) - Restrained Editorial Palette
       function getColor(elv) {
         if (!elv) return '#f1f5f9';
-        if (elv > 1200) return '#1e40af'; // High spill (dark blue)
-        if (elv > 1170) return '#2563eb';
-        if (elv > 1140) return '#38bdf8';
-        if (elv > 1110) return '#7dd3fc';
-        if (elv > 1075) return '#fde047'; // Tier 1 threshold warning (yellow)
-        if (elv > 1050) return '#f97316'; // Severe shortage (orange)
-        return '#dc2626'; // Deep deficit (<1050, red)
+        if (elv > 1200) return '#1e3a5f'; // High / near full pool (deep navy)
+        if (elv > 1170) return '#2c5282'; // Upper operating range
+        if (elv > 1140) return '#4299e1'; // Active storage mid pool
+        if (elv > 1110) return '#90cdf4'; // Lower normal operating buffer
+        if (elv > 1075) return '#cbd5e1'; // Approaching Tier 1 shortage threshold
+        if (elv > 1050) return '#d97706'; // Shortage buffer (warm ochre / amber)
+        return '#991b1b'; // Critical shortage (<1050 ft, deep burgundy)
       }
 
       // Rows for each year
@@ -2499,15 +2461,15 @@ for ts in data["value"]["timeSeries"]:
       });
       container.appendChild(headerRow);
 
-      // Lake Powell elevation color mapping
+      // Lake Powell elevation color mapping - Restrained Editorial Palette
       function getPowellColor(elv) {
         if (!elv) return '#f1f5f9';
-        if (elv > 3670) return '#115e59'; // High / near full pool (deep teal)
-        if (elv > 3620) return '#0d9488'; // Normal high operating zone
-        if (elv > 3560) return '#2dd4bf'; // Active storage mid pool
-        if (elv > 3525) return '#fde047'; // Approaching min power pool warning (yellow)
-        if (elv > 3490) return '#f97316'; // Critical buffer above min power (orange)
-        return '#dc2626'; // Below Min Power Pool (<3490, red)
+        if (elv > 3670) return '#134e4a'; // High / near full pool (deep alpine teal)
+        if (elv > 3620) return '#0f766e'; // Normal high operating zone (muted teal)
+        if (elv > 3560) return '#14b8a6'; // Active storage mid pool
+        if (elv > 3525) return '#cbd5e1'; // Approaching min power pool warning (slate)
+        if (elv > 3490) return '#d97706'; // Critical buffer above min power (warm ochre)
+        return '#991b1b'; // Below Min Power Pool (<3490 ft, deep burgundy)
       }
 
       // Rows for each year
