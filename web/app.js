@@ -1109,9 +1109,7 @@ function applyLiveHydrology(riverNetwork, metrics) {
     green_middle: "09261000",
     green_ouray_desolation: "09272400",
     green_river: "09315000",
-    yampa_upper: "09251000",
     yampa_river: "09260050",
-    white_river_upper: "09304500",
     white_river: "09306500",
     duchesne_river: "09302000",
     gunnison_headwaters: "09114500",
@@ -1133,15 +1131,10 @@ function applyLiveHydrology(riverNetwork, metrics) {
     blue_river_middle: "09050700",
     blue_river: "09057500",
     eagle_river: "09070000",
-    roaring_fork_upper: "09085000",
     roaring_fork_river: "09085000",
     fryingpan_river: "09080400",
     paria_river: "09382000",
-    little_colorado_upper: "09384000",
-    little_colorado_middle: "09400000",
-    little_colorado_lower: "09402000",
     little_colorado_river: "09402000",
-    virgin_river_upper: "09406000",
     virgin_river: "09415000",
     bill_williams_river: "09426000",
     salt_headwaters: "09498500",
@@ -1469,28 +1462,16 @@ function applyLiveHydrology(riverNetwork, metrics) {
         mainstem_upstream: { name: "Upper Gunnison (Black Canyon)", cfs: gunnisonUpper ? gunnisonUpper.flow_cfs : 205 },
         tributary: { name: "Uncompahgre River", cfs: 380 }
       };
-    } else if (r === "yampa_upper") {
-      flow = yampaMaybell ? yampaMaybell.flow_cfs : 295;
-      sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09251000 near Maybell, CO";
-      timestamp = yampaMaybell ? yampaMaybell.timestamp : null;
-      gaugeId = "09251000";
     } else if (r === "yampa_river") {
-      flow = yampa ? yampa.flow_cfs : 468;
+      flow = yampa ? yampa.flow_cfs : 350;
       sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09260050 at Deerlodge Park, CO";
+      gaugeInfo = "USGS #09260050 Yampa River at Deerlodge Park, CO";
       timestamp = yampa ? yampa.timestamp : null;
       gaugeId = "09260050";
-    } else if (r === "white_river_upper") {
-      flow = whiteUpperGage ? whiteUpperGage.flow_cfs : 251.0;
-      sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09304500 White River near Meeker, CO";
-      timestamp = whiteUpperGage ? whiteUpperGage.timestamp : null;
-      gaugeId = "09304500";
     } else if (r === "white_river") {
-      flow = white ? white.flow_cfs : 339;
+      flow = white ? white.flow_cfs : 284;
       sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09306500 near Watson, UT";
+      gaugeInfo = "USGS #09306500 White River near Watson, UT";
       timestamp = white ? white.timestamp : null;
       gaugeId = "09306500";
     } else if (r === "uncompahgre_river") {
@@ -1594,22 +1575,12 @@ function applyLiveHydrology(riverNetwork, metrics) {
       gaugeInfo = "USGS #09057500 below Green Mtn Reservoir, CO";
       timestamp = blue ? blue.timestamp : null;
       gaugeId = "09057500";
-    } else if (r === "roaring_fork_upper") {
-      flow = roaringFork ? Math.round(roaringFork.flow_cfs * 0.65) : 340;
-      sourceLabel = "Headwaters Baseflow Estimate";
-      gaugeInfo = "Roaring Fork headwaters above Fryingpan confluence at Basalt";
-      gaugeId = "09085000";
     } else if (r === "roaring_fork_river") {
-      flow = roaringFork ? roaringFork.flow_cfs : 613;
+      flow = roaringFork ? roaringFork.flow_cfs : 523;
       sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09085000 at Glenwood Springs, CO (below Fryingpan Confluence)";
+      gaugeInfo = "USGS #09085000 Roaring Fork River at Glenwood Springs, CO";
       timestamp = roaringFork ? roaringFork.timestamp : null;
       gaugeId = "09085000";
-      confluenceInfo = {
-        confluence_name: "Fryingpan River Confluence at Basalt",
-        mainstem_upstream: { name: "Upper Roaring Fork (Aspen)", cfs: roaringFork ? Math.round(roaringFork.flow_cfs * 0.65) : 340 },
-        tributary: { name: "Fryingpan River", cfs: fryingpanRuedi ? fryingpanRuedi.flow_cfs : 43.4 }
-      };
     } else if (r === "fryingpan_river" || r === "fryingpan_headwaters") {
       flow = fryingpanRuedi ? fryingpanRuedi.flow_cfs : 43.4;
       sourceLabel = "USGS Gage";
@@ -1652,34 +1623,16 @@ function applyLiveHydrology(riverNetwork, metrics) {
       gaugeInfo = "USGS #09382000 at Lees Ferry, AZ";
       timestamp = paria ? paria.timestamp : null;
       gaugeId = "09382000";
-    } else if (r === "little_colorado_upper") {
-      flow = lcrUpperGage ? lcrUpperGage.flow_cfs : 18.3;
+    } else if (r === "little_colorado_river" || r === "little_colorado_lower") {
+      flow = littleColorado ? littleColorado.flow_cfs : 348;
       sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09384000 Little Colorado River above Lyman Lake near St. Johns, AZ";
-      timestamp = lcrUpperGage ? lcrUpperGage.timestamp : null;
-      gaugeId = "09384000";
-    } else if (r === "little_colorado_middle") {
-      flow = lcrMiddleGage ? lcrMiddleGage.flow_cfs : 13.0;
-      sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09400000 Little Colorado River near Winslow, AZ";
-      timestamp = lcrMiddleGage ? lcrMiddleGage.timestamp : null;
-      gaugeId = "09400000";
-    } else if (r === "little_colorado_lower" || r === "little_colorado_river") {
-      flow = littleColorado ? littleColorado.flow_cfs : 59.0;
-      sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09402000 Little Colorado River near Cameron, AZ (mouth into Marble Canyon)";
+      gaugeInfo = "USGS #09402000 Little Colorado River near Cameron / Winslow, AZ";
       timestamp = littleColorado ? littleColorado.timestamp : null;
       gaugeId = "09402000";
-    } else if (r === "virgin_river_upper") {
-      flow = virginUpperGage ? virginUpperGage.flow_cfs : 152.0;
-      sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09406000 Virgin River at Virgin, UT (Zion Canyon)";
-      timestamp = virginUpperGage ? virginUpperGage.timestamp : null;
-      gaugeId = "09406000";
     } else if (r === "virgin_river") {
-      flow = virgin ? virgin.flow_cfs : 502;
+      flow = virgin ? virgin.flow_cfs : 332;
       sourceLabel = "USGS Gage";
-      gaugeInfo = "USGS #09415000 Virgin River at Littlefield, AZ (Virgin River Gorge into Lake Mead)";
+      gaugeInfo = "USGS #09415000 Virgin River at Littlefield, AZ";
       timestamp = virgin ? virgin.timestamp : null;
       gaugeId = "09415000";
     } else if (r === "muddy_river") {
