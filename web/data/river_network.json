@@ -18654,8 +18654,8 @@
         "reach_type": "dam_regulated",
         "flow_cfs": 390,
         "weight": 4.4,
-        "gauge_id": "09019500",
-        "notes": "Post-Adams Tunnel export reach below Granby Dam past Fraser River confluence to Windy Gap."
+        "gauge_id": "09034250",
+        "notes": "Post-Adams Tunnel export reach below Granby Dam past Fraser River confluence to Windy Gap (USGS #09034250)."
       },
       "geometry": {
         "type": "LineString",
@@ -29910,8 +29910,8 @@
         "reach_type": "dam_regulated",
         "flow_cfs": 14242.0,
         "weight": 8.5,
-        "gauge_id": "09421500",
-        "notes": "USGS #09421500 below Hoover Dam, AZ-NV flowing through Black Canyon and Lake Mohave to Davis Dam face."
+        "gauge_id": "USBR-HOOVER",
+        "notes": "USBR Hoover Dam Hydroelectric Release (USBR Lower Colorado Hourly Operations) flowing through Black Canyon and Lake Mohave to Davis Dam face."
       },
       "geometry": {
         "type": "LineString",
@@ -31134,8 +31134,8 @@
         "reach_type": "dam_regulated",
         "flow_cfs": 4150.0,
         "weight": 7.0,
-        "gauge_id": "09427520",
-        "notes": "Tailwater releases below Parker Dam (USGS #09427520) through Parker Valley to Palo Verde Diversion Dam weir."
+        "gauge_id": "USBR-PARKER",
+        "notes": "USBR Parker Dam Hydroelectric Release (USBR Lower Colorado Hourly Operations) through Parker Valley to Palo Verde Diversion Dam weir."
       },
       "geometry": {
         "type": "LineString",

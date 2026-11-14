@@ -1384,6 +1384,13 @@ function applyLiveHydrology(riverNetwork, metrics) {
       sourceLabel = res.status === 'offline' ? 'Telemetry Offline' : 'USBR Hourly Dam Release (Post-Havasu Diversions)';
       gaugeInfo = "USBR Parker Dam Hydroelectric Release (Downstream of CAP & CRA Diversions)";
       gaugeId = "USBR-PARKER";
+      if (flow != null && davisDam && davisDam.flow_cfs != null) {
+        confluenceInfo = {
+          confluence_name: "Lake Havasu Mass Balance & Parker Dam Release",
+          mainstem_upstream: { name: "Davis Dam Inflow", cfs: Math.round(davisDam.flow_cfs) },
+          tributary: { name: "CAP & CRA Diversions (Net Outflow)", cfs: Math.round((byId["09426650"]?.flow_cfs || 0) + (byId["09424150"]?.flow_cfs || 0)) }
+        };
+      }
     } else if (r === "lower_basin_paloverde_imperial") {
       const res = resolveStation(paloVerde);
       flow = res.flow_cfs; status = res.status; timestamp = res.timestamp; sourceLabel = res.source_label;
@@ -1394,6 +1401,13 @@ function applyLiveHydrology(riverNetwork, metrics) {
       flow = res.flow_cfs; status = res.status; timestamp = res.timestamp; sourceLabel = res.source_label;
       gaugeInfo = "USGS #09429500 below Imperial Dam, AZ-CA (residual channel flow post-AAC diversion)";
       gaugeId = "09429500";
+      if (flow != null && paloVerde && paloVerde.flow_cfs != null && byId["09527700"]?.flow_cfs != null) {
+        confluenceInfo = {
+          confluence_name: "Imperial Dam Diversion & Residual Channel Flow",
+          mainstem_upstream: { name: "Palo Verde Tailwater", cfs: Math.round(paloVerde.flow_cfs) },
+          tributary: { name: "All-American Canal Diversion", cfs: Math.round(byId["09527700"].flow_cfs) }
+        };
+      }
     } else if (r === "lower_basin_taper") {
       const res = resolveStation(imperialTailrace);
       flow = res.flow_cfs; status = res.status; timestamp = res.timestamp;
