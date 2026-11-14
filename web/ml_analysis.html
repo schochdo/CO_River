@@ -3,489 +3,173 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upper Basin Tributaries, River Travel Times &amp; Lake Powell Water Balance</title>
+  <title>Upper Basin River Dynamics &amp; Lake Powell Water Balance</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: #f1f5f9;
-      color: #0f172a;
+    html, body {
+      height: 100%;
+      width: 100%;
       margin: 0;
       padding: 0;
+      overflow: hidden;
+      background-color: #f8fafc;
+      color: #0f172a;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       -webkit-font-smoothing: antialiased;
     }
     .mono {
       font-family: 'JetBrains Mono', monospace;
     }
-    .card-academic {
-      background-color: #f8fafc;
-      border: 1px solid #e2e8f0;
-    }
-
-    /* Custom scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f1f5f9;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 3px;
-    }
-
     /* In-iframe adjustments */
     body.in-iframe header {
-      display: none !important;
+      height: 52px;
+      min-height: 52px;
+      max-height: 52px;
+    }
+    body.in-iframe main {
+      height: calc(100vh - 52px) !important;
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col bg-[#f1f5f9]">
+<body class="flex flex-col h-screen w-screen overflow-hidden bg-slate-50">
 
-  <!-- Top Navigation Header -->
-  <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3 shadow-xs sticky top-0 z-20">
-    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <div class="text-[10px] font-black uppercase tracking-widest text-sky-700">Colorado River Basin Hydrology</div>
-        <h1 class="text-sm sm:text-base font-black text-slate-900 tracking-tight leading-tight">
-          Upper Basin Tributary Inflows, River Travel Times &amp; Lake Powell Deficit
-        </h1>
-        <p class="text-xs text-slate-600 mt-0.5 font-medium">
-          Physical hydrology &amp; empirical machine learning: flow regime clustering, lagged cross-correlation, and mass-balance accounting.
-        </p>
-      </div>
-
-      <!-- Cross-Tab Navigation Pills -->
+  <!-- ============================================================== -->
+  <!-- 52PX COMPACT EDITORIAL HEADER                                  -->
+  <!-- ============================================================== -->
+  <header class="h-[52px] min-h-[52px] max-h-[52px] bg-white border-b border-slate-300 px-4 flex items-center justify-between gap-3 box-border z-20">
+    <!-- Left: Navigation & Title -->
+    <div class="flex items-center gap-3 shrink-0">
+      <a href="index.html" onclick="goToTab(event, 'map')" class="back-link inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        <span>Back to Map</span>
+      </a>
       <div class="flex items-center gap-2">
-        <a href="./?tab=map" onclick="goToTab(event, 'map')" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition" title="Open Interactive Basin Map">
-          <span>🗺️ Map</span>
-        </a>
-        <a href="./?tab=sankey" onclick="goToTab(event, 'sankey')" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition" title="Open Annual Water Budget Sankey">
-          <span>⚖️ Water Budget</span>
-        </a>
-        <a href="./notebooks/03_tributary_ml_analysis.html" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 transition" title="Inspect Jupyter Research Notebook">
-          <span>🔬 Research Notebook ↗</span>
-        </a>
+        <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+        <h1 class="text-sm font-bold text-slate-900 tracking-tight">Upper Basin River Dynamics &amp; Lake Powell Water Balance</h1>
+      </div>
+    </div>
+
+    <!-- Center: Interactive Regime Filter Buttons -->
+    <div class="flex items-center gap-1.5 shrink-0" role="group" aria-label="River Regime Filters">
+      <button id="btn-all" onclick="filterRegime('all')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-slate-800 text-white shadow-xs">
+        All Rivers
+      </button>
+      <button id="btn-snowmelt" onclick="filterRegime('snowmelt')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200">
+        Snowmelt Rivers
+      </button>
+      <button id="btn-dam" onclick="filterRegime('dam_controlled')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300">
+        Dam-Controlled
+      </button>
+      <button id="btn-flash" onclick="filterRegime('flash_flood')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200">
+        Desert Flash-Flood
+      </button>
+    </div>
+
+    <!-- Right: Shared Selection Status Pill -->
+    <div class="flex items-center shrink-0 min-w-0">
+      <div id="status-pill" class="text-[11px] font-medium text-slate-700 bg-slate-100 border border-slate-200 rounded-full px-3 py-0.5 truncate max-w-[440px]" title="Click any river bubble or curve below to highlight">
+        Click any river bubble or curve below to highlight
       </div>
     </div>
   </header>
 
-  <!-- Main 4-Panel Editorial Research Dashboard -->
-  <main class="w-full max-w-7xl mx-auto p-3 sm:p-5 md:p-6 flex-1 flex flex-col gap-5">
+  <!-- ============================================================== -->
+  <!-- 2x2 SINGLE-SCREEN EDITORIAL GRID                               -->
+  <!-- ============================================================== -->
+  <main class="h-[calc(100vh-52px)] w-full p-2.5 box-border grid grid-cols-2 grid-rows-2 gap-2.5 overflow-hidden bg-slate-50">
 
-    <!-- 2x2 Clean Editorial Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1">
-
-      <!-- ============================================================== -->
-      <!-- PANEL 1: ML RIVER REGIME CLASSIFICATION & INFLOW SHARE          -->
-      <!-- ============================================================== -->
-      <div class="card-academic rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between pb-2 border-b border-slate-200">
-            <div>
-              <span class="text-[10px] font-bold text-sky-800 uppercase tracking-wider">K-Means Regime Clustering (k = 3)</span>
-              <h2 class="text-sm sm:text-base font-black text-slate-900 leading-tight">
-                1. ML River Regime Classification &amp; Lake Powell Inflow Share
-              </h2>
-            </div>
-            <span class="text-[11px] mono bg-sky-100 text-sky-900 border border-sky-300 px-2 py-0.5 rounded font-bold">
-              USGS Telemetry
-            </span>
-          </div>
-          <p class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">
-            How daily USGS gauge telemetry classifies river reaches by volatility (Richards-Baker Flashiness) and annual volume (MAF/yr).
-          </p>
-        </div>
-
-        <!-- 2D Scatter / Bubble Plot -->
-        <div class="relative w-full h-56 sm:h-64 my-3">
-          <canvas id="chart-regimes-bubble"></canvas>
-        </div>
-
-        <!-- Inline Legend + 3-Row Mini Summary Table -->
-        <div class="pt-2 border-t border-slate-200">
-          <div class="flex flex-wrap items-center justify-between gap-2 text-[10px] font-semibold text-slate-700 mb-2 px-0.5">
-            <div class="flex items-center gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-[#0284c7]"></span>
-              <span>Cluster A: Dam-Regulated Storage (53%)</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-[#0d9488]"></span>
-              <span>Cluster B: Alpine Snowmelt (37%)</span>
-            </div>
-            <div class="flex items-center gap-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-[#e11d48]"></span>
-              <span>Cluster C: Monsoon / Arroyo (10%)</span>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto rounded border border-slate-200 bg-white">
-            <table class="w-full text-[11px] text-left border-collapse">
-              <thead>
-                <tr class="bg-slate-100/80 border-b border-slate-200 text-slate-600 font-bold text-[9.5px] uppercase tracking-wider">
-                  <th class="py-1 px-2.5">Regime</th>
-                  <th class="py-1 px-2.5">Key Gauges</th>
-                  <th class="py-1 px-2.5">Hydrograph Signature</th>
-                  <th class="py-1 px-2.5 text-right">Inflow Share</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
-                <tr class="hover:bg-slate-50">
-                  <td class="py-1.5 px-2.5 font-bold text-[#0284c7] whitespace-nowrap">Dam-Regulated Storage</td>
-                  <td class="py-1.5 px-2.5 text-slate-900">Green R. (#09315000), Gunnison (#09152500), Navajo Dam</td>
-                  <td class="py-1.5 px-2.5 text-slate-600">Flattened hydrograph, constant baseflow pulses</td>
-                  <td class="py-1.5 px-2.5 font-mono font-bold text-right text-slate-900">53%</td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-1.5 px-2.5 font-bold text-[#0d9488] whitespace-nowrap">Alpine Snowmelt</td>
-                  <td class="py-1.5 px-2.5 text-slate-900">Upper CO at Cameo (#09095500), Yampa, Roaring Fork</td>
-                  <td class="py-1.5 px-2.5 text-slate-600">May–June snowmelt peak, low late-summer baseflow</td>
-                  <td class="py-1.5 px-2.5 font-mono font-bold text-right text-slate-900">37%</td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-1.5 px-2.5 font-bold text-[#e11d48] whitespace-nowrap">Monsoon / Arroyo Flash</td>
-                  <td class="py-1.5 px-2.5 text-slate-900">San Juan at Bluff (#09379500), Dirty Devil (#09333500), Escalante (#09337500)</td>
-                  <td class="py-1.5 px-2.5 text-slate-600">Violent 24–48hr spikes, dry ephemeral channels</td>
-                  <td class="py-1.5 px-2.5 font-mono font-bold text-right text-slate-900">10%</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="mt-2 text-[10.5px] text-slate-500 leading-normal">
-            <span class="font-semibold text-slate-700">Hydrologic Note:</span> The mainstem <em>Colorado River at Lees Ferry (#09380000)</em> is the ultimate dam-regulated outflow reach (8.23 MAF/yr, flat flashiness 0.04), tracked in Panel 3. Only true Upper Basin tributaries upstream of Glen Canyon Dam are classified as Powell inflows.
-          </div>
-        </div>
-      </div>
-
-      <!-- ============================================================== -->
-      <!-- PANEL 2: HYDRAULIC LAG TIME TO LAKE POWELL (CCF)              -->
-      <!-- ============================================================== -->
-      <div class="card-academic rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between pb-2 border-b border-slate-200">
-            <div>
-              <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Lagged Cross-Correlation (CCF)</span>
-              <h2 class="text-sm sm:text-base font-black text-slate-900 leading-tight">
-                2. Hydraulic Lag Time to Lake Powell (Cross-Correlation)
-              </h2>
-            </div>
-            <span class="text-[11px] mono bg-emerald-100 text-emerald-900 border border-emerald-300 px-2 py-0.5 rounded font-bold">
-              0 to 10 Day Lags
-            </span>
-          </div>
-          <p class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">
-            Empirical travel time (days) from upstream sentinel gauges to Lake Powell storage response across 0–12 days of lag.
-          </p>
-        </div>
-
-        <!-- Multi-line Cross-Correlation Curve -->
-        <div class="relative w-full h-56 sm:h-64 my-3">
-          <canvas id="chart-ccf-lag"></canvas>
-        </div>
-
-        <!-- 1 Crisp Sentence Takeaway -->
-        <div class="pt-2.5 border-t border-slate-200 text-xs text-slate-600 leading-normal">
-          <strong class="text-slate-900">Empirical Transit Dynamic:</strong> Travel time scales directly with canyon transit distance: desert storm pulses at Bluff arrive within 36 hours (1.5 days), while high-altitude snowmelt from Cameo and Yampa requires 6.5 to 8 days to reach the reservoir.
-        </div>
-      </div>
-
-      <!-- ============================================================== -->
-      <!-- PANEL 3: LAKE POWELL WATER BALANCE & REGRESSION WEIGHTS        -->
-      <!-- ============================================================== -->
-      <div class="card-academic rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between pb-2 border-b border-slate-200">
-            <div>
-              <span class="text-[10px] font-bold text-purple-800 uppercase tracking-wider">MAF / Year Accounting</span>
-              <h2 class="text-sm sm:text-base font-black text-slate-900 leading-tight">
-                3. Lake Powell Water Balance &amp; Regression Weights
-              </h2>
-            </div>
-            <span class="text-[11px] mono bg-purple-100 text-purple-900 border border-purple-300 px-2 py-0.5 rounded font-bold">
-              Compact Math
-            </span>
-          </div>
-          <p class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">
-            Why mandatory Lower Basin compact releases outpace dry-year tributary inflows.
-          </p>
-        </div>
-
-        <!-- Horizontal Waterfall / Bullet Chart with ZERO label collisions -->
-        <div class="space-y-4 my-4 py-1">
-          
-          <!-- 1. Historical Mean Inflow -->
-          <div>
-            <div class="flex justify-between items-baseline text-xs mb-1.5 font-semibold text-slate-900">
-              <span>Historical Mean Inflow (All Tributaries Combined)</span>
-              <span class="font-mono font-bold text-[#0284c7] text-xs">+10.83 MAF / yr</span>
-            </div>
-            <div class="w-full bg-slate-200/80 rounded-full h-3.5 overflow-hidden">
-              <div class="bg-[#0284c7] h-full rounded-full transition-all duration-500" style="width: 100%;"></div>
-            </div>
-          </div>
-
-          <!-- 2. Recent Drought Inflow -->
-          <div>
-            <div class="flex justify-between items-baseline text-xs mb-1.5 font-semibold text-slate-900">
-              <span class="text-amber-950">Recent Drought Inflow (e.g., 2002, 2021, 2026 Runoff)</span>
-              <span class="font-mono font-bold text-amber-600 text-xs">+5.20 MAF / yr</span>
-            </div>
-            <div class="w-full bg-slate-200/80 rounded-full h-3.5 overflow-hidden">
-              <div class="bg-[#f59e0b] h-full rounded-full transition-all duration-500" style="width: 48%;"></div>
-            </div>
-          </div>
-
-          <!-- 3. Mandatory Lees Ferry Compact Release -->
-          <div>
-            <div class="flex justify-between items-baseline text-xs mb-1.5 font-semibold text-slate-900">
-              <span class="text-red-950">Mandatory Lees Ferry Compact Release (#09380000)</span>
-              <span class="font-mono font-bold text-red-600 text-xs">-7.50 to -8.23 MAF / yr</span>
-            </div>
-            <div class="w-full bg-slate-200/80 rounded-full h-3.5 overflow-hidden">
-              <div class="bg-[#dc2626] h-full rounded-full transition-all duration-500" style="width: 76%;"></div>
-            </div>
-          </div>
-
-          <!-- 4. Reservoir Evaporation & Seepage -->
-          <div>
-            <div class="flex justify-between items-baseline text-xs mb-1.5 font-semibold text-slate-900">
-              <span class="text-rose-950">Reservoir Evaporation &amp; Bank Seepage Losses</span>
-              <span class="font-mono font-bold text-rose-500 text-xs">-0.55 MAF / yr</span>
-            </div>
-            <div class="w-full bg-slate-200/80 rounded-full h-3.5 overflow-hidden">
-              <div class="bg-[#fb7185] h-full rounded-full transition-all duration-500" style="width: 8%;"></div>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Summary Deficit Pill -->
-        <div class="pt-3 border-t border-slate-200">
-          <div class="p-3 rounded-lg bg-red-50/80 border border-red-200 flex flex-col gap-2">
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-red-900">Net Drought Structural Deficit</span>
-              <span class="text-[11px] text-red-700 font-mono font-medium">Inflow (+5.20) − Compact (-8.23) − Evap (-0.55)</span>
-            </div>
-            <div class="w-full text-center py-1.5 px-2 rounded-md bg-red-600 text-white font-mono font-bold text-xs shadow-xs">
-              -3.58 MAF / yr Annual Storage Loss (Covered by draining Lake Powell)
-            </div>
-          </div>
-          <div class="mt-2 text-[11px] text-slate-500 leading-normal">
-            Mandatory deliveries to the Lower Basin outpace dry-year tributary runoff, forcing Lake Powell to deplete storage reserves.
-          </div>
-        </div>
-      </div>
-
-      <!-- ============================================================== -->
-      <!-- PANEL 4: AREA UNDER THE CURVE: FLASH FLOOD VS SNOWMELT         -->
-      <!-- ============================================================== -->
-      <div class="card-academic rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between pb-2 border-b border-slate-200">
-            <div>
-              <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Hydrograph Integral (Q × Time = Volume)</span>
-              <h2 class="text-sm sm:text-base font-black text-slate-900 leading-tight">
-                4. Area Under the Curve: 48-Hr Flash Flood vs. 60-Day Snowmelt
-              </h2>
-            </div>
-            <span class="text-[11px] mono bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded font-bold">
-              V = ∫ Q dt
-            </span>
-          </div>
-          <p class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">
-            Why a 5,000 cfs desert rainstorm spike adds negligible volume compared to sustained spring snowmelt.
-          </p>
-        </div>
-
-        <!-- 60-Day Hydrograph Area Chart -->
-        <div class="relative w-full h-56 sm:h-64 my-3">
-          <canvas id="chart-hydrograph-auc"></canvas>
-        </div>
-
-        <!-- Metric Comparison Badges -->
-        <div class="grid grid-cols-2 gap-2 text-[11px]">
-          <div class="p-2 rounded bg-sky-50 border border-sky-200">
-            <div class="font-bold text-sky-950 flex items-center justify-between">
-              <span>Spring Snowmelt Pulse</span>
-              <span class="font-mono text-sky-700 font-bold">1.35 MAF</span>
-            </div>
-            <div class="text-[9.5px] text-slate-600 mt-0.5">Sustained 45–60 day snowpack crest (15,000–21,000 cfs) yields 1,350,000 AF.</div>
-          </div>
-          <div class="p-2 rounded bg-rose-50 border border-rose-200">
-            <div class="font-bold text-rose-950 flex items-center justify-between">
-              <span>48-Hr Desert Flash Flood</span>
-              <span class="font-mono text-rose-700 font-bold">0.02 MAF</span>
-            </div>
-            <div class="text-[9.5px] text-slate-600 mt-0.5">5,000 cfs spike adds only 20,000 AF — drained by Lees Ferry release in 30 hours!</div>
-          </div>
-        </div>
-
-        <!-- Compact 2-line bottom caption -->
-        <div class="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-600 leading-normal">
-          <strong class="text-slate-900">Physical Reality:</strong> Volume equals the time-integral of discharge (<em>V</em> = &int; <em>Q</em> <em>dt</em>). The spring snowmelt delivers <strong>67× more water</strong> than a fierce desert cloudburst. Only winter snowpack can replenish Lake Powell.
-        </div>
-      </div>
-
-    </div>
-
-    <!-- ============================================================== -->
-    <!-- SECTION DIVIDER: PART 2 FULL-SYSTEM ACCOUNTING & SEASONAL REGIMES -->
-    <!-- ============================================================== -->
-    <div class="mt-4 pt-4 border-t-2 border-slate-300 flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <div class="text-[10px] font-black uppercase tracking-widest text-indigo-700">Part 2: Full-System Accounting &amp; Seasonal Regimes</div>
-        <h2 class="text-sm sm:text-base font-black text-slate-900 tracking-tight leading-tight">
-          100-Year Compact Reality &amp; Full-System Seasonal Behavior (1922–2026)
+    <!-- CARD 1: RIVER BEHAVIOR & SIZE (GAPMINDER BUBBLE CHART) -->
+    <section class="bg-white border border-slate-300 rounded-lg p-3 flex flex-col min-h-0 shadow-xs">
+      <div class="flex items-center justify-between gap-2 shrink-0 mb-1">
+        <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          River Behavior &amp; Annual Water Volume
         </h2>
-        <p class="text-xs text-slate-600 mt-0.5 font-medium">
-          Empirical exceedance of the 16.5 MAF paper allocation, 365-day seasonal regime heartbeats, and spring refill surplus vs. structural deficit.
-        </p>
+        <span class="text-[10px] text-slate-500 font-mono">Bubble Size = % of Powell Inflow</span>
       </div>
-      <div class="flex items-center gap-2">
-        <a href="data/charts/compact_accounting_100yr.png" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition" title="View High-Res Matplotlib Export">
-          <span>📊 100-Yr Chart PNG ↗</span>
-        </a>
-        <a href="data/charts/seasonal_system_2x2_grid.png" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 transition" title="View 2x2 Grid PNG">
-          <span>📈 2x2 Grid PNG ↗</span>
-        </a>
+      <p class="text-[11px] text-slate-600 mb-1.5 leading-snug shrink-0">
+        Major mountain rivers supply over 85% of Lake Powell's water in steady annual flows, while desert arroyos deliver rare, unpredictable muddy torrents.
+      </p>
+      <div class="flex-1 min-h-0 relative w-full">
+        <canvas id="chart-behavior-bubbles" style="position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important;"></canvas>
       </div>
-    </div>
+    </section>
 
-    <!-- 2x2 Grid for Part 2 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 flex-1">
-
-      <!-- ============================================================== -->
-      <!-- PANEL 5: 100-YEAR WET WATER VS. PAPER WATER (1922–2026)         -->
-      <!-- ============================================================== -->
-      <div class="card-academic rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between pb-2 border-b border-slate-200">
-            <div>
-              <span class="text-[10px] font-bold text-indigo-800 uppercase tracking-wider">100-Year Historical Accounting (1922–2026)</span>
-              <h3 class="text-sm sm:text-base font-black text-slate-900 leading-tight">
-                5. Wet Water vs. Paper Water: Reconstructed Supply vs. 16.5 MAF
-              </h3>
-            </div>
-            <span class="text-[11px] mono bg-indigo-100 text-indigo-900 border border-indigo-300 px-2 py-0.5 rounded font-bold">
-              USGS NWIS (1922–2026)
-            </span>
-          </div>
-          <p class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">
-            Reconstructed annual basin supply (<em>Q</em><sub>Cisco</sub> + <em>Q</em><sub>Green</sub> + <em>Q</em><sub>Bluff</sub> + Depletions) plotted against the 16.5 MAF/yr Compact + 1944 Treaty paper water allocation.
-          </p>
-        </div>
-
-        <!-- 100-Year Bar & Line Chart -->
-        <div class="relative w-full h-64 sm:h-72 my-3">
-          <canvas id="chart-compact-100yr"></canvas>
-        </div>
-
-        <!-- Empirical Exceedance Probability Cards -->
-        <div class="grid grid-cols-2 gap-2 text-[11px]">
-          <div class="p-2.5 rounded bg-blue-50 border border-blue-200">
-            <div class="font-bold text-blue-950 flex items-center justify-between">
-              <span>100-Year Exceedance (1922–2026)</span>
-              <span class="font-mono text-blue-700 font-black text-sm">25.7%</span>
-            </div>
-            <div class="text-[9.5px] text-slate-600 mt-0.5">
-              Natural supply met or exceeded the 16.5 MAF paper allocation in only <strong>27 out of 105 years</strong> (~1 in 4).
-            </div>
-          </div>
-          <div class="p-2.5 rounded bg-rose-50 border border-rose-200">
-            <div class="font-bold text-rose-950 flex items-center justify-between">
-              <span>21st-Century Exceedance (2000–2026)</span>
-              <span class="font-mono text-rose-700 font-black text-sm">3.7%</span>
-            </div>
-            <div class="text-[9.5px] text-slate-600 mt-0.5">
-              Only <strong>1 single year (2011)</strong> in the last 27 years yielded &ge; 16.5 MAF. 96.3% of 21st-century years have been in physical deficit.
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-600 leading-normal">
-          <strong class="text-slate-900">Compact Flaw:</strong> The 1922 delegates allocated 16.5 MAF based on an abnormally wet decade (1905–1920 avg ~18 MAF). In reality, post-1963 Glen Canyon Dam releases have flatlined at the ~8.23 MAF/yr compact delivery minimum.
-        </div>
+    <!-- CARD 2: TRAVEL TIME TO LAKE POWELL (ARRIVAL CURVES) -->
+    <section class="bg-white border border-slate-300 rounded-lg p-3 flex flex-col min-h-0 shadow-xs">
+      <div class="flex items-center justify-between gap-2 shrink-0 mb-1">
+        <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-slate-600"></span>
+          How Many Days Until Water Reaches Lake Powell?
+        </h2>
+        <span class="text-[10px] text-slate-500 font-mono">Arrival Delay: 1.5 to 8 Days</span>
       </div>
-
-      <!-- ============================================================== -->
-      <!-- PANEL 6: 365-DAY SEASONAL HEARTBEATS & SUPPLY-DEMAND MISMATCH  -->
-      <!-- ============================================================== -->
-      <div class="card-academic rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between pb-2 border-b border-slate-200">
-            <div>
-              <span class="text-[10px] font-bold text-teal-800 uppercase tracking-wider">365-Day Climatology (Jan 1 &rarr; Dec 31)</span>
-              <h3 class="text-sm sm:text-base font-black text-slate-900 leading-tight">
-                6. Full-System Seasonal Heartbeats &amp; Supply-Demand Mismatch
-              </h3>
-            </div>
-            <div class="flex items-center gap-1 bg-slate-200 p-0.5 rounded text-[10px] font-bold">
-              <button id="btn-tab-regimes" onclick="switchSeasonalTab('regimes')" class="px-2 py-0.5 rounded bg-white text-slate-800 shadow-xs">5 Regimes</button>
-              <button id="btn-tab-mismatch" onclick="switchSeasonalTab('mismatch')" class="px-2 py-0.5 rounded text-slate-600 hover:text-slate-900">Supply vs Demand</button>
-            </div>
-          </div>
-          <p id="seasonal-desc" class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">
-            Normalized Day-of-Year hydrographs demonstrating the staggered arrival of Alpine Snowmelt, Front Range Trans-Mountain Tunnels, Monsoon Floods, Dam Releases, and Canal Demands.
-          </p>
-        </div>
-
-        <!-- Dynamic Chart Container -->
-        <div class="relative w-full h-64 sm:h-72 my-3">
-          <div id="container-regimes" class="w-full h-full">
-            <canvas id="chart-seasonal-heartbeats"></canvas>
-          </div>
-          <div id="container-mismatch" class="w-full h-full hidden">
-            <canvas id="chart-supply-demand"></canvas>
-          </div>
-        </div>
-
-        <!-- Summary Stat Cards -->
-        <div class="grid grid-cols-2 gap-2 text-[11px]">
-          <div class="p-2.5 rounded bg-emerald-50 border border-emerald-200">
-            <div class="font-bold text-emerald-950 flex items-center justify-between">
-              <span>Spring Refill Window</span>
-              <span class="font-mono text-emerald-700 font-bold">~96 Days</span>
-            </div>
-            <div class="text-[9.5px] text-slate-600 mt-0.5">
-              May 1 – Aug 5: Snowmelt inflows (up to 48,000 cfs) exceed steady ~15,000 cfs system demand, creating a brief annual refill surplus.
-            </div>
-          </div>
-          <div class="p-2.5 rounded bg-amber-50 border border-amber-200">
-            <div class="font-bold text-amber-950 flex items-center justify-between">
-              <span>Structural Deficit Period</span>
-              <span class="font-mono text-amber-700 font-bold">~269 Days</span>
-            </div>
-            <div class="text-[9.5px] text-slate-600 mt-0.5">
-              Aug 6 – Apr 30: Natural baseflow drops to 4,000–8,000 cfs while municipal and agricultural straws draft continuously, draining reservoir storage.
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-600 leading-normal">
-          <strong class="text-slate-900">Temporal Decoupling:</strong> Nature supplies 70% of basin water in a 90-day spring snowmelt window. Civilization consumes it across 365 days. Without multi-year escrow banking in Mead and Powell, the entire Lower Basin would run dry by August.
-        </div>
+      <p class="text-[11px] text-slate-600 mb-1.5 leading-snug shrink-0">
+        Water released from upstream headwaters takes up to 8 days to travel through canyon corridors and fill Lake Powell.
+      </p>
+      <div class="flex-1 min-h-0 relative w-full">
+        <canvas id="chart-travel-time" style="position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important;"></canvas>
       </div>
+    </section>
 
-    </div>
+    <!-- CARD 3: 100 YEARS OF WET WATER VS. PAPER PROMISES (1922-2026) -->
+    <section class="bg-white border border-slate-300 rounded-lg p-3 flex flex-col min-h-0 shadow-xs">
+      <div class="flex items-center justify-between gap-2 shrink-0 mb-1">
+        <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+          100 Years of Wet Water vs. Paper Promises (1922–2026)
+        </h2>
+        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-50 text-amber-900 border border-amber-200">
+          Met 26% of 100 Yrs • 3.7% Since 2000
+        </span>
+      </div>
+      <p class="text-[11px] text-slate-600 mb-1.5 leading-snug shrink-0">
+        The 1922 Compact promised 16.5 million acre-feet every year, but actual river flow met that target only 26% of the time—and only once since 2000.
+      </p>
+      <div class="flex-1 min-h-0 relative w-full">
+        <canvas id="chart-compact-100yr" style="position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important;"></canvas>
+      </div>
+    </section>
+
+    <!-- CARD 4: 60-DAY SNOWMELT WAVE VS. 2-DAY FLASH FLOOD -->
+    <section class="bg-white border border-slate-300 rounded-lg p-3 flex flex-col min-h-0 shadow-xs">
+      <div class="flex items-center justify-between gap-2 shrink-0 mb-1">
+        <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          Why a 2-Day Flash Flood Doesn't Fill Lake Powell
+        </h2>
+        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-700 border border-slate-200">
+          Snowmelt: 1.35 MAF vs. Flash: 0.02 MAF
+        </span>
+      </div>
+      <p class="text-[11px] text-slate-600 mb-1.5 leading-snug shrink-0">
+        A sharp 2-day desert flash flood delivers only 0.02 MAF (drained in 30 hours by mandatory releases), while sustained 60-day snowmelt fills 1.35 MAF.
+      </p>
+      <div class="flex-1 min-h-0 relative w-full">
+        <canvas id="chart-snowmelt-vs-flash" style="position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important;"></canvas>
+      </div>
+    </section>
 
   </main>
 
   <!-- ============================================================== -->
-  <!-- JAVASCRIPT: REAL DATA-SCIENCE CHARTS                           -->
+  <!-- JAVASCRIPT: SHARED SELECTION STATE & GAPMINDER INTERACTIVITY   -->
   <!-- ============================================================== -->
   <script>
     Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
     Chart.defaults.color = "#475569";
     Chart.defaults.borderColor = "#f1f5f9";
 
-    // Navigation helper for iframe or standalone
+    // Handle iframe detection and navigation
+    if (window.self !== window.top) {
+      document.body.classList.add('in-iframe');
+    }
     function goToTab(e, tabId) {
       if (window.parent && window.parent !== window && typeof window.parent.setTab === 'function') {
         if (e) e.preventDefault();
@@ -493,374 +177,395 @@
       }
     }
 
-    // Detect iframe
-    if (window.self !== window.top) {
-      document.body.classList.add('in-iframe');
+    // Color conversion utility
+    function hexToRgba(hex, alpha) {
+      const h = hex.replace('#', '');
+      const r = parseInt(h.substring(0, 2), 16);
+      const g = parseInt(h.substring(2, 4), 16);
+      const b = parseInt(h.substring(4, 6), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     // ================================================================
-    // CHART 1: K-MEANS REGIME CLUSTERING BUBBLE CHART (k = 3)
+    // CORE RIVER DATASET (LINKED ACROSS CARD 1 & CARD 2)
     // ================================================================
-    const ctxRegimes = document.getElementById('chart-regimes-bubble').getContext('2d');
-    new Chart(ctxRegimes, {
-      type: 'bubble',
-      data: {
-        datasets: [
-          {
-            label: 'Cluster A: Dam-Regulated Storage (53%)',
-            data: [
-              { x: 0.18, y: 3.80, r: 16, name: 'Green River at Green River (#09315000)', share: '35% of Powell Inflow (3.80 MAF)' },
-              { x: 0.15, y: 2.00, r: 12, name: 'Gunnison near Grand Junction (#09152500)', share: '18% of Powell Inflow (2.00 MAF)' },
-              { x: 0.08, y: 1.40, r: 9, name: 'Green below Flaming Gorge (#09234500)', share: '13% of Inflow (1.40 MAF, Flat Release)' },
-              { x: 0.09, y: 0.70, r: 7, name: 'San Juan below Navajo (#09355500)', share: '6% of Inflow (0.70 MAF, Flat Release)' }
-            ],
-            backgroundColor: 'rgba(2, 132, 199, 0.75)',
-            borderColor: '#0284c7',
-            borderWidth: 1.5
-          },
-          {
-            label: 'Cluster B: Unregulated Alpine Snowmelt (37%)',
-            data: [
-              { x: 0.32, y: 2.85, r: 14, name: 'Upper Colorado at Cameo (#09095500)', share: '26% of Powell Inflow (2.85 MAF)' },
-              { x: 0.42, y: 1.25, r: 9, name: 'Yampa at Deerlodge (#09260050)', share: '11% of Powell Inflow (1.25 MAF, Wild Pulse)' },
-              { x: 0.30, y: 0.55, r: 6, name: 'Roaring Fork River (#09085000)', share: '5% of Powell Inflow (0.55 MAF)' }
-            ],
-            backgroundColor: 'rgba(13, 148, 136, 0.75)',
-            borderColor: '#0d9488',
-            borderWidth: 1.5
-          },
-          {
-            label: 'Cluster C: Monsoon / Arroyo Flash Flood (10%)',
-            data: [
-              { x: 0.78, y: 1.15, r: 9, name: 'San Juan at Bluff (#09379500)', share: '10% of Powell Inflow (1.15 MAF, Monsoon Wave)' },
-              { x: 0.88, y: 0.07, r: 5, name: 'Dirty Devil River nr Hanksville (#09333500)', share: '<1% of Powell Inflow (0.07 MAF, Mudflow Arroyo)' },
-              { x: 0.84, y: 0.05, r: 4, name: 'Escalante River nr Escalante (#09337500)', share: '<1% of Powell Inflow (0.05 MAF, Slickrock Flash)' }
-            ],
-            backgroundColor: 'rgba(225, 29, 72, 0.75)',
-            borderColor: '#e11d48',
-            borderWidth: 1.5
-          }
-        ]
+    const RIVERS = [
+      {
+        id: 'green_river',
+        name: 'Green River at Green River',
+        station: '#09315000',
+        regime: 'dam_controlled',
+        x: 0.18, // Steady flow
+        y: 3.80, // 3.80 MAF/yr
+        r: 18,
+        color: '#475569',
+        travelDays: 4.5,
+        distanceMi: 120,
+        sharePct: 35,
+        summary: 'Selected: Green River at Green River — 3.80 MAF/yr (35% of Powell inflow) • Reaches Powell in 4.5 days • Regulated Upper Basin powerhouse',
+        travelCurve: [0.18, 0.31, 0.52, 0.71, 0.80, 0.81, 0.74, 0.62, 0.48, 0.33, 0.21]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              title: (items) => items[0].raw.name,
-              label: (ctx) => [
-                `Annual Volume: ${ctx.raw.y.toFixed(2)} MAF/yr`,
-                `Flashiness Index: ${ctx.raw.x.toFixed(2)}`,
-                ctx.raw.share
-              ]
-            }
-          }
-        },
-        scales: {
-          x: {
-            min: 0.0,
-            max: 1.05,
-            title: {
-              display: true,
-              text: 'Richards-Baker Flashiness Index (0.0 = Flat Dam Release → 1.0 = Arroyo Flash Spikes)',
-              font: { size: 9.5, weight: 600 },
-              color: '#475569'
-            },
-            ticks: { font: { size: 9.5 }, color: '#64748b' },
-            grid: { color: '#f1f5f9' }
-          },
-          y: {
-            min: 0,
-            max: 4.5,
-            title: {
-              display: true,
-              text: 'Annual Volume Delivered (MAF/yr)',
-              font: { size: 9.5, weight: 600 },
-              color: '#475569'
-            },
-            ticks: {
-              callback: (v) => `${v.toFixed(1)} MAF`,
-              font: { size: 9.5 },
-              color: '#64748b'
-            },
-            grid: { color: '#f1f5f9' }
-          }
-        }
-      }
-    });
-
-    // ================================================================
-    // CHART 2: HYDRAULIC CCF CROSS-CORRELATION LAG CURVES
-    // ================================================================
-    const ctxLag = document.getElementById('chart-ccf-lag').getContext('2d');
-    const lagDays = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-    new Chart(ctxLag, {
-      type: 'line',
-      data: {
-        labels: lagDays.map(d => `${d}d`),
-        datasets: [
-          {
-            label: 'San Juan at Bluff (~105 mi): Peak 1.5d (r = 0.42)',
-            data: [0.35, 0.41, 0.42, 0.38, 0.31, 0.23, 0.16, 0.11, 0.08, 0.05, 0.03],
-            borderColor: '#e11d48',
-            backgroundColor: '#e11d48',
-            borderWidth: 2,
-            tension: 0.35,
-            pointRadius: (ctx) => (ctx.dataIndex === 1 || ctx.dataIndex === 2) ? 4.5 : 2,
-            pointHoverRadius: 6
-          },
-          {
-            label: 'Colorado R. near Cisco (~110 mi): Peak 3.5d (r = 0.78)',
-            data: [0.22, 0.39, 0.62, 0.76, 0.78, 0.72, 0.61, 0.48, 0.35, 0.24, 0.16],
-            borderColor: '#0284c7',
-            backgroundColor: '#0284c7',
-            borderWidth: 2,
-            tension: 0.35,
-            pointRadius: (ctx) => (ctx.dataIndex === 3 || ctx.dataIndex === 4) ? 4.5 : 2,
-            pointHoverRadius: 6
-          },
-          {
-            label: 'Green R. at Green River (~120 mi): Peak 4.5d (r = 0.81)',
-            data: [0.18, 0.31, 0.52, 0.71, 0.80, 0.81, 0.74, 0.62, 0.48, 0.33, 0.21],
-            borderColor: '#4f46e5',
-            backgroundColor: '#4f46e5',
-            borderWidth: 2,
-            tension: 0.35,
-            pointRadius: (ctx) => (ctx.dataIndex === 4 || ctx.dataIndex === 5) ? 5 : 2,
-            pointHoverRadius: 6
-          },
-          {
-            label: 'Gunnison near Grand Jct (~180 mi): Peak 5.5d (r = 0.69)',
-            data: [0.12, 0.20, 0.34, 0.50, 0.63, 0.69, 0.68, 0.59, 0.46, 0.34, 0.22],
-            borderColor: '#0891b2',
-            backgroundColor: '#0891b2',
-            borderWidth: 1.8,
-            tension: 0.35,
-            pointRadius: (ctx) => (ctx.dataIndex === 5 || ctx.dataIndex === 6) ? 4.5 : 2,
-            pointHoverRadius: 6
-          },
-          {
-            label: 'Upper CO at Cameo (~210 mi): Peak 6.5d (r = 0.74)',
-            data: [0.08, 0.15, 0.26, 0.41, 0.56, 0.68, 0.74, 0.73, 0.64, 0.49, 0.35],
-            borderColor: '#0d9488',
-            backgroundColor: '#0d9488',
-            borderWidth: 1.8,
-            tension: 0.35,
-            pointRadius: (ctx) => (ctx.dataIndex === 6 || ctx.dataIndex === 7) ? 4.5 : 2,
-            pointHoverRadius: 6
-          },
-          {
-            label: 'Yampa at Deerlodge (~350 mi): Peak 8.0d (r = 0.66)',
-            data: [0.05, 0.09, 0.16, 0.25, 0.37, 0.49, 0.59, 0.65, 0.66, 0.61, 0.52],
-            borderColor: '#d97706',
-            backgroundColor: '#d97706',
-            borderWidth: 1.8,
-            tension: 0.35,
-            pointRadius: (ctx) => ctx.dataIndex === 8 ? 5 : 2,
-            pointHoverRadius: 6
-          }
-        ]
+      {
+        id: 'cisco',
+        name: 'Colorado River near Cisco',
+        station: '#09180500',
+        regime: 'snowmelt',
+        x: 0.28,
+        y: 3.30,
+        r: 16,
+        color: '#2563eb',
+        travelDays: 3.5,
+        distanceMi: 110,
+        sharePct: 30,
+        summary: 'Selected: Colorado River near Cisco — 3.30 MAF/yr (30% of Powell inflow) • Reaches Powell in 3.5 days • Combines Upper Colorado & Gunnison',
+        travelCurve: [0.22, 0.39, 0.62, 0.76, 0.78, 0.72, 0.61, 0.48, 0.35, 0.24, 0.16]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'top',
-            labels: { boxWidth: 10, font: { size: 9 }, color: '#334155' }
-          },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => `${ctx.dataset.label.split(':')[0]}: r = ${ctx.parsed.y.toFixed(2)} at ${ctx.parsed.x} days lag`
-            }
-          }
-        },
-        scales: {
-          x: {
-            title: { display: true, text: 'Lag Time to Lake Powell Daily Storage Gain (Days)', font: { size: 9.5, weight: 600 }, color: '#475569' },
-            ticks: { font: { size: 9.5 }, color: '#64748b' },
-            grid: { color: '#f1f5f9' }
-          },
-          y: {
-            min: 0.0,
-            max: 0.90,
-            title: { display: true, text: 'Pearson Cross-Correlation (r)', font: { size: 9.5, weight: 600 }, color: '#475569' },
-            ticks: { font: { size: 9.5 }, color: '#64748b' },
-            grid: { color: '#f1f5f9' }
-          }
-        }
-      }
-    });
-
-    // ================================================================
-    // CHART 4: 60-DAY HYDROGRAPH AREA CHART (AUC INTEGRAL)
-    // ================================================================
-    const ctxAuc = document.getElementById('chart-hydrograph-auc').getContext('2d');
-    const days = Array.from({ length: 60 }, (_, i) => i + 1);
-
-    // Spring Mountain Snowmelt Pulse: 45-60 day sustained bell curve peaking at ~21,200 cfs
-    const snowmeltData = days.map(d => {
-      const peak = 21200;
-      const base = 2200;
-      const width = 11.5;
-      const bell = Math.exp(-Math.pow(d - 33, 2) / (2 * width * width));
-      return Math.round(base + (peak - base) * bell);
-    });
-
-    // 48-hr flash flood spike: sharp needle peaking at 5,000 cfs on Day 15
-    const flashFloodData = days.map(d => {
-      if (d === 14) return 900;
-      if (d === 15) return 5000; // Peak 48-hr needle spike
-      if (d === 16) return 1600;
-      if (d === 17) return 550;
-      return 400; // Normal desert dry wash baseflow
-    });
-
-    // Lees Ferry mandatory outflow drain at 8,000 cfs
-    const leesFerryOutflow = days.map(() => 8000);
-
-    new Chart(ctxAuc, {
-      type: 'line',
-      data: {
-        labels: days.map(d => `Day ${d}`),
-        datasets: [
-          {
-            label: 'Spring Mountain Snowmelt Pulse (Integral = 1.35 MAF / 1,350,000 AF)',
-            data: snowmeltData,
-            borderColor: '#0284c7',
-            backgroundColor: 'rgba(2, 132, 199, 0.20)',
-            fill: true,
-            borderWidth: 2,
-            tension: 0.35,
-            pointRadius: 0
-          },
-          {
-            label: 'San Juan 48-Hr Flash Flood (Integral = 0.02 MAF / 20,000 AF)',
-            data: flashFloodData,
-            borderColor: '#e11d48',
-            backgroundColor: 'rgba(225, 29, 72, 0.45)',
-            fill: true,
-            borderWidth: 2,
-            tension: 0.1,
-            pointRadius: (ctx) => ctx.dataIndex === 14 ? 5 : 0,
-            pointHoverRadius: 6
-          },
-          {
-            label: 'Lees Ferry Mandatory Daily Release (~15,870 AF/day drain at 8,000 cfs)',
-            data: leesFerryOutflow,
-            borderColor: '#475569',
-            borderDash: [5, 4],
-            borderWidth: 1.8,
-            pointRadius: 0,
-            fill: false
-          }
-        ]
+      {
+        id: 'cameo',
+        name: 'Upper Colorado at Cameo',
+        station: '#09095500',
+        regime: 'snowmelt',
+        x: 0.32,
+        y: 2.85,
+        r: 15,
+        color: '#2563eb',
+        travelDays: 6.5,
+        distanceMi: 210,
+        sharePct: 26,
+        summary: 'Selected: Upper Colorado at Cameo — 2.85 MAF/yr (26% of Powell inflow) • Reaches Powell in 6.5 days • Natural Rocky Mountain spring snowmelt',
+        travelCurve: [0.08, 0.15, 0.26, 0.41, 0.56, 0.68, 0.74, 0.73, 0.64, 0.49, 0.35]
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'top',
-            labels: { boxWidth: 12, font: { size: 9 }, color: '#334155' }
-          },
-          tooltip: {
-            callbacks: {
-              label: (ctx) => `${ctx.dataset.label.split('(')[0].trim()}: ${ctx.parsed.y.toLocaleString()} cfs`
-            }
-          }
-        },
-        scales: {
-          x: {
-            title: { display: true, text: 'Elapsed Days (60-Day Hydrograph Timeline)', font: { size: 9.5, weight: 600 }, color: '#475569' },
-            ticks: {
-              callback: (val, idx) => ((idx + 1) % 5 === 0 || idx === 0) ? `Day ${idx + 1}` : '',
-              font: { size: 9.5 },
-              color: '#64748b'
-            },
-            grid: { color: '#f1f5f9' }
-          },
-          y: {
-            min: 0,
-            max: 24000,
-            title: { display: true, text: 'Discharge Q (cfs)', font: { size: 9.5, weight: 600 }, color: '#475569' },
-            ticks: {
-              callback: (v) => `${(v / 1000).toFixed(0)}k cfs`,
-              font: { size: 9.5 },
-              color: '#64748b'
-            },
-            grid: { color: '#f1f5f9' }
-          }
-        }
+      {
+        id: 'gunnison',
+        name: 'Gunnison near Grand Junction',
+        station: '#09152500',
+        regime: 'dam_controlled',
+        x: 0.15,
+        y: 2.00,
+        r: 13,
+        color: '#475569',
+        travelDays: 5.5,
+        distanceMi: 180,
+        sharePct: 18,
+        summary: 'Selected: Gunnison near Grand Jct — 2.00 MAF/yr (18% of Powell inflow) • Reaches Powell in 5.5 days • Regulated by Aspinall Unit dams',
+        travelCurve: [0.12, 0.20, 0.34, 0.50, 0.63, 0.69, 0.68, 0.59, 0.46, 0.34, 0.22]
+      },
+      {
+        id: 'flaming_gorge',
+        name: 'Green below Flaming Gorge Dam',
+        station: '#09234500',
+        regime: 'dam_controlled',
+        x: 0.08,
+        y: 1.40,
+        r: 10,
+        color: '#475569',
+        travelDays: 7.0,
+        distanceMi: 290,
+        sharePct: 13,
+        summary: 'Selected: Green below Flaming Gorge — 1.40 MAF/yr (13% of Powell inflow) • Constant hydropower dam releases',
+        travelCurve: [0.05, 0.10, 0.18, 0.28, 0.42, 0.56, 0.68, 0.72, 0.65, 0.52, 0.38]
+      },
+      {
+        id: 'yampa',
+        name: 'Yampa River at Deerlodge Park',
+        station: '#09260050',
+        regime: 'snowmelt',
+        x: 0.42,
+        y: 1.25,
+        r: 10,
+        color: '#2563eb',
+        travelDays: 8.0,
+        distanceMi: 350,
+        sharePct: 11,
+        summary: 'Selected: Yampa at Deerlodge — 1.25 MAF/yr (11% of Powell inflow) • Reaches Powell in 8.0 days • Last large undammed wild river',
+        travelCurve: [0.05, 0.09, 0.16, 0.25, 0.37, 0.49, 0.59, 0.65, 0.66, 0.61, 0.52]
+      },
+      {
+        id: 'san_juan_bluff',
+        name: 'San Juan River at Bluff',
+        station: '#09379500',
+        regime: 'flash_flood',
+        x: 0.78,
+        y: 1.15,
+        r: 9,
+        color: '#d97706',
+        travelDays: 1.5,
+        distanceMi: 105,
+        sharePct: 10,
+        summary: 'Selected: San Juan at Bluff — 1.15 MAF/yr (10% of Powell inflow) • Reaches Powell in 1.5 days • Driven by brief desert rainstorms',
+        travelCurve: [0.35, 0.41, 0.42, 0.38, 0.31, 0.23, 0.16, 0.11, 0.08, 0.05, 0.03]
+      },
+      {
+        id: 'dirty_devil',
+        name: 'Dirty Devil near Hanksville',
+        station: '#09333500',
+        regime: 'flash_flood',
+        x: 0.88,
+        y: 0.07,
+        r: 6,
+        color: '#d97706',
+        travelDays: 1.0,
+        distanceMi: 40,
+        sharePct: 1,
+        summary: 'Selected: Dirty Devil near Hanksville — 0.07 MAF/yr (<1% of Powell inflow) • Reaches Powell in ~1 day • Rapid mudflow arroyo spikes',
+        travelCurve: [0.45, 0.48, 0.30, 0.18, 0.10, 0.05, 0.02, 0.01, 0.00, 0.00, 0.00]
+      },
+      {
+        id: 'escalante',
+        name: 'Escalante River near Escalante',
+        station: '#09337500',
+        regime: 'flash_flood',
+        x: 0.84,
+        y: 0.05,
+        r: 5,
+        color: '#d97706',
+        travelDays: 1.0,
+        distanceMi: 35,
+        sharePct: 1,
+        summary: 'Selected: Escalante near Escalante — 0.05 MAF/yr (<1% of Powell inflow) • Reaches Powell in ~1 day • Slickrock canyon flash floods',
+        travelCurve: [0.48, 0.44, 0.26, 0.14, 0.08, 0.04, 0.02, 0.01, 0.00, 0.00, 0.00]
       }
-    });
+    ];
 
-    // ================================================================
-    // PART 2 CHARTS: 100-YEAR COMPACT & SEASONAL REGIMES
-    // ================================================================
-    let seasonalData = null;
+    // Shared State
+    let selectedRiverId = null;
+    let selectedRegime = 'all';
+
+    let chartBubble = null;
+    let chartTravel = null;
     let chartCompact = null;
-    let chartHeartbeats = null;
-    let chartSupplyDemand = null;
+    let chartHydro = null;
 
-    function switchSeasonalTab(tab) {
-      const btnRegimes = document.getElementById('btn-tab-regimes');
-      const btnMismatch = document.getElementById('btn-tab-mismatch');
-      const cRegimes = document.getElementById('container-regimes');
-      const cMismatch = document.getElementById('container-mismatch');
-      const desc = document.getElementById('seasonal-desc');
+    // ================================================================
+    // CARD 1: GAPMINDER BUBBLE CHART (RIVER BEHAVIOR VS VOLUME)
+    // ================================================================
+    function initBubbleChart() {
+      const ctx = document.getElementById('chart-behavior-bubbles').getContext('2d');
+      
+      const datasets = RIVERS.map(r => ({
+        label: r.name,
+        riverId: r.id,
+        regime: r.regime,
+        data: [{ x: r.x, y: r.y, r: r.r, river: r }],
+        backgroundColor: hexToRgba(r.color, 0.75),
+        borderColor: r.color,
+        borderWidth: 1.5,
+        hoverBorderWidth: 3,
+        hoverBorderColor: '#0f172a'
+      }));
 
-      if (tab === 'regimes') {
-        btnRegimes.className = 'px-2 py-0.5 rounded bg-white text-slate-800 shadow-xs';
-        btnMismatch.className = 'px-2 py-0.5 rounded text-slate-600 hover:text-slate-900';
-        cRegimes.classList.remove('hidden');
-        cMismatch.classList.add('hidden');
-        desc.textContent = 'Normalized Day-of-Year hydrographs demonstrating the staggered arrival of Alpine Snowmelt, Front Range Trans-Mountain Tunnels, Monsoon Floods, Dam Releases, and Canal Demands.';
-      } else {
-        btnMismatch.className = 'px-2 py-0.5 rounded bg-white text-slate-800 shadow-xs';
-        btnRegimes.className = 'px-2 py-0.5 rounded text-slate-600 hover:text-slate-900';
-        cMismatch.classList.remove('hidden');
-        cRegimes.classList.add('hidden');
-        desc.textContent = 'Supply vs. Demand Mismatch: Overlapping natural May–July snowmelt inflows against year-round municipal/ag consumption, showing the ~96-day refill window vs. 269-day structural deficit.';
-      }
+      chartBubble = new Chart(ctx, {
+        type: 'bubble',
+        data: { datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                title: (items) => items[0].raw.river.name,
+                label: (ctx) => [
+                  `Annual Water Volume: ${ctx.raw.river.y.toFixed(2)} MAF/yr (${ctx.raw.river.sharePct}% of Powell)`,
+                  `Behavior: ${ctx.raw.river.x < 0.25 ? 'Steady Dam Release' : ctx.raw.river.x < 0.6 ? 'Mountain Snowmelt' : 'Desert Flash Flood'}`,
+                  `Travel Time to Powell: ~${ctx.raw.river.travelDays} days (${ctx.raw.river.distanceMi} mi)`
+                ]
+              }
+            }
+          },
+          scales: {
+            x: {
+              min: 0.0,
+              max: 1.0,
+              title: {
+                display: true,
+                text: 'River Behavior: Steady Flow (Left)  →  Sudden Flash Floods (Right)',
+                font: { size: 10, weight: 600 },
+                color: '#475569'
+              },
+              ticks: {
+                callback: (v) => {
+                  if (v === 0.0) return 'Steady / Dam';
+                  if (v === 0.3) return 'Snowmelt';
+                  if (v === 0.8) return 'Desert Flash';
+                  return '';
+                },
+                font: { size: 9.5 },
+                color: '#64748b'
+              },
+              grid: { color: '#f1f5f9' }
+            },
+            y: {
+              min: 0,
+              max: 4.2,
+              title: {
+                display: true,
+                text: 'Annual Water Volume (Million Acre-Feet / yr)',
+                font: { size: 10, weight: 600 },
+                color: '#475569'
+              },
+              ticks: {
+                callback: (v) => `${v.toFixed(1)} MAF`,
+                font: { size: 9.5 },
+                color: '#64748b'
+              },
+              grid: { color: '#f1f5f9' }
+            }
+          },
+          onClick: (evt, elements) => {
+            if (elements && elements.length > 0) {
+              const datasetIdx = elements[0].datasetIndex;
+              const r = chartBubble.data.datasets[datasetIdx].data[0].river;
+              selectRiver(r.id === selectedRiverId ? null : r.id);
+            } else {
+              selectRiver(null);
+            }
+          }
+        }
+      });
     }
 
-    async function initPart2Charts() {
+    // ================================================================
+    // CARD 2: TRAVEL TIME ARRIVAL CURVES (0 to 10 DAYS)
+    // ================================================================
+    function initTravelChart() {
+      const ctx = document.getElementById('chart-travel-time').getContext('2d');
+      const days = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+      // Primary measured arrival reaches
+      const primaryRivers = RIVERS.filter(r => r.travelDays >= 1.0);
+
+      const datasets = primaryRivers.map(r => ({
+        label: `${r.name.split(' (')[0]}: ${r.travelDays}d peak`,
+        riverId: r.id,
+        regime: r.regime,
+        data: r.travelCurve,
+        borderColor: r.color,
+        backgroundColor: hexToRgba(r.color, 0.15),
+        borderWidth: 2,
+        tension: 0.35,
+        pointRadius: (ctx) => {
+          const peakIdx = Math.round(r.travelDays);
+          return ctx.dataIndex === peakIdx ? 5 : 2;
+        },
+        pointHoverRadius: 6
+      }));
+
+      chartTravel = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: days.map(d => `${d}d`),
+          datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 10,
+                font: { size: 9 },
+                color: '#334155',
+                generateLabels: (chart) => {
+                  return chart.data.datasets.map((ds, i) => {
+                    const isDim = selectedRiverId ? (ds.riverId !== selectedRiverId) : (selectedRegime !== 'all' && ds.regime !== selectedRegime);
+                    return {
+                      text: ds.label,
+                      fillStyle: isDim ? '#cbd5e1' : ds.borderColor,
+                      strokeStyle: isDim ? '#cbd5e1' : ds.borderColor,
+                      lineWidth: isDim ? 1 : 2,
+                      hidden: false,
+                      datasetIndex: i
+                    };
+                  });
+                }
+              },
+              onClick: (evt, item) => {
+                const ds = chartTravel.data.datasets[item.datasetIndex];
+                selectRiver(ds.riverId === selectedRiverId ? null : ds.riverId);
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label.split(':')[0]}: peak arrival at ${ctx.parsed.x} days`
+              }
+            }
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Days for Water to Reach Lake Powell',
+                font: { size: 10, weight: 600 },
+                color: '#475569'
+              },
+              ticks: { font: { size: 9.5 }, color: '#64748b' },
+              grid: { color: '#f1f5f9' }
+            },
+            y: {
+              min: 0.0,
+              max: 0.90,
+              title: {
+                display: true,
+                text: 'Wave Arrival Strength at Reservoir',
+                font: { size: 10, weight: 600 },
+                color: '#475569'
+              },
+              ticks: {
+                callback: (v) => v === 0 ? '0' : v === 0.4 ? 'Medium' : v === 0.8 ? 'Peak' : '',
+                font: { size: 9.5 },
+                color: '#64748b'
+              },
+              grid: { color: '#f1f5f9' }
+            }
+          },
+          onClick: (evt, elements) => {
+            if (elements && elements.length > 0) {
+              const dsIdx = elements[0].datasetIndex;
+              const rId = chartTravel.data.datasets[dsIdx].riverId;
+              selectRiver(rId === selectedRiverId ? null : rId);
+            } else {
+              selectRiver(null);
+            }
+          }
+        }
+      });
+    }
+
+    // ================================================================
+    // CARD 3: 100 YEARS WET WATER VS PAPER PROMISES (1922-2026)
+    // ================================================================
+    async function initCompactChart() {
+      let seasonalData = null;
       try {
         const resp = await fetch('data/seasonal_regimes.json');
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        seasonalData = await resp.json();
-      } catch (err) {
-        console.warn('Could not load data/seasonal_regimes.json directly, attempting fallback path:', err);
+        if (resp.ok) seasonalData = await resp.json();
+      } catch (e) {
         try {
           const resp2 = await fetch('./data/seasonal_regimes.json');
           if (resp2.ok) seasonalData = await resp2.json();
-        } catch (e2) {
-          console.error('Failed to load seasonal data:', e2);
-        }
+        } catch (e2) {}
       }
 
-      if (!seasonalData) return;
+      if (!seasonalData || !seasonalData.compact_accounting_100yr) return;
 
-      // 1. Chart Compact 100-Year
       const comp = seasonalData.compact_accounting_100yr;
-      const ts = comp.annual_time_series;
+      const ts = comp.annual_time_series || [];
       const labels = ts.map(d => d.wy);
       const supplyVals = ts.map(d => d.supply_maf);
       const releaseVals = ts.map(d => d.lees_ferry_release_maf);
-      const bgColors = ts.map(d => d.meets_compact ? 'rgba(2, 132, 199, 0.85)' : 'rgba(225, 29, 72, 0.85)');
+      const bgColors = ts.map(d => d.meets_compact ? 'rgba(37, 99, 235, 0.85)' : 'rgba(217, 119, 6, 0.85)');
 
-      const ctxCompact = document.getElementById('chart-compact-100yr').getContext('2d');
-      chartCompact = new Chart(ctxCompact, {
+      const ctx = document.getElementById('chart-compact-100yr').getContext('2d');
+      chartCompact = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: labels,
+          labels,
           datasets: [
             {
               type: 'bar',
-              label: 'Reconstructed Upper Basin Supply (MAF)',
+              label: 'Actual Basin Water Supply (MAF)',
               data: supplyVals,
               backgroundColor: bgColors,
               borderRadius: 1.5,
@@ -869,21 +574,21 @@
             },
             {
               type: 'line',
-              label: 'Lees Ferry Actual Release (MAF)',
+              label: 'Downstream Lake Powell Releases (MAF)',
               data: releaseVals,
-              borderColor: '#0f172a',
-              borderWidth: 1.8,
+              borderColor: '#475569',
+              borderWidth: 1.6,
               pointRadius: 0,
               tension: 0.1,
               order: 1
             },
             {
               type: 'line',
-              label: '16.5 MAF Paper Allocation (Compact + 1944 Treaty)',
+              label: '16.5 MAF/yr Paper Promise (1922 Compact)',
               data: labels.map(() => 16.5),
-              borderColor: '#dc2626',
-              borderWidth: 2,
-              borderDash: [6, 4],
+              borderColor: '#1e293b',
+              borderWidth: 1.8,
+              borderDash: [5, 4],
               pointRadius: 0,
               fill: false,
               order: 0
@@ -896,14 +601,16 @@
           plugins: {
             legend: {
               position: 'top',
-              labels: { boxWidth: 12, font: { size: 9 }, color: '#334155' }
+              labels: { boxWidth: 10, font: { size: 9 }, color: '#334155' }
             },
             tooltip: {
               callbacks: {
                 label: (ctx) => {
                   if (ctx.dataset.type === 'bar') {
                     const item = ts[ctx.dataIndex];
-                    return `Water Year ${item.wy}: Supply ${item.supply_maf.toFixed(2)} MAF (${item.meets_compact ? 'Meets' : 'Below'} 16.5 MAF Paper Target)`;
+                    const diff = item.supply_maf - 16.5;
+                    const sign = diff >= 0 ? '+' : '';
+                    return `Water Year ${item.wy}: Supply ${item.supply_maf.toFixed(2)} MAF (${sign}${diff.toFixed(2)} MAF vs 16.5 target)`;
                   }
                   return `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} MAF`;
                 }
@@ -915,17 +622,22 @@
               ticks: {
                 callback: (val, idx) => {
                   const y = labels[idx];
-                  return (y % 10 === 0 || y === 1922 || y === 2026) ? y : '';
+                  return (y % 15 === 0 || y === 1922 || y === 2026) ? y : '';
                 },
                 font: { size: 9.5 },
                 color: '#64748b'
               },
-              grid: { display: false }
+              grid: { color: '#f8fafc' }
             },
             y: {
               min: 0,
               max: 26,
-              title: { display: true, text: 'Annual Volume (MAF/yr)', font: { size: 9.5, weight: 600 }, color: '#475569' },
+              title: {
+                display: true,
+                text: 'Annual Volume (Million Acre-Feet)',
+                font: { size: 10, weight: 600 },
+                color: '#475569'
+              },
               ticks: {
                 callback: (v) => `${v} MAF`,
                 font: { size: 9.5 },
@@ -936,131 +648,70 @@
           }
         }
       });
+    }
 
-      // 2. Chart Seasonal Heartbeats (5 Regimes)
-      const sh = seasonalData.seasonal_heartbeats;
-      const doys = sh.doy;
-      const monthTicks = [1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    // ================================================================
+    // CARD 4: 60-DAY SNOWMELT WAVE VS 2-DAY FLASH FLOOD
+    // ================================================================
+    function initHydrographChart() {
+      const ctx = document.getElementById('chart-snowmelt-vs-flash').getContext('2d');
+      const days = Array.from({ length: 60 }, (_, i) => i + 1);
 
-      const ctxHeartbeats = document.getElementById('chart-seasonal-heartbeats').getContext('2d');
-      chartHeartbeats = new Chart(ctxHeartbeats, {
-        type: 'line',
-        data: {
-          labels: doys,
-          datasets: [
-            {
-              label: 'Alpine Snowmelt (Cameo / Yampa)',
-              data: sh.regimes.alpine_snowmelt,
-              borderColor: '#0284c7',
-              borderWidth: 2.2,
-              pointRadius: 0,
-              tension: 0.3
-            },
-            {
-              label: 'Front Range Tunnels (Adams / Moffat / Roberts)',
-              data: sh.regimes.front_range_tunnels,
-              borderColor: '#0d9488',
-              borderWidth: 1.8,
-              pointRadius: 0,
-              tension: 0.3
-            },
-            {
-              label: 'Monsoon Tributaries (San Juan / Little CO)',
-              data: sh.regimes.monsoon_tributaries,
-              borderColor: '#e11d48',
-              borderWidth: 1.8,
-              pointRadius: 0,
-              tension: 0.3
-            },
-            {
-              label: 'Regulated Dam Releases (Lees Ferry)',
-              data: sh.regimes.regulated_dam_releases,
-              borderColor: '#475569',
-              borderWidth: 1.8,
-              borderDash: [4, 3],
-              pointRadius: 0,
-              tension: 0.2
-            },
-            {
-              label: 'Lower Basin Canals (All-American / CAP / CRA)',
-              data: sh.regimes.lower_basin_canals,
-              borderColor: '#d97706',
-              borderWidth: 1.8,
-              pointRadius: 0,
-              tension: 0.3
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-              labels: { boxWidth: 12, font: { size: 9 }, color: '#334155' }
-            },
-            tooltip: {
-              callbacks: {
-                title: (items) => `Day of Year: ${items[0].label}`,
-                label: (ctx) => `${ctx.dataset.label}: ${(ctx.parsed.y * 100).toFixed(0)}% of annual peak`
-              }
-            }
-          },
-          scales: {
-            x: {
-              ticks: {
-                callback: (val, idx) => {
-                  const mIdx = monthTicks.indexOf(idx + 1);
-                  return mIdx !== -1 ? monthNames[mIdx] : '';
-                },
-                font: { size: 9.5 },
-                color: '#64748b'
-              },
-              grid: { color: '#f1f5f9' }
-            },
-            y: {
-              min: 0,
-              max: 1.05,
-              title: { display: true, text: 'Normalized Flow Index (0.0 to 1.0)', font: { size: 9.5, weight: 600 }, color: '#475569' },
-              ticks: {
-                callback: (v) => `${(v * 100).toFixed(0)}%`,
-                font: { size: 9.5 },
-                color: '#64748b'
-              },
-              grid: { color: '#f1f5f9' }
-            }
-          }
-        }
+      // 60-day spring snowmelt wave peaking at ~21,200 cfs (Total: 1.35 MAF)
+      const snowmeltData = days.map(d => {
+        const peak = 21200;
+        const base = 2200;
+        const width = 11.5;
+        const bell = Math.exp(-Math.pow(d - 33, 2) / (2 * width * width));
+        return Math.round(base + (peak - base) * bell);
       });
 
-      // 3. Chart Supply vs Demand Mismatch
-      const sdm = seasonalData.supply_demand_mismatch;
-      const ctxMismatch = document.getElementById('chart-supply-demand').getContext('2d');
-      chartSupplyDemand = new Chart(ctxMismatch, {
+      // 48-hour desert rainstorm spike peaking at 5,000 cfs on Day 15 (Total: 0.02 MAF)
+      const flashData = days.map(d => {
+        if (d === 14) return 900;
+        if (d === 15) return 5000;
+        if (d === 16) return 1600;
+        if (d === 17) return 550;
+        return 400;
+      });
+
+      // Mandatory downstream release: 8,000 cfs
+      const outflowData = days.map(() => 8000);
+
+      chartHydro = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: sdm.doy,
+          labels: days.map(d => `Day ${d}`),
           datasets: [
             {
-              label: 'Upper Basin Inflow Supply (cfs)',
-              data: sdm.supply_cfs,
-              borderColor: '#0284c7',
-              backgroundColor: 'rgba(2, 132, 199, 0.15)',
+              label: 'Mountain Snowmelt Wave (1.35 MAF Total Water)',
+              data: snowmeltData,
+              borderColor: '#2563eb',
+              backgroundColor: 'rgba(37, 99, 235, 0.20)',
               fill: true,
-              borderWidth: 2.2,
-              pointRadius: 0,
-              tension: 0.3
+              borderWidth: 2,
+              tension: 0.35,
+              pointRadius: 0
             },
             {
-              label: 'Downstream Draft & Demand (cfs)',
-              data: sdm.demand_cfs,
-              borderColor: '#dc2626',
+              label: 'Desert Flash Flood (0.02 MAF Total Water)',
+              data: flashData,
+              borderColor: '#d97706',
+              backgroundColor: 'rgba(217, 119, 6, 0.40)',
+              fill: true,
               borderWidth: 2,
+              tension: 0.1,
+              pointRadius: (ctx) => ctx.dataIndex === 14 ? 5 : 0,
+              pointHoverRadius: 6
+            },
+            {
+              label: 'Mandatory Dam Release (8,000 cfs Outflow)',
+              data: outflowData,
+              borderColor: '#1e293b',
               borderDash: [5, 4],
+              borderWidth: 1.8,
               pointRadius: 0,
-              fill: false,
-              tension: 0.2
+              fill: false
             }
           ]
         },
@@ -1070,22 +721,24 @@
           plugins: {
             legend: {
               position: 'top',
-              labels: { boxWidth: 12, font: { size: 9 }, color: '#334155' }
+              labels: { boxWidth: 10, font: { size: 9 }, color: '#334155' }
             },
             tooltip: {
               callbacks: {
-                title: (items) => `Day of Year: ${items[0].label}`,
-                label: (ctx) => `${ctx.dataset.label}: ${Math.round(ctx.parsed.y).toLocaleString()} cfs`
+                label: (ctx) => `${ctx.dataset.label.split('(')[0].trim()}: ${ctx.parsed.y.toLocaleString()} cfs`
               }
             }
           },
           scales: {
             x: {
+              title: {
+                display: true,
+                text: 'Timeline (Days 1 to 60)',
+                font: { size: 10, weight: 600 },
+                color: '#475569'
+              },
               ticks: {
-                callback: (val, idx) => {
-                  const mIdx = monthTicks.indexOf(idx + 1);
-                  return mIdx !== -1 ? monthNames[mIdx] : '';
-                },
+                callback: (val, idx) => ((idx + 1) % 10 === 0 || idx === 0) ? `Day ${idx + 1}` : '',
                 font: { size: 9.5 },
                 color: '#64748b'
               },
@@ -1093,8 +746,13 @@
             },
             y: {
               min: 0,
-              max: 52000,
-              title: { display: true, text: 'Discharge Q (cfs)', font: { size: 9.5, weight: 600 }, color: '#475569' },
+              max: 24000,
+              title: {
+                display: true,
+                text: 'Water Flow Rate (cfs)',
+                font: { size: 10, weight: 600 },
+                color: '#475569'
+              },
               ticks: {
                 callback: (v) => `${(v / 1000).toFixed(0)}k cfs`,
                 font: { size: 9.5 },
@@ -1107,8 +765,124 @@
       });
     }
 
-    // Initialize Part 2 Charts
-    initPart2Charts();
+    // ================================================================
+    // INTERACTIVITY: GAPMINDER SELECTION & REGIME FILTER
+    // ================================================================
+    function selectRiver(riverId) {
+      selectedRiverId = riverId;
+      const pill = document.getElementById('status-pill');
+
+      if (!riverId) {
+        if (selectedRegime === 'all') {
+          pill.textContent = 'Click any river bubble or curve below to highlight';
+          pill.className = 'text-[11px] font-medium text-slate-700 bg-slate-100 border border-slate-200 rounded-full px-3 py-0.5 truncate max-w-[440px]';
+        } else {
+          updateRegimePillText();
+        }
+      } else {
+        const river = RIVERS.find(r => r.id === riverId);
+        if (river) {
+          pill.textContent = river.summary;
+          pill.className = 'text-[11px] font-semibold text-blue-900 bg-blue-50 border border-blue-200 rounded-full px-3 py-0.5 truncate max-w-[440px]';
+        }
+      }
+
+      applyVisualSelection();
+    }
+
+    function filterRegime(regime) {
+      selectedRegime = regime;
+      selectedRiverId = null;
+
+      // Update button styling
+      const btns = {
+        'all': document.getElementById('btn-all'),
+        'snowmelt': document.getElementById('btn-snowmelt'),
+        'dam_controlled': document.getElementById('btn-dam'),
+        'flash_flood': document.getElementById('btn-flash')
+      };
+
+      for (const [key, btn] of Object.entries(btns)) {
+        if (!btn) continue;
+        if (key === regime) {
+          btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-slate-800 text-white shadow-xs';
+        } else {
+          if (key === 'snowmelt') btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200';
+          else if (key === 'dam_controlled') btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300';
+          else if (key === 'flash_flood') btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200';
+          else btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-white hover:bg-slate-100 text-slate-700 border border-slate-200';
+        }
+      }
+
+      updateRegimePillText();
+      applyVisualSelection();
+    }
+
+    function updateRegimePillText() {
+      const pill = document.getElementById('status-pill');
+      if (selectedRegime === 'all') {
+        pill.textContent = 'Click any river bubble or curve below to highlight';
+        pill.className = 'text-[11px] font-medium text-slate-700 bg-slate-100 border border-slate-200 rounded-full px-3 py-0.5 truncate max-w-[440px]';
+      } else if (selectedRegime === 'snowmelt') {
+        pill.textContent = 'Filter: Mountain Snowmelt Rivers — Deliver 37% of inflow in a concentrated 60-day spring surge';
+        pill.className = 'text-[11px] font-semibold text-blue-900 bg-blue-50 border border-blue-200 rounded-full px-3 py-0.5 truncate max-w-[440px]';
+      } else if (selectedRegime === 'dam_controlled') {
+        pill.textContent = 'Filter: Dam-Controlled Rivers — Deliver 53% of inflow via upstream storage releases';
+        pill.className = 'text-[11px] font-semibold text-slate-900 bg-slate-100 border border-slate-300 rounded-full px-3 py-0.5 truncate max-w-[440px]';
+      } else if (selectedRegime === 'flash_flood') {
+        pill.textContent = 'Filter: Desert Flash-Flood Streams — Sudden mudflow spikes that drain out in hours';
+        pill.className = 'text-[11px] font-semibold text-amber-900 bg-amber-50 border border-amber-200 rounded-full px-3 py-0.5 truncate max-w-[440px]';
+      }
+    }
+
+    function applyVisualSelection() {
+      // 1. Update Card 1 Bubble Chart
+      if (chartBubble) {
+        chartBubble.data.datasets.forEach(ds => {
+          const r = ds.data[0].river;
+          const isSelected = selectedRiverId ? (r.id === selectedRiverId) : (selectedRegime === 'all' || r.regime === selectedRegime);
+
+          if (isSelected) {
+            ds.backgroundColor = hexToRgba(r.color, 0.85);
+            ds.borderColor = selectedRiverId ? '#0f172a' : r.color;
+            ds.borderWidth = selectedRiverId ? 3.0 : 1.5;
+          } else {
+            ds.backgroundColor = hexToRgba(r.color, 0.12);
+            ds.borderColor = hexToRgba(r.color, 0.20);
+            ds.borderWidth = 1.0;
+          }
+        });
+        chartBubble.update('none');
+      }
+
+      // 2. Update Card 2 Travel Curves
+      if (chartTravel) {
+        chartTravel.data.datasets.forEach(ds => {
+          const isSelected = selectedRiverId ? (ds.riverId === selectedRiverId) : (selectedRegime === 'all' || ds.regime === selectedRegime);
+          const r = RIVERS.find(item => item.id === ds.riverId);
+
+          if (isSelected) {
+            ds.borderColor = r ? r.color : '#475569';
+            ds.backgroundColor = hexToRgba(r ? r.color : '#475569', 0.20);
+            ds.borderWidth = selectedRiverId ? 3.5 : 2.0;
+          } else {
+            const baseColor = r ? r.color : '#94a3b8';
+            ds.borderColor = hexToRgba(baseColor, 0.15);
+            ds.backgroundColor = 'transparent';
+            ds.borderWidth = 1.0;
+          }
+        });
+        chartTravel.update('none');
+      }
+    }
+
+    // Initialize all 4 charts on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      initBubbleChart();
+      initTravelChart();
+      initCompactChart();
+      initHydrographChart();
+    });
   </script>
 </body>
 </html>
