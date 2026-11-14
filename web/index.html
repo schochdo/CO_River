@@ -293,7 +293,7 @@
                 <div class="flex justify-between items-start mb-2">
                   <div>
                     <h3 class="text-xs font-bold text-stone-900">2. Colorado River at Lee's Ferry</h3>
-                    <p class="text-[10px] text-stone-500 font-medium">Daily discharge (cfs), Compact Point (USGS 09380000)</p>
+                    <p class="text-[10px] text-stone-500 font-medium">Daily discharge (cfs), Compact Point (<a href="https://waterdata.usgs.gov/monitoring-location/09380000/" target="_blank" rel="noopener noreferrer" class="underline decoration-stone-300 hover:text-stone-800 transition">USGS #09380000 ↗</a>)</p>
                   </div>
                   <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-300">1,030 Days</span>
                 </div>
@@ -335,7 +335,7 @@
                     <div class="w-full bg-stone-200 rounded-xs h-3 overflow-hidden">
                       <div class="bg-sky-600 h-full" style="width: 84.6%;"></div>
                     </div>
-                    <span class="text-[9.5px] text-stone-500">USBR natural flow record (without reservoir evaporative losses).</span>
+                    <span class="text-[9.5px] text-stone-500"><a href="https://www.usbr.gov/lc/region/g4000/NaturalFlow/" target="_blank" rel="noopener noreferrer" class="underline decoration-stone-300 hover:text-stone-800 transition">USBR natural flow record ↗</a> (without reservoir evaporative losses).</span>
                   </div>
                   <div>
                     <div class="flex justify-between text-[11px] mb-0.5">
@@ -390,7 +390,7 @@
                     <h3 class="text-xs font-bold text-stone-900">2. Critical Operating Elevations</h3>
                     <p class="text-[10px] text-stone-500 font-medium">Lake Mead &amp; Lake Powell vs. statutory &amp; power limits</p>
                   </div>
-                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-stone-200 text-stone-700 border border-stone-300">USBR LC/UC</span>
+                  <a href="https://www.usbr.gov/lc/riverops.html" target="_blank" rel="noopener noreferrer" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-stone-200 text-stone-700 border border-stone-300 hover:bg-stone-300 transition" title="USBR Lower & Upper Colorado River Operations">USBR LC/UC ↗</a>
                 </div>
 
                 <!-- Lake Mead Status Box -->
@@ -618,7 +618,7 @@
             </div>
             <div class="text-[11px] text-stone-500 flex flex-wrap justify-between items-center mt-2 pt-2 border-t border-stone-200 gap-2">
               <span>Comparing: <strong>Lake Mead (26.1M)</strong>, <strong>Lake Powell (24.3M)</strong>, and <strong>Upper CRSP (Flaming Gorge, Navajo, Blue Mesa: 6.3M)</strong> with <strong>Combined Total Trajectory</strong>.</span>
-              <span class="font-bold text-stone-700">Source: USBR HydroData &amp; Hoover Teletype</span>
+              <span class="font-bold text-stone-700">Source: <a href="https://www.usbr.gov/uc/water/hydrodata/" target="_blank" rel="noopener noreferrer" class="underline decoration-stone-300 hover:decoration-stone-700 hover:text-stone-900 transition">USBR HydroData</a> &amp; <a href="https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html" target="_blank" rel="noopener noreferrer" class="underline decoration-stone-300 hover:decoration-stone-700 hover:text-stone-900 transition">Hoover Teletype</a> ↗</span>
             </div>
             <div class="mt-2.5 p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/80 text-[11.5px] text-amber-950 leading-relaxed">
               <strong>Note:</strong> Because Lake Mead and Lake Powell sit in V-shaped desert canyons, the bottom 100 feet hold roughly 5× less water per vertical foot (~28,000 AF/ft) than the top (~160,000 AF/ft)—causing water levels to drop faster the lower the reservoirs get.
@@ -696,7 +696,7 @@
               </div>
               <div class="text-[11px] text-stone-500 flex justify-between items-center mt-2 pt-2 border-t border-stone-200">
                 <span>Shaded envelope illustrates <strong>intra-annual seasonal range (monthly min to max)</strong>. The marked post-1963 dampening reflects Glen Canyon Dam regulatory storage dampening upstream snowmelt runoff pulses.</span>
-                <span class="font-bold text-stone-700">Source: USBR Hoover Dam Records</span>
+                <span class="font-bold text-stone-700">Source: <a href="https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html" target="_blank" rel="noopener noreferrer" class="underline decoration-stone-300 hover:decoration-stone-700 hover:text-stone-900 transition">USBR Hoover Dam Records ↗</a></span>
               </div>
             </div>
 
@@ -708,7 +708,7 @@
                   <div id="heatmap-grid" class="space-y-0.5"></div>
                 </div>
               </div>
-              <div class="flex items-center justify-between text-xs text-stone-500 mt-3 pt-2 border-t border-stone-200">
+              <div class="flex flex-wrap items-center justify-between text-xs text-stone-500 mt-3 pt-2 border-t border-stone-200 gap-2">
                 <div class="flex items-center gap-2">
                   <span class="text-[10px] font-bold text-stone-600">Elevation Zones:</span>
                   <span class="w-3.5 h-2.5 bg-[#991b1b] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">&lt; 1,050 ft (Critical)</span>
@@ -717,7 +717,10 @@
                   <span class="w-3.5 h-2.5 bg-[#4299e1] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">1,150 ft</span>
                   <span class="w-3.5 h-2.5 bg-[#1e3a5f] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">&gt; 1,200 ft (Full)</span>
                 </div>
-                <span class="text-[10px]">Hover any cell to inspect exact monthly elevation</span>
+                <div class="flex items-center gap-3 text-[10px]">
+                  <span>Hover any cell to inspect exact monthly elevation</span>
+                  <span class="font-bold text-stone-700">Source: <a href="https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html" target="_blank" rel="noopener noreferrer" class="underline decoration-stone-300 hover:decoration-stone-700 hover:text-stone-900 transition">USBR Hoover Teletype ↗</a></span>
+                </div>
               </div>
             </div>
           </div>
@@ -768,7 +771,7 @@
               </div>
               <div class="text-[11px] text-stone-500 flex justify-between items-center mt-2 pt-2 border-t border-stone-200">
                 <span>Shaded band shows <strong>monthly seasonal range (Min to Max)</strong> within each calendar year, driven by spring snowmelt runoff peaks and winter drawdown.</span>
-                <span class="font-bold text-stone-700">Source: USBR Upper Colorado Region (Glen Canyon)</span>
+                <span class="font-bold text-stone-700">Source: <a href="https://www.usbr.gov/uc/water/hydrodata/reservoir_data/919/dashboard.html" target="_blank" rel="noopener noreferrer" class="underline decoration-stone-300 hover:decoration-stone-700 hover:text-stone-900 transition">USBR Upper Colorado Region (Glen Canyon) ↗</a></span>
               </div>
             </div>
 
@@ -780,7 +783,7 @@
                   <div id="powell-heatmap-grid" class="space-y-0.5"></div>
                 </div>
               </div>
-              <div class="flex items-center justify-between text-xs text-stone-500 mt-3 pt-2 border-t border-stone-200">
+              <div class="flex flex-wrap items-center justify-between text-xs text-stone-500 mt-3 pt-2 border-t border-stone-200 gap-2">
                 <div class="flex items-center gap-2">
                   <span class="text-[10px] font-bold text-stone-600">Elevation Zones:</span>
                   <span class="w-3.5 h-2.5 bg-[#991b1b] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">&lt; 3,490 ft (Min Power)</span>
@@ -789,7 +792,10 @@
                   <span class="w-3.5 h-2.5 bg-[#0f766e] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">3,620 ft</span>
                   <span class="w-3.5 h-2.5 bg-[#134e4a] inline-block rounded-xs"></span> <span class="text-[10px] text-stone-600">&gt; 3,670 ft (Full)</span>
                 </div>
-                <span class="text-[10px]">Hover any cell to inspect exact monthly elevation</span>
+                <div class="flex items-center gap-3 text-[10px]">
+                  <span>Hover any cell to inspect exact monthly elevation</span>
+                  <span class="font-bold text-stone-700">Source: <a href="https://www.usbr.gov/uc/water/hydrodata/reservoir_data/919/dashboard.html" target="_blank" rel="noopener noreferrer" class="underline decoration-stone-300 hover:decoration-stone-700 hover:text-stone-900 transition">USBR Glen Canyon HydroData ↗</a></span>
+                </div>
               </div>
             </div>
           </div>
@@ -1014,7 +1020,7 @@
 
       <!-- Modal Footer -->
       <div class="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-between">
-        <span class="text-[11px] text-stone-500 font-medium">Source: U.S. Bureau of Reclamation, Colorado River Compact (1922), Consolidated Supreme Court Decrees</span>
+        <span class="text-[11px] text-stone-500 font-medium">Source: <a href="https://www.usbr.gov/lc/region/g4000/lawofrvr.html" target="_blank" rel="noopener noreferrer" class="underline decoration-stone-400 hover:text-stone-800 transition">U.S. Bureau of Reclamation Law of the River Compendium ↗</a> (1922 Compact &amp; Consolidated Supreme Court Decrees)</span>
         <button onclick="closeModals()" class="px-5 py-2 text-xs font-bold rounded-lg bg-stone-800 text-white hover:bg-stone-900 transition shadow-sm">Close Legal Review</button>
       </div>
 
