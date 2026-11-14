@@ -182,9 +182,16 @@
           <span class="w-2 h-2 rounded-full bg-[#1e293b]"></span>
           100 Years of Wet Water vs. Paper Promises (1922–2026)
         </h2>
-        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-800 border border-slate-300">
-          Met 26% of 100 Yrs • 3.7% Since 2000
-        </span>
+        <div class="flex items-center gap-2">
+          <!-- Toggle Pill for Lees Ferry Releases -->
+          <label class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-[10px] font-semibold text-slate-700 cursor-pointer transition select-none">
+            <input type="checkbox" id="toggle-lees-releases" checked onchange="toggleLeesReleases(this.checked)" class="w-3 h-3 text-slate-700 rounded border-slate-300 focus:ring-0 cursor-pointer">
+            <span>Show Lees Ferry Releases</span>
+          </label>
+          <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-800 border border-slate-300">
+            Met 26% of 100 Yrs • 3.7% Since 2000
+          </span>
+        </div>
       </div>
       <p class="text-[11px] text-slate-600 mb-1.5 leading-snug shrink-0">
         The 1922 Compact promised 16.5 million acre-feet every year, but actual river flow met that target only 26% of the time—and only once since 2000.
@@ -626,12 +633,67 @@
       });
     }
 
+    // Toggle Lees Ferry Releases line visibility from Card 3 header pill
+    function toggleLeesReleases(show) {
+      if (!chartCompact) return;
+      chartCompact.setDatasetVisibility(1, show);
+      chartCompact.update();
+    }
+
+    // Custom plugin for Card 3: Glen Canyon Dam Closes vertical reference marker at 1963
+    const glenCanyonDamMarkerPlugin = {
+      id: 'glenCanyonDamMarkerPlugin',
+      afterDraw(chart) {
+        if (!chart || !chart.chartArea || !chart.scales || !chart.scales.x) return;
+        const { ctx, chartArea } = chart;
+        const xScale = chart.scales.x;
+        
+        const labels = chart.data.labels || [];
+        const idx1963 = labels.findIndex(y => String(y) === '1963');
+        if (idx1963 === -1) return;
+        
+        const xPos = xScale.getPixelForValue(idx1963);
+        if (xPos < chartArea.left || xPos > chartArea.right) return;
+
+        ctx.save();
+        // Dashed vertical rule
+        ctx.beginPath();
+        ctx.setLineDash([4, 3]);
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.2;
+        ctx.moveTo(xPos, chartArea.top + 16);
+        ctx.lineTo(xPos, chartArea.bottom);
+        ctx.stroke();
+
+        // Label pill
+        ctx.setLineDash([]);
+        ctx.font = 'bold 9px "JetBrains Mono", monospace';
+        const labelText = '1963: Glen Canyon Dam Closes';
+        const textWidth = ctx.measureText(labelText).width;
+        const pillX = xPos - textWidth / 2 - 5;
+        const pillY = chartArea.top + 2;
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
+        ctx.fillRect(pillX, pillY, textWidth + 10, 13);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(pillX, pillY, textWidth + 10, 13);
+
+        ctx.fillStyle = '#0f172a';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, xPos, pillY + 7);
+
+        ctx.restore();
+      }
+    };
+
     // ================================================================
     // CARD 3: 100 YEARS WET WATER VS PAPER PROMISES (1922-2026)
     // Okabe-Ito Colorblind-Safe Palette:
     //   - Wet Water Surplus: COLOR_SNOWMELT (#0072B2)
     //   - Structural Deficit: COLOR_FLASH (#D55E00)
-    //   - Lake Powell Releases: COLOR_DAM (#009E73)
+    //   - Lees Ferry Releases: Slate Ink (#334155, 1.75px)
     //   - 16.5 MAF Target Line: COLOR_TARGET (#1e293b dashed 2px)
     // ================================================================
     async function initCompactChart() {
@@ -648,6 +710,7 @@
       const ctx = document.getElementById('chart-compact-100yr').getContext('2d');
       chartCompact = new Chart(ctx, {
         type: 'bar',
+        plugins: [glenCanyonDamMarkerPlugin],
         data: {
           labels,
           datasets: [
@@ -662,10 +725,10 @@
             },
             {
               type: 'line',
-              label: 'Downstream Lake Powell Releases (MAF)',
+              label: 'Lees Ferry Releases (MAF)',
               data: releaseVals,
-              borderColor: COLOR_DAM,
-              borderWidth: 1.8,
+              borderColor: '#334155',
+              borderWidth: 1.75,
               pointRadius: 0,
               tension: 0.1,
               order: 1
@@ -690,7 +753,18 @@
           plugins: {
             legend: {
               position: 'top',
-              labels: { boxWidth: 10, font: { size: 9 }, color: '#334155' }
+              labels: { boxWidth: 10, font: { size: 9 }, color: '#334155' },
+              onClick: (e, legendItem, legend) => {
+                const index = legendItem.datasetIndex;
+                const ci = legend.chart;
+                const visible = ci.isDatasetVisible(index);
+                ci.setDatasetVisibility(index, !visible);
+                ci.update();
+                if (index === 1) {
+                  const chk = document.getElementById('toggle-lees-releases');
+                  if (chk) chk.checked = !visible;
+                }
+              }
             },
             tooltip: {
               callbacks: {
@@ -709,11 +783,15 @@
           scales: {
             x: {
               ticks: {
-                callback: (val, idx) => {
-                  const y = labels[idx];
-                  return (y % 15 === 0 || y === 1922 || y === 2026) ? y : '';
+                autoSkip: false,
+                maxRotation: 0,
+                minRotation: 0,
+                callback: function(val, idx) {
+                  const yr = String(labels[idx]);
+                  const milestones = ['1922', '1940', '1960', '1980', '2000', '2020', '2026'];
+                  return milestones.includes(yr) ? yr : null;
                 },
-                font: { size: 9.5 },
+                font: { size: 9.5, weight: '600' },
                 color: '#64748b'
               },
               grid: { display: false }
