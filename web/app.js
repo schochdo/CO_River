@@ -400,7 +400,7 @@ function initMap() {
       fitBoundsOptions: { padding: { top: 45, bottom: 45, left: 45, right: 45 } },
       pitch: 0,
       bearing: 0,
-      maxPitch: 65,
+      maxPitch: 85,
       attributionControl: false
     });
     window.map = map;
@@ -449,6 +449,23 @@ function initMap() {
       initTrackballNavigation();
       initTableResizer();
       initLayersHoverBehavior();
+
+      // 60 FPS 3D Game-Engine Keyboard Flight Controller
+      if (typeof initKeyboardFlight === 'function') {
+        window.keyboardFlightCleanup = initKeyboardFlight(map, {
+          onPitchChange: (p) => {
+            if (p > 5 && !map.getTerrain()) {
+              map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
+            } else if (p === 0 && map.getTerrain()) {
+              map.setTerrain(null);
+            }
+            if (typeof window.updateTrackball === 'function') window.updateTrackball();
+          },
+          onBearingChange: () => {
+            if (typeof window.updateTrackball === 'function') window.updateTrackball();
+          }
+        });
+      }
       if (window.location.search.includes('expand_table=1')) {
         toggleTableCollapse();
       }
