@@ -75,6 +75,63 @@
     body.in-iframe #btn-back-workspace {
       display: none !important;
     }
+
+    /* Shared Academic Sidebar Styles */
+    .sidebar-academic {
+      background-color: #f8fafc;
+      color: #334155;
+      border-right: 1px solid #e2e8f0;
+    }
+    .sidebar-category-header {
+      color: #64748b;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 10px 10px 3px 10px;
+      display: flex;
+      align-items: center;
+    }
+    .sidebar-link {
+      color: #334155;
+      font-weight: 500;
+      font-size: 12px;
+      padding: 6.5px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      border: 1px solid transparent;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: transparent;
+    }
+    .sidebar-link svg {
+      color: #64748b;
+      flex-shrink: 0;
+      transition: color 0.15s ease;
+    }
+    .sidebar-link:hover {
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .sidebar-link:hover svg {
+      color: #334155;
+    }
+    .sidebar-link.active {
+      background-color: #ffffff;
+      color: #0f172a;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+      border-left: 3px solid #0072B2;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .sidebar-link.active svg {
+      color: #0072B2 !important;
+    }
   </style>
 </head>
 <body>

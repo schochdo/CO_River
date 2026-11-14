@@ -40,45 +40,59 @@
       border: 1px solid #dcdad1;
     }
     .sidebar-academic {
-      background-color: #242c31;
-      color: #cbd5e1;
-    }
-    .sidebar-link {
-      color: #94a3b8;
-      transition: all 0.15s ease;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 6.5px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 600;
-      width: 100%;
-      text-align: left;
-      border: 1px solid transparent;
-    }
-    .sidebar-link:hover {
-      color: #ffffff;
-      background-color: rgba(255, 255, 255, 0.08);
-    }
-    .sidebar-link.active {
-      color: #ffffff;
-      background-color: rgba(14, 165, 233, 0.2);
-      border: 1px solid rgba(56, 189, 248, 0.4);
-    }
-    .sidebar-link.active svg {
-      color: #38bdf8;
+      background-color: #f8fafc;
+      color: #334155;
+      border-right: 1px solid #e2e8f0;
     }
     .sidebar-category-header {
-      font-size: 9.5px;
-      font-weight: 800;
+      color: #64748b;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
       padding: 10px 10px 3px 10px;
       display: flex;
       align-items: center;
-      gap: 6px;
+    }
+    .sidebar-link {
+      color: #334155;
+      font-weight: 500;
+      font-size: 12px;
+      padding: 6.5px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      border: 1px solid transparent;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: transparent;
+    }
+    .sidebar-link svg {
+      color: #64748b;
+      flex-shrink: 0;
+      transition: color 0.15s ease;
+    }
+    .sidebar-link:hover {
+      background-color: #f1f5f9;
+      color: #0f172a;
+    }
+    .sidebar-link:hover svg {
+      color: #334155;
+    }
+    .sidebar-link.active {
+      background-color: #ffffff;
+      color: #0f172a;
+      font-weight: 700;
+      border: 1px solid #cbd5e1;
+      border-left: 3px solid #0072B2;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .sidebar-link.active svg {
+      color: #0072B2 !important;
     }
 
     /* Custom scrollbars */
@@ -121,83 +135,74 @@
 </head>
 <body class="flex flex-col md:flex-row h-screen overflow-hidden antialiased bg-[#efeee9]">
 
-  <!-- Left Dark Academic Sidebar Navigation -->
-  <aside class="sidebar-academic w-full md:w-64 flex-shrink-0 flex flex-col justify-between p-3.5 border-r border-slate-700/80 select-none z-30 h-auto md:h-screen overflow-y-auto">
+  <!-- Left Light Academic Sidebar Navigation -->
+  <aside class="sidebar-academic w-full md:w-64 flex-shrink-0 flex flex-col justify-between p-3.5 border-r border-[#e2e8f0] select-none z-30 h-auto md:h-screen overflow-y-auto">
     
     <!-- Top Brand & Navigation Menu -->
     <div class="space-y-4">
       <!-- Identity / Header -->
-      <div class="cursor-pointer pb-3 border-b border-slate-700/80" onclick="setTab('overview')">
-        <div class="text-[9.5px] font-extrabold text-sky-400 uppercase tracking-widest leading-tight">Research Workspace</div>
-        <div class="text-base font-black text-white tracking-tight leading-tight mt-0.5">COLORADO BASIN</div>
-        <div class="text-[10px] text-slate-400 font-medium leading-tight mt-0.5">Colorado Mountain College • DAT1001</div>
+      <div class="cursor-pointer pb-3 border-b border-[#e2e8f0]" onclick="setTab('overview')">
+        <div class="text-[9.5px] font-extrabold text-[#0072B2] uppercase tracking-widest leading-tight">Research Workspace</div>
+        <div class="text-base font-black text-[#0f172a] tracking-tight leading-tight mt-0.5">COLORADO BASIN</div>
+        <div class="text-[10px] text-[#64748b] font-medium leading-tight mt-0.5">Colorado Mountain College • DAT1001</div>
       </div>
 
       <!-- Navigation Links Grouped by Time Scale & Data Source -->
       <nav class="space-y-1">
         <!-- 0. Overview -->
         <button onclick="setTab('overview')" id="tab-btn-overview" class="sidebar-link active" title="Executive Overview &amp; System Yield">
-          <svg class="w-4 h-4 text-stone-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
           </svg>
           <span>Executive Overview</span>
         </button>
 
         <!-- Group 1: Live Operational Flow (t = now, cfs • USGS & CDSS) -->
-        <div class="sidebar-category-header text-emerald-400 pt-3">
-          <svg class="w-3 h-3 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
+        <div class="sidebar-category-header pt-3">
           <span>Live Flow (t = now, cfs)</span>
         </div>
         <button onclick="setTab('map')" id="tab-btn-map" class="sidebar-link" title="Operational Hydrology (cfs, t=now): Cartographic Map">
-          <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
           </svg>
           <span>GIS Hydrology Map</span>
         </button>
         <button onclick="setTab('telemetry')" id="tab-btn-telemetry" class="sidebar-link" title="Operational Hydrology (cfs, t=now): Searchable Gage &amp; Diversion Ledger">
-          <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
           </svg>
           <span>Gage Telemetry Ledger</span>
         </button>
 
         <!-- Group 2: Annual Water Budget (t = 1 yr, MAF/yr • USBR Accounting) -->
-        <div class="sidebar-category-header text-cyan-400 pt-3">
-          <svg class="w-3 h-3 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-          </svg>
+        <div class="sidebar-category-header pt-3">
           <span>Annual Budget (MAF/yr)</span>
         </div>
         <button onclick="setTab('pipeline')" id="tab-btn-pipeline" class="sidebar-link" title="Annual Accounting (MAF/yr): Topological River Network Schematic">
-          <svg class="w-4 h-4 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
           </svg>
           <span>River Flow Schematic</span>
         </button>
         <button onclick="setTab('sankey')" id="tab-btn-sankey" class="sidebar-link" title="Annual Accounting (MAF/yr): End-to-End Mass-Balance Budget (Sankey)">
-          <svg class="w-4 h-4 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
           <span>Water Budget (Sankey)</span>
         </button>
 
         <!-- Group 3: Decadal Storage & ML (1935–Today • Dynamics & History) -->
-        <div class="sidebar-category-header text-purple-400 pt-3">
-          <svg class="w-3 h-3 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-          </svg>
+        <div class="sidebar-category-header pt-3">
           <span>Decadal &amp; Regimes</span>
         </div>
         <button onclick="setTab('reservoirs')" id="tab-btn-reservoirs" class="sidebar-link" title="Decadal Storage (1935–2026): 92-Year Powell &amp; Mead Bank Account Depletion">
-          <svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
           </svg>
           <span>Reservoirs (1935–Today)</span>
         </button>
         <button onclick="setTab('ml')" id="tab-btn-ml" class="sidebar-link" title="Upper Basin Tributary Inflows, River Travel Times &amp; Lake Powell Deficit">
-          <svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
           </svg>
           <span>Tributaries &amp; Deficit</span>
@@ -206,22 +211,22 @@
     </div>
 
     <!-- Bottom Pinned Utilities -->
-    <div class="pt-3 border-t border-slate-700/80 space-y-1">
-      <button onclick="openLawModal()" class="sidebar-link hover:text-amber-300" title="Water Wars, Court Cases &amp; Law of the River">
-        <svg class="w-4 h-4 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="pt-3 border-t border-[#e2e8f0] space-y-1">
+      <button onclick="openLawModal()" class="sidebar-link" title="Water Wars, Court Cases &amp; Law of the River">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
         </svg>
         <span>Law of the River</span>
       </button>
 
-      <button onclick="openApiModal()" class="sidebar-link hover:text-sky-300" title="Official Data Sources, Hydrologic APIs &amp; Jupyter Research Notebooks">
-        <svg class="w-4 h-4 text-sky-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <button onclick="openApiModal()" class="sidebar-link" title="Official Data Sources, Hydrologic APIs &amp; Jupyter Research Notebooks">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
         </svg>
         <span>Data Sources &amp; Notebooks</span>
       </button>
 
-      <button onclick="toggleFullScreen()" id="btn-fullscreen" class="sidebar-link hover:text-white" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">
+      <button onclick="toggleFullScreen()" id="btn-fullscreen" class="sidebar-link" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">
         <svg id="icon-enter-fullscreen" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
         </svg>
