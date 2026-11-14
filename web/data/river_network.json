@@ -10,7 +10,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 348.0,
+        "flow_cfs": 326.0,
         "gauge_id": "09402000",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -6084,7 +6084,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 332.0,
+        "flow_cfs": 353.0,
         "gauge_id": "09415000",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -8766,7 +8766,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 284.0,
+        "flow_cfs": 290.0,
         "gauge_id": "09306500",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -12782,7 +12782,7 @@
         "name": "Yampa River - Flat Tops through Yampa Canyon to Echo Park (Green River Confluence)",
         "reach_type": "free_flowing",
         "category": "major_tributary",
-        "flow_cfs": 350.0,
+        "flow_cfs": 354.0,
         "gauge_id": "09260050",
         "notes": "USGS #09251000 near Maybell, CO (Upper Yampa agricultural valley)",
         "weight": 3.2
@@ -16900,7 +16900,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 523.0,
+        "flow_cfs": 512.0,
         "gauge_id": "09085000",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -17854,7 +17854,7 @@
         "name": "Colorado River - Headwaters to Granby Dam",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 13.4,
+        "flow_cfs": 12.6,
         "weight": 4.4,
         "gauge_id": "09010500",
         "notes": "Snowpack headwaters in Rocky Mountain National Park flowing into Lake Granby to Granby Dam face."
@@ -18652,7 +18652,7 @@
         "name": "Colorado River - Granby Dam to Windy Gap (Fraser Confluence)",
         "category": "mainstem",
         "reach_type": "dam_regulated",
-        "flow_cfs": 390,
+        "flow_cfs": 67.4,
         "weight": 4.4,
         "gauge_id": "09034250",
         "notes": "Post-Adams Tunnel export reach below Granby Dam past Fraser River confluence to Windy Gap (USGS #09034250)."
@@ -18862,7 +18862,7 @@
         "name": "Colorado River - Windy Gap to Kremmling (Middle Park)",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 72.0,
+        "flow_cfs": 67.4,
         "weight": 4.4,
         "gauge_id": "09034250",
         "notes": "Middle Park reach from Windy Gap past Williams Fork confluence to Kremmling."
@@ -19416,7 +19416,7 @@
         "name": "Colorado River - Kremmling & Gore Canyon to Dotsero (above Eagle River)",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 207.0,
+        "flow_cfs": 209.0,
         "weight": 4.4,
         "gauge_id": "09058000",
         "notes": "Whitewater canyon below Blue River confluence to Dotsero."
@@ -21910,7 +21910,7 @@
         "name": "Colorado River - Grand Junction to Dolores River Confluence (State Line)",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 2850.0,
+        "flow_cfs": 2840.0,
         "weight": 5.7,
         "gauge_id": "09163500",
         "notes": "Combined Colorado + Gunnison River flow past Fruita across Colorado-Utah state line."
@@ -22792,7 +22792,7 @@
         "name": "Colorado River - Dolores Confluence past Cisco & Moab to Green River Confluence",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 3290.0,
+        "flow_cfs": 3270.0,
         "weight": 7.0,
         "gauge_id": "09180500",
         "notes": "Colorado River joined by Dolores River; monitored at USGS #09180500 near Cisco, UT."
@@ -23902,7 +23902,7 @@
         "name": "Colorado River - Green River Confluence through Cataract Canyon to Lake Powell",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 3290.0,
+        "flow_cfs": 3270.0,
         "weight": 7.5,
         "gauge_id": "09180500",
         "notes": "Cataract Canyon whitewater downstream of Green River confluence in Canyonlands National Park into Lake Powell."
@@ -25625,7 +25625,7 @@
         "name": "Colorado River - Glen Canyon Dam to Lees Ferry (Paria Confluence)",
         "category": "mainstem",
         "reach_type": "dam_regulated",
-        "flow_cfs": 7940.0,
+        "flow_cfs": 6680.0,
         "weight": 8.5,
         "gauge_id": "09380000",
         "notes": "Glen Canyon Dam 15-mile tailwater reach to Paria River confluence at Lees Ferry, AZ (USGS #09380000)."
@@ -25839,7 +25839,7 @@
         "name": "Colorado River - Lees Ferry through Marble Canyon",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 7940.0,
+        "flow_cfs": 6680.0,
         "weight": 8.5,
         "gauge_id": "09380000",
         "notes": "Lees Ferry through Marble Canyon to the Little Colorado River confluence; Navajo Bridge & Echo Cliffs gorge."
@@ -26469,7 +26469,7 @@
         "name": "Colorado River - Little Colorado River to Phantom Ranch",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 8960.0,
+        "flow_cfs": 7130.0,
         "weight": 8.5,
         "gauge_id": "09402500",
         "notes": "Eastern Grand Canyon from Little Colorado River confluence through Upper Granite Gorge to Phantom Ranch (USGS #09402500)."
@@ -26763,7 +26763,7 @@
         "name": "Colorado River - Phantom Ranch to Diamond Creek",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 8960.0,
+        "flow_cfs": 7130.0,
         "weight": 8.5,
         "gauge_id": "09402500",
         "notes": "Central Grand Canyon corridor through Middle and Lower Granite Gorges to Diamond Creek (monitored at upstream control station USGS #09402500 at Phantom Ranch)."
@@ -28737,7 +28737,7 @@
         "name": "Colorado River - Diamond Creek to Lake Mead (Grand Wash)",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 9600.0,
+        "flow_cfs": 8920.0,
         "weight": 8.5,
         "gauge_id": "09404200",
         "notes": "Western Grand Canyon reach exiting the Grand Wash Cliffs into Lake Mead (compliance flow monitored at USGS #09404200 above Diamond Creek)."
@@ -29908,7 +29908,7 @@
         "name": "Colorado River - Hoover Dam to Davis Dam (Lake Mohave)",
         "category": "mainstem",
         "reach_type": "dam_regulated",
-        "flow_cfs": 14242.0,
+        "flow_cfs": 7502.0,
         "weight": 8.5,
         "gauge_id": "USBR-HOOVER",
         "notes": "USBR Hoover Dam Hydroelectric Release (USBR Lower Colorado Hourly Operations) flowing through Black Canyon and Lake Mohave to Davis Dam face."
@@ -30470,7 +30470,7 @@
         "name": "Colorado River - Davis Dam to Parker Dam (Lake Havasu)",
         "category": "mainstem",
         "reach_type": "dam_regulated",
-        "flow_cfs": 11200.0,
+        "flow_cfs": 4392.0,
         "weight": 8.5,
         "gauge_id": "USBR-DAVIS",
         "notes": "USBR Davis Dam hydroelectric releases into Lake Mohave/Lake Havasu past Laughlin and Needles. (USGS station #09423000 was retired in Oct 2022; flows are scheduled and accounted directly by USBR Lower Colorado Water Operations)."
@@ -31132,8 +31132,8 @@
         "name": "Colorado River - Parker Dam to Palo Verde Diversion Dam",
         "category": "mainstem",
         "reach_type": "dam_regulated",
-        "flow_cfs": 4150.0,
-        "weight": 7.0,
+        "flow_cfs": 9305.0,
+        "weight": 8.5,
         "gauge_id": "USBR-PARKER",
         "notes": "USBR Parker Dam Hydroelectric Release (USBR Lower Colorado Hourly Operations) through Parker Valley to Palo Verde Diversion Dam weir."
       },
@@ -31638,7 +31638,7 @@
         "name": "Colorado River - Palo Verde Diversion Dam to Imperial Dam",
         "category": "mainstem",
         "reach_type": "dam_regulated",
-        "flow_cfs": 4380.0,
+        "flow_cfs": 3820.0,
         "weight": 8.5,
         "gauge_id": "09429100",
         "notes": "Post-Palo Verde Canal diversion reach (USGS #09429100) past Blythe to Imperial Dam pool (All-American Canal diversion)."
@@ -32400,7 +32400,7 @@
         "name": "Colorado River - Below Imperial Dam (Desilting Works)",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 167.0,
+        "flow_cfs": 186.0,
         "weight": 4.4,
         "gauge_id": "09429500",
         "notes": "Residual streamflow below Imperial Dam desilting basins before Gila River confluence."
@@ -32426,7 +32426,7 @@
         "name": "Colorado River - Imperial Dam to Mexico (Morelos Dam)",
         "category": "mainstem",
         "reach_type": "free_flowing",
-        "flow_cfs": 167.0,
+        "flow_cfs": 186.0,
         "weight": 4.4,
         "gauge_id": "09429500",
         "notes": "Final U.S. reach flowing past Yuma to Northerly International Boundary and Morelos Dam, where Mexico diverts its 1.5 MAF/yr treaty allocation into the Canal Alimentador Central."
@@ -32932,7 +32932,7 @@
         "name": "Green River - Wind River Range to Warren Bridge (Headwaters)",
         "category": "major_tributary",
         "reach_type": "free_flowing",
-        "flow_cfs": 232.0,
+        "flow_cfs": 229.0,
         "weight": 3.2,
         "gauge_id": "09188500",
         "notes": "Glacial and snowpack headwaters flowing south from the Wind River Range to Warren Bridge."
@@ -36150,7 +36150,7 @@
         "name": "Green River - Fontenelle Dam to Green River, WY",
         "category": "major_tributary",
         "reach_type": "free_flowing",
-        "flow_cfs": 891.0,
+        "flow_cfs": 884.0,
         "weight": 4.0,
         "gauge_id": "09217000",
         "notes": "Fontenelle Dam release flowing south across the high plains to Green River, WY."
@@ -37154,7 +37154,7 @@
         "name": "Green River - Green River, WY to Flaming Gorge Reservoir",
         "category": "major_tributary",
         "reach_type": "free_flowing",
-        "flow_cfs": 891.0,
+        "flow_cfs": 884.0,
         "weight": 4.0,
         "gauge_id": "09217000",
         "notes": "USGS #09217000 at Green River, WY flowing south into Flaming Gorge Reservoir."
@@ -38133,7 +38133,7 @@
         "name": "Green River - Flaming Gorge Dam to Echo Park (above Yampa)",
         "category": "major_tributary",
         "reach_type": "dam_regulated",
-        "flow_cfs": 2910.0,
+        "flow_cfs": 2210.0,
         "weight": 5.0,
         "gauge_id": "09234500",
         "notes": "Controlled tailwater releases from Flaming Gorge Dam flowing through Dutch John, Browns Park, and Lodore Canyon to Echo Park."
@@ -38991,7 +38991,7 @@
         "name": "Green River - Echo Park to Ouray (below Yampa River)",
         "category": "major_tributary",
         "reach_type": "free_flowing",
-        "flow_cfs": 2690.0,
+        "flow_cfs": 2980.0,
         "weight": 5.5,
         "gauge_id": "09261000",
         "notes": "Combined Green River + Yampa River through Dinosaur National Monument & Split Mountain to Uinta Basin."
@@ -40209,7 +40209,7 @@
         "name": "Green River - Ouray to Price River Confluence (Desolation Canyon)",
         "category": "major_tributary",
         "reach_type": "free_flowing",
-        "flow_cfs": 2550.0,
+        "flow_cfs": 2500.0,
         "weight": 5.8,
         "gauge_id": "09272400",
         "notes": "Middle Green River through Desolation Canyon to Price River confluence."
@@ -43969,7 +43969,7 @@
         "name": "Dolores River - McPhee Dam to Bedrock (Paradox Valley Tailwater)",
         "category": "major_tributary",
         "reach_type": "dam_regulated",
-        "flow_cfs": 88.5,
+        "flow_cfs": 86.9,
         "weight": 3.2,
         "gauge_id": "09169500",
         "notes": "USGS #09169500 at Bedrock, CO (McPhee Dam controlled release through Dolores River Canyon)."
@@ -45631,7 +45631,7 @@
         "name": "Dolores River - Bedrock to Cisco (San Miguel Confluence)",
         "category": "major_tributary",
         "reach_type": "dam_regulated",
-        "flow_cfs": 439.0,
+        "flow_cfs": 434.0,
         "weight": 4.2,
         "gauge_id": "09180000",
         "notes": "USGS #09180000 near Cisco, UT (capturing surging San Miguel River confluence to Dewey Bridge)."
@@ -47752,7 +47752,7 @@
         "name": "San Juan River - Headwaters to Navajo Reservoir",
         "category": "major_tributary",
         "gauge_id": "09342500",
-        "flow_cfs": 337.0,
+        "flow_cfs": 329.0,
         "weight": 3.5,
         "source_label": "USGS Gage",
         "gauge_info": "USGS #09342500 at Pagosa Springs, CO (Headwaters)",
@@ -49132,7 +49132,7 @@
         "name": "San Juan River - Navajo Dam to Farmington (Tailwater Release)",
         "category": "major_tributary",
         "gauge_id": "09355500",
-        "flow_cfs": 85.2,
+        "flow_cfs": 83.1,
         "weight": 3.5,
         "source_label": "USGS Gage",
         "gauge_info": "USGS #09355500 near Archuleta, NM (Navajo Dam Release)",
@@ -49758,7 +49758,7 @@
         "name": "San Juan River - Farmington to Shiprock (Animas Confluence)",
         "category": "major_tributary",
         "gauge_id": "09365000",
-        "flow_cfs": 2150.0,
+        "flow_cfs": 2140.0,
         "weight": 5.8,
         "source_label": "USGS Gage",
         "gauge_info": "USGS #09365000 at Farmington, NM (below Animas Confluence)",
@@ -50210,7 +50210,7 @@
         "name": "San Juan River - Shiprock to Bluff (Four Corners Corridor)",
         "reach_type": "free_flowing",
         "category": "major_tributary",
-        "flow_cfs": 2520.0,
+        "flow_cfs": 2580.0,
         "gauge_id": "09368000",
         "notes": "USGS #09368000 at Shiprock, NM flowing through Four Corners to Bluff, UT",
         "weight": 5.8
@@ -51500,7 +51500,7 @@
         "name": "San Juan River - Bluff to Lake Powell (Goosenecks Canyon)",
         "reach_type": "free_flowing",
         "category": "major_tributary",
-        "flow_cfs": 1540.0,
+        "flow_cfs": 1460.0,
         "gauge_id": "09379500",
         "notes": "USGS #09379500 near Bluff, UT through Mexican Hat and Goosenecks to Lake Powell delta",
         "weight": 6.1
@@ -52878,7 +52878,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.8,
-        "flow_cfs": 314.0,
+        "flow_cfs": 308.0,
         "gauge_id": "09114500",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -54820,7 +54820,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 4.8,
-        "flow_cfs": 1340.0,
+        "flow_cfs": 1330.0,
         "gauge_id": "09152500",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -55602,7 +55602,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 649.0,
+        "flow_cfs": 641.0,
         "gauge_id": "09302000",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -58484,7 +58484,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 2.4,
-        "flow_cfs": 48.1,
+        "flow_cfs": 47.4,
         "gauge_id": "09314500",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -61394,7 +61394,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 2.8,
-        "flow_cfs": 116.0,
+        "flow_cfs": 113.0,
         "gauge_id": "09260000",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -64672,7 +64672,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 525.0,
+        "flow_cfs": 522.0,
         "gauge_id": "09149500",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -65958,7 +65958,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 523.0,
+        "flow_cfs": 512.0,
         "gauge_id": "09085000",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -66332,7 +66332,7 @@
         "reach_type": "dam_regulated",
         "re_emerged": false,
         "weight": 2.4,
-        "flow_cfs": 40.3,
+        "flow_cfs": 39.3,
         "gauge_id": "09080400",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -69920,7 +69920,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 2.4,
-        "flow_cfs": 130.0,
+        "flow_cfs": 132.0,
         "gauge_id": "09333500",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -75690,7 +75690,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 4.8,
-        "flow_cfs": 1370.0,
+        "flow_cfs": 1350.0,
         "gauge_id": "09364500",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -79330,7 +79330,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 2.8,
-        "flow_cfs": 43.7,
+        "flow_cfs": 44.3,
         "gauge_id": "09419000",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -80240,7 +80240,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 12.8,
+        "flow_cfs": 12.4,
         "gauge_id": "09403850",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -87094,7 +87094,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 89.5,
+        "flow_cfs": 88.1,
         "gauge_id": "09474000",
         "minelev_ft": 1500.0,
         "maxelev_ft": 4200.0,
@@ -95049,8 +95049,8 @@
         "category": "major_tributary",
         "reach_type": "free_flowing",
         "re_emerged": false,
-        "weight": 2.8,
-        "flow_cfs": 11.5,
+        "weight": 3.2,
+        "flow_cfs": 10.7,
         "gauge_id": "09520500",
         "minelev_ft": 120.0,
         "maxelev_ft": 600.0,
@@ -96502,7 +96502,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 4.0,
-        "flow_cfs": 967.0,
+        "flow_cfs": 940.0,
         "gauge_id": "09498500",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -101456,7 +101456,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 599.0,
+        "flow_cfs": 595.0,
         "gauge_id": "09506000",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -105298,7 +105298,7 @@
         "reach_type": "dam_regulated",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 1200.0,
+        "flow_cfs": 1220.0,
         "gauge_id": "09510000",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -108860,7 +108860,7 @@
         "reach_type": "free_flowing",
         "re_emerged": false,
         "weight": 3.2,
-        "flow_cfs": 18.7,
+        "flow_cfs": 17.8,
         "gauge_id": "09033300",
         "minelev_ft": 4000.0,
         "maxelev_ft": 4200.0,
@@ -109464,7 +109464,7 @@
         "name": "Williams Fork River - Headwaters & Reservoir to Colorado River",
         "category": "major_tributary",
         "reach_type": "dam_regulated",
-        "flow_cfs": 15.5,
+        "flow_cfs": 14.2,
         "weight": 3.2,
         "gauge_id": "09037500",
         "notes": "Continental Divide headwaters past Williams Fork Dam/Reservoir (Denver Water) to Colorado River confluence at Parshall."
@@ -111441,6 +111441,64 @@
           [
             -106.39789,
             40.04259
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "reach": "div_canal_alimentador_central",
+        "reach_id": "div_canal_alimentador_central",
+        "name": "Canal Alimentador Central (Mexicali Valley \u2014 1944 Treaty)",
+        "category": "major_tributary",
+        "reach_type": "canal",
+        "upstream_node": "Morelos Dam (US-Mexico Border)",
+        "downstream_node": "Mexicali Valley Irrigation District 014",
+        "flow_cfs": 1530.0,
+        "weight": 4.3,
+        "gauge_id": "09522000",
+        "gage_id": "09522000",
+        "notes": "Primary Mexican diversion canal off Morelos Dam conveying Mexico's 1.5 MAF/yr allocation under the 1944 Water Treaty into Mexicali Valley District 014."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -114.728,
+            32.705
+          ],
+          [
+            -114.7335,
+            32.7032
+          ],
+          [
+            -114.792,
+            32.6668
+          ],
+          [
+            -114.998,
+            32.542
+          ],
+          [
+            -115.056,
+            32.511
+          ],
+          [
+            -115.118,
+            32.482
+          ],
+          [
+            -115.185,
+            32.454
+          ],
+          [
+            -115.228,
+            32.441
+          ],
+          [
+            -115.26258,
+            32.43592
           ]
         ]
       }

@@ -1421,6 +1421,22 @@ function applyLiveHydrology(riverNetwork, metrics) {
       sourceLabel = res.status === 'offline' ? 'Telemetry Offline' : "Residual Channel Flow Below Major Diversions";
       gaugeInfo = "Downstream of Imperial Dam / All-American Canal diversion to Morelos Dam (Mexico)";
       gaugeId = "09429500";
+    } else if (r === "div_canal_alimentador_central" || r === "canal_alimentador_central") {
+      const morelosStation = byId["09522000"] || metrics?.canals?.find(c => c.id === "09522000");
+      const res = resolveStation(morelosStation);
+      flow = res.flow_cfs != null ? res.flow_cfs : (morelosStation?.flow_cfs || 1530.0);
+      status = res.status || "delayed";
+      timestamp = res.timestamp || morelosStation?.timestamp;
+      sourceLabel = "1944 Mexican Water Treaty Delivery (CONAGUA / CILA)";
+      gaugeInfo = "USGS #09522000 at Northerly International Boundary above Morelos Dam";
+      gaugeId = "09522000";
+    } else if (r === "river-delta-dry" || r === "river_delta_dry") {
+      flow = 0;
+      status = "dry";
+      timestamp = null;
+      sourceLabel = "Dry River Channel Below Morelos Dam Diversion";
+      gaugeInfo = "0 cfs post-Morelos Dam diversion into Canal Alimentador Central";
+      gaugeId = null;
     } else if (r === "green_headwaters_daniel") {
       const res = resolveStation(greenDaniel);
       flow = res.flow_cfs; status = res.status; timestamp = res.timestamp; sourceLabel = res.source_label;
@@ -1729,6 +1745,18 @@ function applyLiveHydrology(riverNetwork, metrics) {
       f.properties.health_pct = null;
       f.properties.health_color = '#0369a1';
       f.properties.health_label = 'Submerged Reservoir Thalweg';
+    } else if (f.properties.reach_type === "canal" || r === "div_canal_alimentador_central") {
+      f.properties.weight = computeCanalWeight(flow);
+      f.properties.hist_normal_cfs = null;
+      f.properties.health_pct = null;
+      f.properties.health_color = '#0284c7';
+      f.properties.health_label = '1944 Treaty Delivery';
+    } else if (status === 'dry' || (flow === 0 && r.includes('delta'))) {
+      f.properties.weight = 2.0;
+      f.properties.hist_normal_cfs = null;
+      f.properties.health_pct = null;
+      f.properties.health_color = '#94a3b8';
+      f.properties.health_label = 'Dry Riverbed';
     } else if (status === 'offline' || flow == null) {
       f.properties.weight = 2.0;
       f.properties.hist_normal_cfs = gaugeId ? getHistoricalNormal(gaugeId) : null;
@@ -2759,7 +2787,7 @@ print("NHD Features found:", len(res.get("features", [])))`;
       id: 'rivers-major-glow',
       type: 'line',
       source: 'rivers',
-      filter: ['all', ['==', ['get', 'category'], 'major_tributary'], ['!=', ['get', 'reach_type'], 'submerged_path']],
+      filter: ['all', ['==', ['get', 'category'], 'major_tributary'], ['!=', ['get', 'reach_type'], 'submerged_path'], ['!=', ['get', 'reach_type'], 'canal']],
       paint: {
         'line-color': '#38bdf8',
         'line-width': [
@@ -2776,7 +2804,7 @@ print("NHD Features found:", len(res.get("features", [])))`;
       id: 'rivers-major-core',
       type: 'line',
       source: 'rivers',
-      filter: ['all', ['==', ['get', 'category'], 'major_tributary'], ['!=', ['get', 'reach_type'], 'submerged_path']],
+      filter: ['all', ['==', ['get', 'category'], 'major_tributary'], ['!=', ['get', 'reach_type'], 'submerged_path'], ['!=', ['get', 'reach_type'], 'canal']],
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
         'line-color': '#0284c7',
@@ -2787,6 +2815,26 @@ print("NHD Features found:", len(res.get("features", [])))`;
           13, ['*', ['get', 'weight'], 1.6]
         ],
         'line-opacity': 0.95
+      }
+    });
+
+    // Conveyance Canals in River Network (Dashed canal line style scaled by flow_cfs)
+    map.addLayer({
+      id: 'rivers-canal-core',
+      type: 'line',
+      source: 'rivers',
+      filter: ['==', ['get', 'reach_type'], 'canal'],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': '#0284c7',
+        'line-width': [
+          'interpolate', ['linear'], ['zoom'],
+          6, ['coalesce', ['get', 'weight'], 2.8],
+          10, ['*', ['coalesce', ['get', 'weight'], 2.8], 1.25],
+          13, ['*', ['coalesce', ['get', 'weight'], 2.8], 1.6]
+        ],
+        'line-dasharray': [3, 2.5],
+        'line-opacity': 1.0
       }
     });
     map.addLayer({
@@ -2882,11 +2930,14 @@ print("NHD Features found:", len(res.get("features", [])))`;
         ])) return;
         map.getCanvas().style.cursor = 'pointer';
         const p = e.features[0].properties;
-        const catBadge = p.category === 'mainstem'
-          ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:2px 6px;border-radius:4px;">Mainstem Reach</span>'
-          : (p.category === 'major_tributary'
-              ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:2px 6px;border-radius:4px;">Major Tributary</span>'
-              : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:2px 6px;border-radius:4px;">Secondary Stream</span>');
+        const isCanalAlimentador = p.reach === 'div_canal_alimentador_central' || p.reach === 'canal_alimentador_central' || p.id === '09522000';
+        const catBadge = isCanalAlimentador
+          ? '<span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;">Major Conveyance Canal (1944 Treaty)</span>'
+          : (p.category === 'mainstem'
+              ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:2px 6px;border-radius:4px;">Mainstem Reach</span>'
+              : (p.category === 'major_tributary'
+                  ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:2px 6px;border-radius:4px;">Major Tributary</span>'
+                  : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:2px 6px;border-radius:4px;">Secondary Stream</span>'));
 
         // Clean deduplicated station/control info (suppress redundant portal links if already listed in gauge_info)
         const stationHtml = p.gauge_info ? `<div style="font-size:11px;color:#475569;margin-top:4px;line-height:1.35;"><strong>Control / Station:</strong> ${p.gauge_info}</div>` : '';
@@ -2940,10 +2991,16 @@ print("NHD Features found:", len(res.get("features", [])))`;
             ${stationHtml}
             ${healthHtml}
             ${waveTransitHoverHtml}
+            ${isCanalAlimentador ? `
+            <div style="font-size:10.5px;color:#334155;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
+              <strong>Authority:</strong> CONAGUA / CILA (Mexico — District 014)<br>
+              <strong>Legal Allocation:</strong> 1.50 MAF/yr (~2,072 cfs) under the 1944 Mexican Water Treaty (Era 3, Morelos Dam completed 1950)<br>
+              <strong>Measurement Point:</strong> Verified at the border via USGS #09522000 above Morelos Dam; 0 cfs continues down the dry Colorado River Delta.
+            </div>` : `
             <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;">
               <strong>Classification:</strong> ${Number(p.flow_cfs) >= 5000 ? 'High Flow Mainstem (> 5,000 cfs)' : (Number(p.flow_cfs) >= 1000 ? 'Major River / Tributary (1,000 – 5,000 cfs)' : 'Secondary Stream / Headwaters (< 1,000 cfs)')}
             </div>
-            ${notesHtml}
+            ${notesHtml}`}
           </div>
         `, e.lngLat, 'rivers');
       });
@@ -2962,13 +3019,16 @@ print("NHD Features found:", len(res.get("features", [])))`;
         if (e.originalEvent) e.originalEvent._handled = true;
 
         const p = e.features[0].properties;
+        const isCanalAlimentador = p.reach === 'div_canal_alimentador_central' || p.reach === 'canal_alimentador_central' || p.id === '09522000';
         const gaugeId = p.gauge_id;
         const portal = getPortalInfo({ id: gaugeId, name: p.name });
-        const catBadge = p.category === 'mainstem'
-          ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:2px 6px;border-radius:4px;">Mainstem Reach</span>'
-          : (p.category === 'major_tributary'
-              ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:2px 6px;border-radius:4px;">Major Tributary</span>'
-              : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:2px 6px;border-radius:4px;">Secondary Stream</span>');
+        const catBadge = isCanalAlimentador
+          ? '<span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;">Major Conveyance Canal (1944 Treaty)</span>'
+          : (p.category === 'mainstem'
+              ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:2px 6px;border-radius:4px;">Mainstem Reach</span>'
+              : (p.category === 'major_tributary'
+                  ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:2px 6px;border-radius:4px;">Major Tributary</span>'
+                  : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:2px 6px;border-radius:4px;">Secondary Stream</span>'));
 
         // Clean deduplicated station/control info (suppress redundant portal links if already listed in gauge_info)
         const stationHtml = p.gauge_info ? `<div style="font-size:11px;color:#475569;margin-top:4px;line-height:1.35;"><strong>Control / Station:</strong> ${p.gauge_info}</div>` : '';
@@ -3058,6 +3118,12 @@ print("NHD Features found:", len(res.get("features", [])))`;
             ${highlightBadge}
             ${timeHtml}
             ${notesHtml}
+            ${isCanalAlimentador ? `
+            <div style="font-size:11px;color:#334155;margin-top:6px;line-height:1.45;border-top:1px solid #e2e8f0;padding-top:5px;">
+              <strong>Authority:</strong> CONAGUA / CILA (Mexico — District 014)<br>
+              <strong>Legal Allocation:</strong> 1.50 MAF/yr (~2,072 cfs) under the 1944 Mexican Water Treaty (Era 3, Morelos Dam completed 1950)<br>
+              <strong>Measurement Point:</strong> Verified at the border via USGS #09522000 above Morelos Dam; 0 cfs continues down the dry Colorado River Delta.
+            </div>` : ''}
             ${(!p.gauge_info || !p.gauge_info.includes(portal?.label)) ? formatPortalHtml(portal, '#0284c7') : ''}
           </div>
         `;
@@ -3067,7 +3133,26 @@ print("NHD Features found:", len(res.get("features", [])))`;
         let endpointUrl = '';
         let notes = '';
 
-        if (gaugeId) {
+        if (isCanalAlimentador || gaugeId === "09522000") {
+          endpointUrl = `https://waterservices.usgs.gov/nwis/dv/?sites=09522000&parameterCd=00060&format=json`;
+          pyCode = `import requests
+
+# USGS / CILA Border Station #09522000 (Morelos Dam Delivery)
+url = "https://waterservices.usgs.gov/nwis/dv/"
+params = {
+    "sites": "09522000",       # Colorado River at NIB above Morelos Dam
+    "parameterCd": "00060",  # Canal Diversion / Treaty Flow (cfs)
+    "format": "json"
+}
+res = requests.get(url, params=params, timeout=10).json()
+try:
+    val = res["value"]["timeSeries"][0]["values"][0]["value"][-1]
+    flow_cfs = float(val["value"])
+    print(f"Canal Alimentador Central: {flow_cfs:,.0f} cfs at {val['dateTime']}")
+except Exception as e:
+    print(f"Telemetry delayed / treaty accounting: {e}")`;
+          notes = "Verified at the border via USGS #09522000 above Morelos Dam; 0 cfs continues down the dry Colorado River Delta.";
+        } else if (gaugeId) {
           endpointUrl = `https://waterservices.usgs.gov/nwis/iv/?sites=${gaugeId}&parameterCd=00060&format=json`;
           pyCode = `import requests
 
