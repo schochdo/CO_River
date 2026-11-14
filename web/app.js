@@ -4962,7 +4962,7 @@ function updateBadgePlacements() {
     markers.canals.forEach(m => activeMarkers.push(m));
   }
 
-  // Sort descending by priority so vital sentinel stations (Lees Ferry, Hoover, Cameo) are placed first
+  // Sort descending by priority so primary sentinel stations (Lees Ferry, Hoover, Cameo) are placed first
   activeMarkers.sort((a, b) => (b._meta?.priority || 0) - (a._meta?.priority || 0));
 
   const placedBoxes = [];

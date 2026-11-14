@@ -28,7 +28,10 @@
       overflow-x: hidden;
       padding: 16px 20px;
     }
-    .mono { font-family: 'JetBrains Mono', monospace; }
+    .mono, .tabular-nums {
+      font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+      font-variant-numeric: tabular-nums;
+    }
     
     /* Sankey Node & Link Styles */
     .node rect {
@@ -174,7 +177,7 @@
         <span>Natural snowpack yield (<strong>12.40 MAF</strong>) is insufficient to satisfy total basin depletions &amp; evaporation (<strong>14.45 MAF</strong>).</span>
       </div>
       <div class="text-[11px] font-mono text-stone-500">
-        Math Bridge: <span class="text-stone-800 font-bold">1 cfs sustained for 1 year = 723.97 AF ≈ 0.000724 MAF</span>
+        Unit Conversion: <span class="text-stone-800 font-bold">1 cfs sustained over 1 year = ~724 acre-feet (~0.000724 MAF)</span>
       </div>
     </div>
 
