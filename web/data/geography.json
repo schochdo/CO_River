@@ -17024,6 +17024,138 @@
       "purpose": "Historic 1911 cornerstone of the Salt River Project feeding Phoenix agricultural & urban grid",
       "lat": 33.6706,
       "lon": -111.1611
+    },
+    {
+      "id": "morrow_point_dam",
+      "name": "Morrow Point Dam",
+      "impounds": "Morrow Point Reservoir (Gunnison River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 468,
+      "year": 1968,
+      "purpose": "Wayne N. Aspinall Unit middle reservoir; first double-curvature thin-arch concrete dam built by Reclamation",
+      "lat": 38.4528,
+      "lon": -107.5239
+    },
+    {
+      "id": "crystal_dam",
+      "name": "Crystal Dam",
+      "impounds": "Crystal Reservoir (Gunnison River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 323,
+      "year": 1976,
+      "purpose": "Aspinall Unit terminal regulating dam; stabilizes downstream Black Canyon baseflows and supplies Gunnison Tunnel diversion",
+      "lat": 38.5033,
+      "lon": -107.6258
+    },
+    {
+      "id": "taylor_park_dam",
+      "name": "Taylor Park Dam",
+      "impounds": "Taylor Park Reservoir (Taylor River)",
+      "operator": "U.S. Bureau of Reclamation / UVWUA",
+      "height_ft": 206,
+      "year": 1937,
+      "purpose": "Upper Gunnison headwater storage providing late-season irrigation exchange for the Uncompahgre Valley",
+      "lat": 38.8183,
+      "lon": -106.6083
+    },
+    {
+      "id": "fontenelle_dam",
+      "name": "Fontenelle Dam",
+      "impounds": "Fontenelle Reservoir (Green River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 139,
+      "year": 1964,
+      "purpose": "CRSP seed storage unit regulating the upper Green River in Wyoming upstream of Flaming Gorge",
+      "lat": 42.0284,
+      "lon": -110.0605
+    },
+    {
+      "id": "shadow_mountain_dam",
+      "name": "Shadow Mountain Dam",
+      "impounds": "Shadow Mountain Lake (Colorado River)",
+      "operator": "U.S. Bureau of Reclamation",
+      "height_ft": 63,
+      "year": 1946,
+      "purpose": "Connects Grand Lake and Lake Granby as part of the C-BT trans-mountain collection system",
+      "lat": 40.21,
+      "lon": -105.8344
+    },
+    {
+      "id": "windy_gap_dam",
+      "name": "Windy Gap Dam",
+      "impounds": "Windy Gap Reservoir (Colorado River)",
+      "operator": "Northern Water",
+      "height_ft": 26,
+      "year": 1985,
+      "purpose": "Diversion weir below Fraser confluence pumping Colorado River water back to Lake Granby via Windy Gap Pumping Plant; site of 2023-2024 Colorado River Connectivity Channel bypass",
+      "lat": 40.105,
+      "lon": -105.9814
+    },
+    {
+      "id": "williams_fork_dam",
+      "name": "Williams Fork Dam",
+      "impounds": "Williams Fork Reservoir (Williams Fork River)",
+      "operator": "Denver Water",
+      "height_ft": 217,
+      "year": 1959,
+      "purpose": "Denver Water municipal storage dam impounding Williams Fork Reservoir on Williams Fork River",
+      "lat": 40.0386,
+      "lon": -106.2032
+    },
+    {
+      "id": "wolford_mountain_dam",
+      "name": "Wolford Mountain Dam",
+      "impounds": "Wolford Mountain Reservoir (Muddy Creek)",
+      "operator": "Colorado River District",
+      "height_ft": 122,
+      "year": 1995,
+      "purpose": "Colorado River District storage dam impounding Wolford Mountain Reservoir on Muddy Creek",
+      "lat": 40.1167,
+      "lon": -106.4153
+    },
+    {
+      "id": "palo_verde_dam",
+      "name": "Palo Verde Dam",
+      "impounds": "Colorado River (Diversion Pool)",
+      "operator": "U.S. Bureau of Reclamation / PVID",
+      "height_ft": 33,
+      "year": 1958,
+      "purpose": "Diversion dam routing senior California priority water into Palo Verde Canal for Blythe agriculture",
+      "lat": 33.7297,
+      "lon": -114.5161
+    },
+    {
+      "id": "headgate_rock_dam",
+      "name": "Headgate Rock Dam",
+      "impounds": "Colorado River (Diversion Pool)",
+      "operator": "Bureau of Indian Affairs (BIA)",
+      "height_ft": 72,
+      "year": 1941,
+      "purpose": "Diversion dam providing irrigation water for the Colorado River Indian Tribes reservation",
+      "lat": 34.1678,
+      "lon": -114.4644
+    },
+    {
+      "id": "bartlett_dam",
+      "name": "Bartlett Dam",
+      "impounds": "Bartlett Reservoir (Verde River)",
+      "operator": "Salt River Project (SRP) / USBR",
+      "height_ft": 287,
+      "year": 1939,
+      "purpose": "Salt River Project multiple-arch dam storing Verde River flows for the Phoenix metropolitan area",
+      "lat": 33.8186,
+      "lon": -111.6317
+    },
+    {
+      "id": "stewart_mountain_dam",
+      "name": "Stewart Mountain Dam",
+      "impounds": "Saguaro Lake (Salt River)",
+      "operator": "Salt River Project (SRP) / USBR",
+      "height_ft": 207,
+      "year": 1930,
+      "purpose": "Terminal storage and hydroelectric dam on the Salt River chain upstream of Granite Reef Diversion Dam",
+      "lat": 33.5658,
+      "lon": -111.5367
     }
   ]
 }

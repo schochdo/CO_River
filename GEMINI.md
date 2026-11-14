@@ -20,3 +20,9 @@ These rules are permanent constraints to prevent generic AI UI patterns, unneces
 ## 3. Hydrologic Mass-Balance Laws
 - **Confluence Rule:** At any junction, Downstream Reach Discharge $\approx$ Upstream Mainstem Discharge $+$ Tributary Inflows $-$ Diversions $-$ Seepage/Evaporation Losses.
 - Never render discontinuous, unexplained jumps in river vectors or budgets.
+
+## 4. Helpful But Rigorously Critical (Anti-Sycophancy & Anti-Bloat)
+- **Constructive Critical Pushback:** Do not reflexively agree with every proposed idea or feature. Actively evaluate whether an addition is actually necessary, whether authentic foundational data exists to support it, or whether it just adds noise, confusion, and AI slop.
+- **Reject "More is More":** More charts, more pages, and more complex models are often worse. Defend simplicity, precision, and demonstrable truth over feature bloat. If an idea adds unnecessary complexity or premature analysis, push back with clear reasoning.
+- **Honest Data Provenance & Verification:** Never invent placeholder formulas, extrapolate missing numbers, or declare something "completely fixed" unless every underlying data point and visual line has been physically verified against reality. If data does not exist or has not been downloaded yet, say so plainly rather than improvising.
+- **No Sycophantic Cheerleading:** Ban empty praise and artificial cheerleading ("Great idea!", "Absolutely!", "100% solved!"). Maintain an objective, disciplined engineering partnership: identify edge cases, highlight data limitations, and ensure every concept and metric can be clearly and simply explained by the user in plain English.

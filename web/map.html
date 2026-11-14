@@ -38,9 +38,13 @@
         <span class="btn-icon">💻</span>
         <span class="btn-text">API &amp; Code</span>
       </button>
-      <button class="nav-header-btn flow-btn" onclick="window.open('./sankey.html','_blank')" title="Open Minard-style flow diagram">
+      <button class="nav-header-btn flow-btn" onclick="window.open('./pipeline.html','_blank')" title="Open River Network Schematic (Topological Flow &amp; Diversions)">
         <span class="btn-icon">〰</span>
-        <span class="btn-text">Flow Diagram</span>
+        <span class="btn-text">River Network</span>
+      </button>
+      <button class="nav-header-btn budget-btn" onclick="window.open('./sankey.html','_blank')" title="Open Annual Water Budget (Sankey Mass-Balance Accounting)">
+        <span class="btn-icon">⚖️</span>
+        <span class="btn-text">Water Budget</span>
       </button>
       <button class="nav-header-btn portal-btn" onclick="window.open('./portal.html','_blank')" title="Open Academic Data Portal &amp; Historical Reservoirs">
         <span class="btn-icon">📈</span>
@@ -152,7 +156,7 @@
               </label>
               <label class="toggle-label">
                 <span>Flow Health Overlay</span>
-                <input type="checkbox" id="toggle-flow-health" onchange="toggleLayer('flow-health')">
+                <input type="checkbox" id="toggle-flow-health" checked onchange="toggleLayer('flow-health')">
                 <span class="slider"></span>
               </label>
               <label class="toggle-label" style="padding-left: 14px; font-size: 11px; color: var(--text-muted);">
@@ -185,9 +189,14 @@
           <div class="map-menu-tab-pane" id="pane-basemaps" style="display: none;">
             <div class="map-menu-section">
               <div class="basemap-list">
-                <button class="basemap-item-btn active" data-value="esriNatGeo" onclick="selectBasemap('esriNatGeo')">
+                <button class="basemap-item-btn" data-value="esriNatGeo" onclick="selectBasemap('esriNatGeo')">
                   <span class="basemap-icon">🗺️</span>
                   <span class="basemap-name">National Geographic</span>
+                  <span class="basemap-check">✓</span>
+                </button>
+                <button class="basemap-item-btn" data-value="esriSatellite" onclick="selectBasemap('esriSatellite')">
+                  <span class="basemap-icon">🛰️</span>
+                  <span class="basemap-name">Satellite (High Res Imagery)</span>
                   <span class="basemap-check">✓</span>
                 </button>
                 <button class="basemap-item-btn" data-value="esriWorldTopo" onclick="selectBasemap('esriWorldTopo')">
@@ -195,7 +204,7 @@
                   <span class="basemap-name">World Topo (High Res)</span>
                   <span class="basemap-check">✓</span>
                 </button>
-                <button class="basemap-item-btn" data-value="esriTerrain" onclick="selectBasemap('esriTerrain')">
+                <button class="basemap-item-btn active" data-value="esriTerrain" onclick="selectBasemap('esriTerrain')">
                   <span class="basemap-icon">🌄</span>
                   <span class="basemap-name">Terrain with Labels</span>
                   <span class="basemap-check">✓</span>
@@ -212,13 +221,13 @@
         </div>
       </div>
 
-      <!-- Map Legend -->
+      <!-- Map Legend (Collapsible) -->
       <div class="map-legend" id="map-legend">
-        <div class="legend-header-toggle" onclick="toggleLegendMobile()">
+        <div class="legend-header-toggle" onclick="toggleLegend()" onkeydown="if(event.key==='Enter'||event.key===' '){toggleLegend();event.preventDefault();}" role="button" tabindex="0" aria-expanded="true" aria-controls="legend-content" title="Click to collapse / expand map legend">
           <h4>Map Legend</h4>
-          <span class="legend-toggle-chevron">▾</span>
+          <span class="legend-toggle-chevron" aria-hidden="true">▾</span>
         </div>
-        <div class="legend-content">
+        <div class="legend-content" id="legend-content">
           <div class="legend-section-title">STREAMFLOW VOLUME (CFS)</div>
           <div class="legend-item"><span class="legend-line river" style="background:#0284c7; height: 6px;"></span> High Flow Mainstem (&gt; 5,000 cfs)</div>
           <div class="legend-item"><span class="legend-line river" style="background:#0284c7; height: 3.5px;"></span> Major Rivers &amp; Tributaries (1,000 &ndash; 5,000 cfs)</div>
@@ -233,7 +242,7 @@
           <div class="legend-item"><span class="legend-dot gauge"></span> USGS Streamflow Gauge</div>
           <div class="legend-item"><span class="legend-cfs-badge">7,800 cfs</span> Live Flow Badge</div>
 
-          <div id="flow-health-legend" style="display:none;">
+          <div id="flow-health-legend" style="display:block;">
             <div class="legend-section-title" style="margin-top: 8px;">FLOW HEALTH (% OF DAILY AVERAGE)</div>
             <div class="legend-item"><span class="legend-line river" style="background:#1d4ed8; height: 4px;"></span> Abundant (&gt; 150%)</div>
             <div class="legend-item"><span class="legend-line river" style="background:#0ea5e9; height: 4px;"></span> Normal (90–150%)</div>
@@ -244,7 +253,7 @@
 
           <!-- Basemap Attribution (Integrated into Legend Footer) -->
           <div class="legend-attribution" id="legend-attribution">
-            Tiles &copy; Esri &mdash; National Geographic, USGS, NOAA | <a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre</a>
+            Tiles &copy; Esri &mdash; USGS, Esri, NPS | <a href="https://maplibre.org" target="_blank" rel="noopener">MapLibre</a>
           </div>
         </div>
       </div>
@@ -313,9 +322,13 @@
           <span class="btn-icon">💻</span>
           <span class="btn-text">API &amp; Code</span>
         </button>
-        <button class="nav-header-btn flow-btn" onclick="window.open('./sankey.html','_blank')" title="Open Minard-style flow diagram">
+        <button class="nav-header-btn flow-btn" onclick="window.open('./pipeline.html','_blank')" title="Open River Network Schematic (Topological Flow &amp; Diversions)">
           <span class="btn-icon">〰</span>
-          <span class="btn-text">Flow Diagram</span>
+          <span class="btn-text">River Network</span>
+        </button>
+        <button class="nav-header-btn budget-btn" onclick="window.open('./sankey.html','_blank')" title="Open Annual Water Budget (Sankey Mass-Balance Accounting)">
+          <span class="btn-icon">⚖️</span>
+          <span class="btn-text">Water Budget</span>
         </button>
         <button class="nav-header-btn telemetry-btn" onclick="window.open('./telemetry.html','_blank')" title="Open Gage &amp; Telemetry Registry Table">
           <span class="btn-icon">📊</span>
@@ -358,15 +371,15 @@
       </section>
 
       <!-- Front Range & Denver Collection Reservoirs -->
-      <section class="card stat-card front-range-card collapsed" id="front-range-card">
+      <section class="card stat-card front-range-card" id="front-range-card">
         <div class="card-header card-header-clickable" onclick="toggleCardCollapse('front-range-card', 'front-range-body', 'front-range-collapse-icon')" title="Click to collapse / expand Denver & Front Range collection storage">
           <h3>Front Range Reservoirs</h3>
           <div class="card-header-actions">
-            <span class="badge stat-badge" id="fr-storage-badge" style="background:#fef3c7; color:#b45309;">46.0% Full</span>
-            <span class="collapse-icon" id="front-range-collapse-icon" style="transform: rotate(-90deg);">▼</span>
+            <span class="badge stat-badge" id="fr-storage-badge" style="background:#fef3c7; color:#b45309;">45.2% Full</span>
+            <span class="collapse-icon" id="front-range-collapse-icon" style="transform: rotate(0deg);">▼</span>
           </div>
         </div>
-        <div id="front-range-body" style="display: none;">
+        <div id="front-range-body" style="display: block;">
           <div id="fr-storage-summary" style="font-size: 11px; color: var(--text-muted); margin: 4px 0 8px 0; font-weight: 500;">
             Headwater Storage &bull; West Slope Trans-Mountain Sources
           </div>
@@ -790,26 +803,55 @@ print("Hydrologic telemetry pipeline synced successfully.")</code></pre>
           </div>
         </div>
 
-        <!-- Chapter 5: Decoupled Jupyter Spatial Data Engineering Notebooks -->
+        <!-- Chapter 5: Decoupled Jupyter Spatial Data Engineering & ML Notebooks -->
         <div class="api-section">
           <div class="api-section-header">
-            <h3 class="api-section-title">5. Decoupled Spatial Data Engineering Notebooks</h3>
-            <span class="api-tag pipeline" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe;">Jupyter Notebooks</span>
+            <h3 class="api-section-title">5. Decoupled Spatial Data Engineering &amp; ML Notebooks</h3>
+            <span class="api-tag pipeline" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe;">Jupyter Notebooks (DAT 1001)</span>
           </div>
           <p class="law-text">
-            For academic inspection and automated batch pipelines, the data engineering logic is cleanly decoupled into two standalone, zero-cloud-cost Jupyter notebooks located in <code>notebooks/</code>:
+            For academic inspection and reproducible research, all data engineering, topological network routing, and machine learning models are organized into three standalone Jupyter notebooks in <code>notebooks/</code>. Static pre-rendered HTML copies and direct raw downloads are available:
           </p>
-          <div style="display:flex; flex-direction:column; gap:8px; margin: 10px 0;">
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 12px;">
-              <strong style="color:#0f172a; font-size:12px;">📓 notebooks/01_build_river_network.ipynb</strong>
-              <div style="font-size:11px; color:#475569; margin-top:2px;">
-                <strong>Spatial Topology &amp; Dynamic Shoreline Engine:</strong> Uses <code>pynhd.NLDI</code> and <code>WaterData</code> to disaggregate NHDPlus artificial paths from free-flowing rivers, calculates smoothed bed elevations, enforces the dynamic Cataract Canyon re-emergence rule, and synthesizes the Lake Powell topobathymetric contour deck from 3,490' to 3,700'. Exports <code>river_network.geojson</code> and <code>powell_contours.geojson</code>.
+          <div style="display:flex; flex-direction:column; gap:10px; margin: 12px 0;">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                <strong style="color:#0f172a; font-size:12px;">📓 01_build_river_network.ipynb</strong>
+                <div style="display:flex; gap:6px;">
+                  <a href="notebooks/01_build_river_network.html" target="_blank" rel="noopener noreferrer" style="font-size:11px; font-weight:700; color:#0284c7; text-decoration:underline;">View Rendered HTML ↗</a>
+                  <span style="color:#cbd5e1;">•</span>
+                  <a href="notebooks/01_build_river_network.ipynb" download style="font-size:11px; color:#475569;">Download .ipynb</a>
+                </div>
+              </div>
+              <div style="font-size:11px; color:#475569; margin-top:4px;">
+                <strong>Spatial Topology &amp; Dynamic Shoreline Engine:</strong> Uses <code>pynhd.NLDI</code> and <code>WaterData</code> to disaggregate NHDPlus artificial paths from free-flowing rivers, calculates smoothed bed elevations, enforces the dynamic Cataract Canyon re-emergence rule, and synthesizes the Lake Powell topobathymetric contour deck from 3,490' to 3,700'.
               </div>
             </div>
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px 12px;">
-              <strong style="color:#0f172a; font-size:12px;">📓 notebooks/02_analyze_flow_and_export.ipynb</strong>
-              <div style="font-size:11px; color:#475569; margin-top:2px;">
+
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                <strong style="color:#0f172a; font-size:12px;">📓 02_analyze_flow_and_export.ipynb</strong>
+                <div style="display:flex; gap:6px;">
+                  <a href="notebooks/02_analyze_flow_and_export.html" target="_blank" rel="noopener noreferrer" style="font-size:11px; font-weight:700; color:#0284c7; text-decoration:underline;">View Rendered HTML ↗</a>
+                  <span style="color:#cbd5e1;">•</span>
+                  <a href="notebooks/02_analyze_flow_and_export.ipynb" download style="font-size:11px; color:#475569;">Download .ipynb</a>
+                </div>
+              </div>
+              <div style="font-size:11px; color:#475569; margin-top:4px;">
                 <strong>Real-Time Telemetry &amp; Hydrological Metrics:</strong> Uses official USGS <code>dataretrieval</code> to ingest live discharge (<code>00060</code>), 50-year daily p50 statistics, sequential reach mass-balance deltas (&Delta;Q), and reservoir elevations (<code>62614</code>). Exports static contract <code>latest_conditions.json</code>.
+              </div>
+            </div>
+
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:10px 14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                <strong style="color:#0f172a; font-size:12px;">📓 03_tributary_ml_analysis.ipynb</strong>
+                <div style="display:flex; gap:6px;">
+                  <a href="notebooks/03_tributary_ml_analysis.html" target="_blank" rel="noopener noreferrer" style="font-size:11px; font-weight:700; color:#0284c7; text-decoration:underline;">View Rendered HTML ↗</a>
+                  <span style="color:#cbd5e1;">•</span>
+                  <a href="notebooks/03_tributary_ml_analysis.ipynb" download style="font-size:11px; color:#475569;">Download .ipynb</a>
+                </div>
+              </div>
+              <div style="font-size:11px; color:#475569; margin-top:4px;">
+                <strong>Multi-Tributary Regimes, Hydraulic Lag &amp; Deficit ML:</strong> Unsupervised K-Means clustering (Yield vs. Flashiness), cross-correlation hydraulic travel time curves to Lake Powell (San Juan 1–2d vs Cameo/Yampa 7–9d), time-lagged multiple regression, and statutory allocation deficit analysis.
               </div>
             </div>
           </div>
@@ -821,6 +863,6 @@ print("Hydrologic telemetry pipeline synced successfully.")</code></pre>
 
   <!-- MapLibre GL JS -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-  <script src="app.js?v=24.0"></script>
+  <script src="app.js?t=1730967000"></script>
 </body>
 </html>

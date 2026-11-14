@@ -174,7 +174,19 @@ output_data = {
 }
 
 os.makedirs('web/data', exist_ok=True)
-with open('web/data/portal_historical.json', 'w') as f:
+portal_json_path = 'web/data/portal_historical.json'
+
+# Safely merge into existing JSON so timeline and elevation datasets are preserved
+if os.path.exists(portal_json_path):
+    try:
+        with open(portal_json_path, 'r') as f:
+            existing_data = json.load(f)
+        existing_data.update(output_data)
+        output_data = existing_data
+    except Exception as e:
+        print(f"Warning: could not merge with existing portal_historical.json ({e})")
+
+with open(portal_json_path, 'w') as f:
     json.dump(output_data, f, indent=2)
 
 print("Saved portal_historical.json successfully!")

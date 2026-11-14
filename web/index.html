@@ -40,20 +40,45 @@
       border: 1px solid #dcdad1;
     }
     .sidebar-academic {
-      background-color: #2b353b;
+      background-color: #242c31;
       color: #cbd5e1;
     }
     .sidebar-link {
       color: #94a3b8;
       transition: all 0.15s ease;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6.5px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      width: 100%;
+      text-align: left;
+      border: 1px solid transparent;
     }
-    .sidebar-link:hover, .sidebar-link.active {
+    .sidebar-link:hover {
       color: #ffffff;
       background-color: rgba(255, 255, 255, 0.08);
     }
+    .sidebar-link.active {
+      color: #ffffff;
+      background-color: rgba(14, 165, 233, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
     .sidebar-link.active svg {
       color: #38bdf8;
+    }
+    .sidebar-category-header {
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 10px 3px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     /* Custom scrollbars */
@@ -94,93 +119,122 @@
     }
   </style>
 </head>
-<body class="flex flex-col antialiased">
+<body class="flex flex-col md:flex-row h-screen overflow-hidden antialiased bg-[#efeee9]">
 
-  <!-- Main Academic Shell (Layout) -->
-  <div class="flex-1 flex flex-col md:flex-row h-screen overflow-hidden">
+  <!-- Left Dark Academic Sidebar Navigation -->
+  <aside class="sidebar-academic w-full md:w-64 flex-shrink-0 flex flex-col justify-between p-3.5 border-r border-slate-700/80 select-none z-30 h-auto md:h-screen overflow-y-auto">
     
-    <!-- Left Dark Rail Navigation (Academic Project Sidebar) -->
-    <aside class="sidebar-academic w-full md:w-60 flex-shrink-0 flex flex-col justify-between p-4 border-r border-slate-700 select-none z-20">
-      <div>
-        <!-- Brand / Portal Title -->
-        <div class="pb-4 mb-3 border-b border-slate-600/60">
-          <div class="text-[10px] font-bold text-sky-400 uppercase tracking-widest">Research Workspace</div>
-          <div class="text-sm font-extrabold text-white tracking-tight mt-0.5">COLORADO BASIN</div>
-          <div class="text-[11px] text-slate-400 font-medium">Data Science Capstone • DAT1001</div>
+    <!-- Top Brand & Navigation Menu -->
+    <div class="space-y-4">
+      <!-- Identity / Header -->
+      <div class="cursor-pointer pb-3 border-b border-slate-700/80" onclick="setTab('overview')">
+        <div class="text-[9.5px] font-extrabold text-sky-400 uppercase tracking-widest leading-tight">Research Workspace</div>
+        <div class="text-base font-black text-white tracking-tight leading-tight mt-0.5">COLORADO BASIN</div>
+        <div class="text-[10px] text-slate-400 font-medium leading-tight mt-0.5">Colorado Mountain College • DAT1001</div>
+      </div>
+
+      <!-- Navigation Links Grouped by Time Scale & Data Source -->
+      <nav class="space-y-1">
+        <!-- 0. Overview -->
+        <button onclick="setTab('overview')" id="tab-btn-overview" class="sidebar-link active" title="Executive Overview &amp; System Yield">
+          <svg class="w-4 h-4 text-stone-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          <span>Executive Overview</span>
+        </button>
+
+        <!-- Group 1: Live Operational Flow (t = now, cfs • USGS & CDSS) -->
+        <div class="sidebar-category-header text-emerald-400 pt-3">
+          <svg class="w-3 h-3 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          <span>Live Flow (t = now, cfs)</span>
         </div>
-
-        <!-- Primary Navigation items -->
-        <nav class="space-y-1">
-          <!-- 1. Overview -->
-          <button onclick="setTab('overview')" id="tab-btn-overview" class="sidebar-link active w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-left">
-            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-            </svg>
-            <span>Overview</span>
-          </button>
-
-          <!-- 2. GIS Hydrology Map -->
-          <button onclick="setTab('map')" id="tab-btn-map" class="sidebar-link w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-left">
-            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-            </svg>
-            <span>GIS Hydrology Map</span>
-          </button>
-
-          <!-- 3. Annual Water Budget -->
-          <button onclick="setTab('sankey')" id="tab-btn-sankey" class="sidebar-link w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-left">
-            <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-            </svg>
-            <span>Annual Water Budget</span>
-          </button>
-
-          <!-- 4. River Flow Network Diagram -->
-          <button onclick="setTab('pipeline')" id="tab-btn-pipeline" class="sidebar-link w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-left">
-            <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-            </svg>
-            <span>River Flow Network</span>
-          </button>
-
-          <!-- 5. Historical Reservoirs (1935 - Today) -->
-          <button onclick="setTab('reservoirs')" id="tab-btn-reservoirs" class="sidebar-link w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-left">
-            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-            </svg>
-            <span>Reservoirs (1935–Today)</span>
-          </button>
-
-          <!-- 6. Gage Telemetry Registry -->
-          <button onclick="setTab('telemetry')" id="tab-btn-telemetry" class="sidebar-link w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-left">
-            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-            </svg>
-            <span>Gage Telemetry Registry</span>
-          </button>
-        </nav>
-      </div>
-
-      <!-- Reference & Code Resources -->
-      <div class="pt-4 border-t border-slate-700/60 space-y-1.5">
-        <div class="text-[10px] font-bold uppercase text-slate-400 px-3 mb-1 tracking-wider">Reference & Code</div>
-        <button onclick="openLawModal()" class="sidebar-link w-full flex items-center gap-2.5 px-3 py-1.5 rounded text-xs text-left">
-          <svg class="w-3.5 h-3.5 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+        <button onclick="setTab('map')" id="tab-btn-map" class="sidebar-link" title="Operational Hydrology (cfs, t=now): Cartographic Map">
+          <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
           </svg>
-          <span>Law of the River</span>
+          <span>GIS Hydrology Map</span>
         </button>
-        <button onclick="openApiModal()" class="sidebar-link w-full flex items-center gap-2.5 px-3 py-1.5 rounded text-xs text-left">
-          <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+        <button onclick="setTab('telemetry')" id="tab-btn-telemetry" class="sidebar-link" title="Operational Hydrology (cfs, t=now): Searchable Gage &amp; Diversion Ledger">
+          <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
           </svg>
-          <span>API & Code Docs</span>
+          <span>Gage Telemetry Ledger</span>
         </button>
-      </div>
-    </aside>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#efeee9] relative">
+        <!-- Group 2: Annual Water Budget (t = 1 yr, MAF/yr • USBR Accounting) -->
+        <div class="sidebar-category-header text-cyan-400 pt-3">
+          <svg class="w-3 h-3 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+          </svg>
+          <span>Annual Budget (MAF/yr)</span>
+        </div>
+        <button onclick="setTab('pipeline')" id="tab-btn-pipeline" class="sidebar-link" title="Annual Accounting (MAF/yr): Topological River Network Schematic">
+          <svg class="w-4 h-4 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+          </svg>
+          <span>River Flow Schematic</span>
+        </button>
+        <button onclick="setTab('sankey')" id="tab-btn-sankey" class="sidebar-link" title="Annual Accounting (MAF/yr): End-to-End Mass-Balance Budget (Sankey)">
+          <svg class="w-4 h-4 text-cyan-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          <span>Water Budget (Sankey)</span>
+        </button>
+
+        <!-- Group 3: Decadal Storage & ML (1935–Today • Dynamics & History) -->
+        <div class="sidebar-category-header text-purple-400 pt-3">
+          <svg class="w-3 h-3 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+          <span>Decadal &amp; Regimes</span>
+        </div>
+        <button onclick="setTab('reservoirs')" id="tab-btn-reservoirs" class="sidebar-link" title="Decadal Storage (1935–2026): 92-Year Powell &amp; Mead Bank Account Depletion">
+          <svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+          <span>Reservoirs (1935–Today)</span>
+        </button>
+        <button onclick="setTab('ml')" id="tab-btn-ml" class="sidebar-link" title="Upper Basin Tributary Inflows, River Travel Times &amp; Lake Powell Deficit">
+          <svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          <span>Tributaries &amp; Deficit</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Bottom Pinned Utilities -->
+    <div class="pt-3 border-t border-slate-700/80 space-y-1">
+      <button onclick="openLawModal()" class="sidebar-link hover:text-amber-300" title="Water Wars, Court Cases &amp; Law of the River">
+        <svg class="w-4 h-4 text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+        <span>Law of the River</span>
+      </button>
+
+      <button onclick="openApiModal()" class="sidebar-link hover:text-sky-300" title="Official Data Sources, Hydrologic APIs &amp; Jupyter Research Notebooks">
+        <svg class="w-4 h-4 text-sky-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+        </svg>
+        <span>Data Sources &amp; Notebooks</span>
+      </button>
+
+      <button onclick="toggleFullScreen()" id="btn-fullscreen" class="sidebar-link hover:text-white" title="Toggle Fullscreen" aria-label="Toggle Fullscreen">
+        <svg id="icon-enter-fullscreen" class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+        </svg>
+        <svg id="icon-exit-fullscreen" class="w-4 h-4 hidden flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10h6V4 M10 10L3 3 M20 10h-6V4 M14 10L21 3 M4 14h6v6 M10 14L3 21 M20 14h-6v6 M14 14L21 21"/>
+        </svg>
+        <span>Toggle Fullscreen</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Area (Full Bleed Viewport) -->
+  <main class="flex-1 flex flex-col h-screen overflow-hidden bg-[#efeee9] relative">
       
       <!-- Top Academic Header Banner (Persistent across data tabs) -->
       <header id="academic-top-header" class="flex-shrink-0 px-6 py-3.5 border-b border-stone-300 bg-[#efeee9]/95 flex justify-between items-center z-10">
@@ -420,13 +474,25 @@
                 <!-- Paper Water Bar -->
                 <div class="mt-3">
                   <div class="flex justify-between items-baseline text-xs mb-1">
-                    <span class="font-bold text-stone-800">Paper Water <span class="font-normal text-stone-500">(1922 Statutory Rights)</span></span>
+                    <span class="font-bold text-stone-800">Paper Water <span class="font-normal text-stone-500">(Statutory Apportionments)</span></span>
                     <span class="mono font-black text-stone-900 text-sm">17.5 MAF</span>
                   </div>
                   <div class="w-full bg-stone-200 rounded-sm h-7 overflow-hidden relative">
                     <div class="bg-slate-700 h-full flex items-center px-2 text-white text-[11px] font-bold mono" style="width: 100%;">
                       17.5 MAF/yr Statutory Allocations
                     </div>
+                  </div>
+                  <!-- Exact Statutory Apportionment Breakdown -->
+                  <div class="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[9.5px] text-stone-600 font-mono">
+                    <span class="bg-stone-100 px-1 py-0.5 rounded border border-stone-200" title="1922 Compact Article III(a)">7.5 Upper Basin</span>
+                    <span>+</span>
+                    <span class="bg-stone-100 px-1 py-0.5 rounded border border-stone-200" title="1922 Compact Article III(a)">7.5 Lower (III.a)</span>
+                    <span>+</span>
+                    <span class="bg-stone-100 px-1 py-0.5 rounded border border-stone-200" title="1922 Compact Article III(b) additional right">1.0 Lower (III.b)</span>
+                    <span>+</span>
+                    <span class="bg-stone-100 px-1 py-0.5 rounded border border-stone-200" title="1944 Mexican Water Treaty Article 10">1.5 Mexico</span>
+                    <span>=</span>
+                    <strong class="text-stone-900 font-bold">17.5 MAF</strong>
                   </div>
                 </div>
 
@@ -456,7 +522,7 @@
                 </div>
 
                 <p class="text-[10.5px] text-stone-600 mt-2.5 leading-relaxed">
-                  The 1922 Compact negotiators assumed an average virgin flow of ~17.5–18.0 MAF during an anomalously wet decade (1905–1922). Modern hydrology establishes true sustainable yield at ~12.4 MAF, producing an annual structural overdraft of <strong>~5.1 Million Acre-Feet</strong>.
+                  The statutory legal treaties apportioned <strong>17.5 MAF/yr</strong> of beneficial consumptive rights (7.5 Upper + 7.5 Lower III.a + 1.0 Lower III.b + 1.5 Mexico), based on an anomalously wet decade (1905–1922: ~17.5–18.0 MAF). Crucially, the treaties completely excluded reservoir evaporation and transit losses (an additional ~1.5–2.0 MAF/yr). Against modern 21st-century wet yield (~12.4 MAF), statutory commitments exceed physical supply by <strong>~5.1 Million Acre-Feet/yr</strong>.
                 </p>
                 <div class="mt-3 pt-2.5 border-t border-stone-200 flex flex-wrap items-center gap-2">
                   <button onclick="setTab('sankey')" class="px-2.5 py-1 text-[11px] font-bold rounded bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-300 transition cursor-pointer">
@@ -819,90 +885,693 @@
           <iframe id="iframe-telemetry" src="./telemetry.html" class="w-full h-full border-none"></iframe>
         </div>
 
+        <!-- ========================================== -->
+        <!-- TAB 6: FLOW REGIMES & ML ANALYSIS          -->
+        <!-- ========================================== -->
+        <div id="section-ml" class="hidden flex-1 w-full h-full min-h-0 relative">
+          <iframe id="iframe-ml" src="./ml_analysis.html" class="w-full h-full border-none"></iframe>
+        </div>
+
       </div>
     </main>
-  </div>
 
-  <!-- ========================================== -->
-  <!-- MODAL 1: LAW OF THE RIVER (Full Legal Text) -->
-  <!-- ========================================== -->
-  <div id="law-modal" onclick="if(event.target === this) closeModals()" class="fixed inset-0 academic-modal-backdrop hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col border border-stone-300">
-      <div class="flex justify-between items-center p-5 border-b border-stone-200">
+  <!-- ======================================================= -->
+  <!-- MODAL 1: LAW OF THE RIVER (Full Master Historical Text) -->
+  <!-- ======================================================= -->
+  <div id="law-modal" onclick="if(event.target === this) closeModals()" class="fixed inset-0 academic-modal-backdrop hidden z-50 flex items-center justify-center p-3 md:p-6">
+    <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col border border-stone-300 overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center px-6 py-4 border-b border-stone-200 bg-[#faf9f5]">
         <div>
-          <h2 class="text-base font-black text-stone-900">THE LAW OF THE RIVER: COMPACT ALLOCATIONS</h2>
-          <p class="text-xs text-stone-500 mt-0.5">Statutory division of water rights across Upper &amp; Lower Basins</p>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-200">Legal &amp; Historical Foundation</span>
+            <span class="text-[10px] font-bold text-stone-500">1922–2026 Statutory Framework</span>
+          </div>
+          <h2 class="text-lg font-black text-stone-900 tracking-tight mt-1">⚖️ THE LAW OF THE RIVER: PAPER RIGHTS VS. WET WATER REALITY</h2>
+          <p class="text-xs text-stone-600">How a century of imaginary water allocations, emergency reservoir bailouts, and climate reality led to the post-2026 reckoning</p>
         </div>
-        <button onclick="closeModals()" class="text-stone-400 hover:text-stone-700 p-1 rounded-lg">
+        <button onclick="closeModals()" class="text-stone-400 hover:text-stone-700 p-1.5 rounded-lg hover:bg-stone-200/60 transition" title="Close dialog (Esc)">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <div class="p-6 overflow-y-auto space-y-4 text-xs text-stone-700 leading-relaxed">
-        <div class="p-3.5 bg-stone-50 rounded-lg border border-stone-200">
-          <h3 class="font-black text-stone-900 mb-1">1. The 1922 Colorado River Compact</h3>
-          <p>Divided the watershed at Lee's Ferry, Arizona into the Upper Basin (CO, WY, UT, NM) and Lower Basin (AZ, CA, NV). Each basin was apportioned <strong>7.5 MAF/yr</strong> of beneficial consumptive use in perpetuity. Lower Basin was granted the right to increase use by <strong>1.0 MAF/yr</strong> under Article III(b).</p>
-        </div>
-        <div class="p-3.5 bg-stone-50 rounded-lg border border-stone-200">
-          <h3 class="font-black text-stone-900 mb-1">2. 1944 Mexican Water Treaty</h3>
-          <p>Guarantees Mexico <strong>1.5 MAF/yr</strong> delivered at Morelos Dam. During surplus, up to 1.7 MAF; during extraordinary drought, reduced in proportion to US domestic reductions.</p>
-        </div>
-        <div class="p-3.5 bg-stone-50 rounded-lg border border-stone-200">
-          <h3 class="font-black text-stone-900 mb-1">3. 1948 Upper Colorado River Basin Compact</h3>
-          <p>Apportioned Upper Basin water on a percentage basis: Colorado (51.75%), Utah (23.00%), Wyoming (14.00%), New Mexico (11.25%), with Arizona receiving 50,000 AF/yr.</p>
-        </div>
-        <div class="p-3.5 bg-stone-50 rounded-lg border border-stone-200">
-          <h3 class="font-black text-stone-900 mb-1">4. 1963 Arizona v. California Decree</h3>
-          <p>Apportioned the Lower Basin's 7.5 MAF mainstream entitlement: California <strong>4.4 MAF/yr</strong>, Arizona <strong>2.8 MAF/yr</strong>, Nevada <strong>0.3 MAF/yr</strong>.</p>
-        </div>
+
+      <!-- Quick Jump Navigation Bar -->
+      <div class="flex items-center gap-2 px-6 py-2 border-b border-stone-200 bg-stone-50 overflow-x-auto text-[11px] font-semibold text-stone-700">
+        <span class="text-stone-400 text-[10px] uppercase font-bold tracking-wider">Jump To:</span>
+        <a href="#law-sec-ch1" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-amber-900 transition">1. Paper Water (1922–1944)</a>
+        <a href="#law-sec-ch2" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-amber-900 transition">2. Seniority &amp; Cuts</a>
+        <a href="#law-sec-ch3" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-amber-900 transition">3. Reservoir Drain (2000–2021)</a>
+        <a href="#law-sec-ch4" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-amber-900 transition">4. Dead Pool &amp; Buyouts</a>
+        <a href="#law-sec-ch5" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-amber-900 transition">5. 2026 Reckoning</a>
       </div>
-      <div class="p-4 border-t border-stone-200 bg-stone-50 flex justify-end">
-        <button onclick="closeModals()" class="px-4 py-1.5 text-xs font-bold rounded bg-stone-800 text-white hover:bg-stone-900">Close</button>
+
+      <!-- Modal Body (Scrollable Master Legal Chapters) -->
+      <div class="p-6 overflow-y-auto space-y-6 text-xs text-stone-700 leading-relaxed">
+
+        <!-- Chapter 1: 1922–1944: Allocating "Paper Water" -->
+        <section id="law-sec-ch1" class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
+            <div>
+              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span>
+                <span>1. 1922–1944: ALLOCATING "PAPER WATER"</span>
+              </h3>
+              <p class="text-[11px] text-stone-500">The statutory origins of over-allocation and the 17.5 MAF baseline illusion</p>
+            </div>
+            <span class="text-[10px] font-bold text-sky-800 bg-sky-100 border border-sky-200 px-2 py-0.5 rounded">Historic Foundation</span>
+          </div>
+          <p>
+            The legal architecture governing the basin began with the <strong>1922 Colorado River Compact</strong>, signed in Santa Fe, New Mexico by delegates from the seven basin states and Herbert Hoover. It split the watershed at Lees Ferry, Arizona, apportioning <strong>7.5 million acre-feet (MAF)</strong> annually to the Upper Basin (CO, WY, UT, NM) and <strong>7.5 MAF</strong> to the Lower Basin (AZ, CA, NV) in perpetuity. Article III(b) authorized the Lower Basin to expand beneficial use by an additional <strong>1.0 MAF/yr</strong>. In 1944, the <strong>Mexican Water Treaty</strong> added a sovereign guarantee of <strong>1.5 MAF/yr</strong> delivered at Morelos Dam, stipulating that any deficiency be borne equally by Upper and Lower Basins (0.75 MAF each).
+          </p>
+          <div class="p-3 bg-amber-50/80 rounded-lg border border-amber-200 text-amber-950 space-y-1">
+            <div class="font-bold text-[11.5px] text-amber-900">The Original Sin: Ignored Warnings &amp; Missing Evaporation</div>
+            <p class="text-[11px] leading-relaxed">
+              Negotiators in Santa Fe anchored these legal entitlements to river gauge readings from the unusually wet period of 1905–1922, presuming average annual runoff exceeded <strong>17.5 MAF/yr</strong>. USGS hydrologist E.C. LaRue published exhaustive field measurements warning that long-term flow was significantly lower, but commissioners dismissed his testimony to achieve political unanimity. Modern dendrochronology (tree-ring) studies and continuous USGS data verify that natural runoff averages only <strong>~13.2 MAF/yr</strong>—and in the 21st century megadrought has averaged barely <strong>~12.5 MAF/yr</strong>. Furthermore, the treaties omitted <strong>~1.5 to 1.8 MAF/yr of reservoir evaporation and transit losses</strong>, locking the basin into <strong>17.5+ MAF of statutory paper promises</strong> against ~12.5 MAF of physical water.
+            </p>
+          </div>
+          <!-- Stats Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1 font-mono text-center">
+            <div class="bg-white p-2.5 rounded-lg border border-stone-200">
+              <div class="text-[9.5px] font-sans font-bold text-stone-500 uppercase">Upper Basin</div>
+              <div class="text-xs font-black text-stone-800 mt-0.5">7.5 MAF/yr</div>
+            </div>
+            <div class="bg-white p-2.5 rounded-lg border border-stone-200">
+              <div class="text-[9.5px] font-sans font-bold text-stone-500 uppercase">Lower Basin (III.a)</div>
+              <div class="text-xs font-black text-stone-800 mt-0.5">7.5 MAF/yr</div>
+            </div>
+            <div class="bg-white p-2.5 rounded-lg border border-stone-200">
+              <div class="text-[9.5px] font-sans font-bold text-stone-500 uppercase">Lower Basin (III.b)</div>
+              <div class="text-xs font-black text-stone-800 mt-0.5">1.0 MAF/yr</div>
+            </div>
+            <div class="bg-white p-2.5 rounded-lg border border-stone-200">
+              <div class="text-[9.5px] font-sans font-bold text-stone-500 uppercase">Mexico Treaty</div>
+              <div class="text-xs font-black text-stone-800 mt-0.5">1.5 MAF/yr</div>
+            </div>
+            <div class="bg-sky-50 p-2.5 rounded-lg border border-sky-200">
+              <div class="text-[9.5px] font-sans font-bold text-sky-800 uppercase">Total Paper Promises</div>
+              <div class="text-xs font-black text-sky-900 mt-0.5">17.5 MAF/yr</div>
+            </div>
+            <div class="bg-rose-50 p-2.5 rounded-lg border border-rose-200">
+              <div class="text-[9.5px] font-sans font-bold text-rose-800 uppercase">Modern Real Inflow</div>
+              <div class="text-xs font-black text-rose-700 mt-0.5">~12.5 MAF/yr</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Chapter 2: The Seniority Pecking Order: Who Gets Cut First? -->
+        <section id="law-sec-ch2" class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
+            <div>
+              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
+                <span>2. THE SENIORITY PECKING ORDER: WHO GETS CUT FIRST?</span>
+              </h3>
+              <p class="text-[11px] text-stone-500">Prior appropriation, historical priority dates, and statutory subordination</p>
+            </div>
+            <span class="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded">Legal Hierarchy</span>
+          </div>
+          <p>
+            Western water administration operates strictly on <strong>Prior Appropriation: <em>"First in time, first in right."</em></strong> The user who first put river water to beneficial use holds senior legal priority. As the seven states developed throughout the 20th century, this doctrine produced an asymmetric hierarchy that dictates which states and users absorb curtailments when wet water fails:
+          </p>
+          <ul class="space-y-2 pl-2">
+            <li class="p-2.5 bg-white rounded-lg border border-stone-200">
+              <strong class="text-stone-900">California's Senior Fortress (1901 Rights):</strong> Southern California agricultural agencies—chief among them the <strong>Imperial Irrigation District (IID)</strong> and Coachella Valley Water District—hold "present perfected rights" established in 1901 that legally pre-date the 1922 Compact. Under federal statutory decree, IID alone holds 3.1 MAF of senior rights that are legally senior to virtually all municipal uses in Phoenix, Tucson, and Las Vegas.
+            </li>
+            <li class="p-2.5 bg-white rounded-lg border border-stone-200">
+              <strong class="text-stone-900">Arizona's 1968 Junior Sacrifice:</strong> To secure federal authorization and funding to build the 336-mile Central Arizona Project (CAP) canal to Phoenix and Tucson, Arizona had to accept a harsh statutory compromise in the 1968 Colorado River Basin Project Act: <strong>CAP deliveries are legally junior to California's 4.4 MAF baseline allocation</strong>. When shortage triggers occur, Arizona must forfeit deliveries before California loses a single drop.
+            </li>
+            <li class="p-2.5 bg-white rounded-lg border border-stone-200">
+              <strong class="text-stone-900">Upper Basin Hydrologic Snowpack Ceiling:</strong> Without massive downstream regulatory reservoirs directly above their diversions, Upper Basin irrigators and municipalities divert water in real time directly from mountain snowmelt tributaries. In dry summers, Colorado water commissioners enforce the priority system at local ditch headgates (e.g. Shoshone Power Plant calls curtail junior Denver and northern Front Range trans-mountain diversions). Consequently, the Upper Basin has <strong>never consumed its 7.5 MAF paper entitlement</strong>, remaining physically capped at <strong>~4.0 to 4.5 MAF/yr</strong>.
+            </li>
+          </ul>
+        </section>
+
+        <!-- Chapter 3: 2000–2021: Hiding the Deficit in the Reservoirs -->
+        <section id="law-sec-ch3" class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
+            <div>
+              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
+                <span>3. 2000–2021: HIDING THE DEFICIT IN THE RESERVOIRS</span>
+              </h3>
+              <p class="text-[11px] text-stone-500">How the structural deficit drained 37 million acre-feet of emergency storage</p>
+            </div>
+            <span class="text-[10px] font-bold text-rose-800 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded">The 20-Year Drain</span>
+          </div>
+          <p>
+            If legal allocations and systemic consumptive use exceeded natural inflows by millions of acre-feet every single year, why did the river system not collapse decades ago? <strong>Water managers drained the system's massive storage reservoirs to mask the annual deficit.</strong>
+          </p>
+          <p>
+            In 1999, Lake Powell and Lake Mead were <strong>95% full</strong>, holding over <strong>50 million acre-feet</strong>—representing nearly four full years of total river runoff stored in reserve. That massive multi-year savings account allowed Lower Basin cities and agricultural districts to continue consuming ~15.0 MAF annually while climate change, warming temperatures, and reduced snowpack suppressed river yield to ~12.5 MAF. The <strong>~2.5 MAF annual structural deficit was silently withdrawn from reservoir storage year after year</strong>.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 font-mono text-center">
+            <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+              <div class="text-[10px] font-sans font-bold text-emerald-800 uppercase">1999 Combined Storage</div>
+              <div class="text-sm font-black text-emerald-700 mt-0.5">~50 MAF (95% Full)</div>
+              <div class="text-[10px] font-sans text-stone-500 mt-1">Multi-year buffer intact</div>
+            </div>
+            <div class="bg-rose-50 p-3 rounded-lg border border-rose-200">
+              <div class="text-[10px] font-sans font-bold text-rose-800 uppercase">2022 Crisis Low</div>
+              <div class="text-sm font-black text-rose-700 mt-0.5">~13 MAF (25% Full)</div>
+              <div class="text-[10px] font-sans text-stone-500 mt-1">Near dead pool thresholds</div>
+            </div>
+            <div class="bg-red-50 p-3 rounded-lg border border-red-200">
+              <div class="text-[10px] font-sans font-bold text-red-800 uppercase">Total Stored Water Depleted</div>
+              <div class="text-sm font-black text-red-700 mt-0.5">~37 MAF Lost</div>
+              <div class="text-[10px] font-sans text-stone-500 mt-1">Sustained 22-year structural deficit</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Chapter 4: 2022–2024: Dead Pool Threats & Emergency Buyouts -->
+        <section id="law-sec-ch4" class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
+            <div>
+              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
+                <span>4. 2022–2024: DEAD POOL THREATS &amp; EMERGENCY BUYOUTS</span>
+              </h3>
+              <p class="text-[11px] text-stone-500">Federal crisis intervention, mandatory Tier cuts, and fallowing subsidies</p>
+            </div>
+            <span class="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded">Crisis Management</span>
+          </div>
+          <p>
+            By mid-2022, the savings account was nearly exhausted. Powell and Mead plunged to 25% combined capacity. Lake Powell sank to within 32 feet of losing hydroelectric generation at Glen Canyon Dam (elevation 3,490 ft), and Bureau of Reclamation engineers warned of <strong>"dead pool"</strong> (elevation 3,370 ft)—the catastrophic threshold where water levels drop below dam outlet penstocks, halting downstream river flow entirely.
+          </p>
+          <div class="space-y-2">
+            <div class="p-3 bg-white rounded-lg border border-stone-200">
+              <strong class="text-stone-900">Mandatory Cuts Crush Arizona:</strong> The federal government declared unprecedented Tier 1 and Tier 2 shortages under the 2019 Drought Contingency Plan. Because of CAP's 1968 junior status, <strong>Arizona lost ~592,000 AF of water (&gt;20% of its total Colorado River allocation)</strong>, forcing central Arizona farmers to fallow tens of thousands of acres, while senior California sustained zero mandatory reductions.
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-stone-200">
+              <strong class="text-stone-900">The $1.2 Billion Federal Buyout:</strong> In June 2022, Reclamation Commissioner Camille Touton directed the seven basin states to slash consumption by 2.0 to 4.0 MAF within 60 days or face unilateral federal operational cuts. Rather than ignite an acrimonious Supreme Court fight over California's senior 1901 rights, the Biden administration committed <strong>$1.2 Billion from the Inflation Reduction Act</strong>, paying agricultural districts <strong>~$400 per acre-foot to temporarily leave fields dry</strong>, contracting 3.0 MAF of conservation through 2026.
+            </div>
+          </div>
+        </section>
+
+        <!-- Chapter 5: 2026 & Beyond: The End of Pretend Water -->
+        <section id="law-sec-ch5" class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
+          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
+            <div>
+              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-violet-600"></span>
+                <span>5. 2026 &amp; BEYOND: THE END OF PRETEND WATER</span>
+              </h3>
+              <p class="text-[11px] text-stone-500">Post-2026 operations, evaporation accounting, and permanent demand management</p>
+            </div>
+            <span class="text-[10px] font-bold text-violet-800 bg-violet-100 border border-violet-200 px-2 py-0.5 rounded">Post-2026 Cliff</span>
+          </div>
+          <p>
+            The federal buyout subsidies, the 2007 Interim Guidelines, and the 2019 Drought Contingency Plans all <strong>expire simultaneously on December 31, 2026</strong>.
+          </p>
+          <div class="p-3 bg-stone-100 rounded-lg border border-stone-300 font-semibold text-stone-900">
+            "You cannot drink paper water." Reservoirs can no longer be drawn down to bridge imaginary water rights, and federal taxpayers cannot subsidize fallowed agricultural land indefinitely.
+          </div>
+          <p>
+            In the contentious post-2026 operational negotiations, the 7 Basin States, 30 sovereign Native American Tribal Nations, and the Bureau of Reclamation are confronting the mathematical imperative: permanently cutting <strong>2.0 to 4.0 million acre-feet of annual consumptive use</strong>. For the first time in century-old compact history, Lower Basin allocations will formally deduct ~1.5 MAF/yr of reservoir evaporation. Municipalities from Denver and Salt Lake City to Phoenix and Los Angeles are investing tens of billions in industrial-scale direct potable reuse, agricultural ditch piping, turf removal ordinances, and desalinization to realign civilization with the water volume nature actually delivers.
+          </p>
+        </section>
+
       </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-between">
+        <span class="text-[11px] text-stone-500 font-medium">Source: U.S. Bureau of Reclamation, Colorado River Compact (1922), Consolidated Supreme Court Decrees</span>
+        <button onclick="closeModals()" class="px-5 py-2 text-xs font-bold rounded-lg bg-stone-800 text-white hover:bg-stone-900 transition shadow-sm">Close Legal Review</button>
+      </div>
+
     </div>
   </div>
 
   <!-- ========================================== -->
-  <!-- MODAL 2: API & CODE DOCUMENTATION          -->
+  <!-- MODAL 2: DATA SOURCES & NOTEBOOKS REGISTRY -->
   <!-- ========================================== -->
-  <div id="api-modal" onclick="if(event.target === this) closeModals()" class="fixed inset-0 academic-modal-backdrop hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[85vh] flex flex-col border border-stone-300">
-      <div class="flex justify-between items-center p-5 border-b border-stone-200">
+  <div id="api-modal" onclick="if(event.target === this) closeModals()" class="fixed inset-0 academic-modal-backdrop hidden z-50 flex items-center justify-center p-3 md:p-6">
+    <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col border border-stone-300 overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center px-6 py-4 border-b border-stone-200 bg-[#faf9f5]">
         <div>
-          <h2 class="text-base font-black text-stone-900">HYDROLOGY APIS &amp; PYTHON AUTOMATION</h2>
-          <p class="text-xs text-stone-500 mt-0.5">Automated ingestion scripts, endpoints, and mass-balance pipelines</p>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">Open Science Registry</span>
+            <span class="text-[10px] font-bold text-stone-500">Colorado River Basin Hydrology</span>
+          </div>
+          <h2 class="text-lg font-black text-stone-900 tracking-tight mt-1">DATA SOURCES, HYDROLOGIC APIS &amp; RESEARCH NOTEBOOKS</h2>
+          <p class="text-xs text-stone-600">Authoritative federal &amp; state telemetry feeds, mass-balance models, and reproducible Jupyter workflows</p>
         </div>
-        <button onclick="closeModals()" class="text-stone-400 hover:text-stone-700 p-1 rounded-lg">
+        <button onclick="closeModals()" class="text-stone-400 hover:text-stone-700 p-1.5 rounded-lg hover:bg-stone-200/60 transition" title="Close dialog (Esc)">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <div class="p-6 overflow-y-auto space-y-4 text-xs text-stone-700">
-        <div class="p-3.5 bg-stone-50 rounded-lg border border-stone-200 space-y-2">
-          <h3 class="font-black text-stone-900">Data Endpoints &amp; Sources</h3>
-          <ul class="list-disc pl-4 space-y-1">
-            <li><strong>USGS Water Services (NWIS):</strong> Real-time instantaneous discharge (<code>00060</code>) at Lee's Ferry, Cameo, Cisco, Bluff, and Hoover Dam reaches.</li>
-            <li><strong>USBR Upper Colorado HydroData:</strong> Reservoir elevations and storage acre-feet for Powell (<code>919</code>), Flaming Gorge (<code>917</code>), Navajo (<code>920</code>).</li>
-            <li><strong>USBR Lower Colorado Hourly Teletype:</strong> Lake Mead, Mohave, and Havasu operations.</li>
-            <li><strong>USDA NRCS SNOTEL:</strong> Basin Snow Water Equivalent (SWE) percentiles and peak runoff indices.</li>
-          </ul>
-        </div>
-        <div class="bg-stone-900 text-stone-200 p-4 rounded-lg font-mono text-[11px] overflow-x-auto relative">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-emerald-400 font-bold"># Ingestion Script: src/fetch_water_data.py</span>
-            <button id="btn-copy-code" onclick="copyApiSnippet()" class="px-2 py-0.5 rounded text-[10px] font-bold bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-600 transition cursor-pointer">Copy Code</button>
-          </div>
-          <code id="api-code-snippet">import requests
-import json
 
-# Fetch USGS Lee's Ferry compact gage
-url = "https://waterservices.usgs.gov/nwis/iv/?sites=09380000&format=json"
-data = requests.get(url).json()
-cfs = data['value']['timeSeries'][0]['values'][0]['value'][0]['value']
-print(f"Lee's Ferry Flow: {cfs} cfs")</code>
-        </div>
+      <!-- Quick Section Anchor Pills -->
+      <div class="flex items-center gap-2 px-6 py-2 border-b border-stone-200 bg-stone-50 overflow-x-auto text-[11px] font-semibold text-stone-700">
+        <span class="text-stone-400 text-[10px] uppercase font-bold tracking-wider">Jump To:</span>
+        <a href="#modal-sec-notebooks" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-sky-800 transition">1. Research Notebooks (DAT 1001)</a>
+        <a href="#modal-sec-apis" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-sky-800 transition">2. Official APIs &amp; Data Sources</a>
+        <a href="#modal-sec-hosting" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-sky-800 transition">3. Notebook Hosting Guide</a>
+        <a href="#modal-sec-scripts" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-sky-800 transition">4. Ingestion Pipeline Scripts</a>
       </div>
-      <div class="p-4 border-t border-stone-200 bg-stone-50 flex justify-end">
-        <button onclick="closeModals()" class="px-4 py-1.5 text-xs font-bold rounded bg-stone-800 text-white hover:bg-stone-900">Close</button>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-6 text-xs text-stone-700">
+
+        <!-- SECTION 1: RESEARCH NOTEBOOKS -->
+        <section id="modal-sec-notebooks" class="space-y-3">
+          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
+            <div>
+              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+                <span>1. INTERACTIVE RESEARCH NOTEBOOKS (DAT 1001)</span>
+              </h3>
+              <p class="text-[11px] text-stone-500">Fully documented Jupyter notebooks detailing geospatial routing, reach telemetry, and tributary ML models</p>
+            </div>
+            <span class="text-[10px] font-mono text-stone-500 bg-stone-100 px-2 py-0.5 rounded border border-stone-200">notebooks/*.ipynb</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+            
+            <!-- Card Notebook 1 -->
+            <div class="p-4 bg-stone-50 rounded-lg border border-stone-200 flex flex-col justify-between hover:border-sky-300 transition">
+              <div>
+                <div class="flex items-center justify-between text-[10px] text-stone-500 mb-1">
+                  <span class="font-bold text-sky-700 uppercase">Notebook 01</span>
+                  <span>Geospatial Engine</span>
+                </div>
+                <h4 class="font-black text-stone-900 text-xs leading-snug">Geospatial Topology &amp; Shoreline Engine</h4>
+                <p class="text-[11px] text-stone-600 mt-1.5 leading-relaxed">
+                  USGS NLDI upstream hydrographic tracing, NHDPlus HR flowlines, Cataract Canyon re-emergence rules, and Lake Powell topobathymetric contour deck slices.
+                </p>
+                <div class="mt-2 text-[10px] font-mono text-stone-500">01_build_river_network.ipynb</div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-stone-200 flex flex-wrap gap-1.5">
+                <a href="notebooks/01_build_river_network.html" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2 py-1 rounded bg-sky-700 hover:bg-sky-800 text-white font-bold text-[10px] transition">
+                  <span>View HTML</span>
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>
+                <a href="notebooks/01_build_river_network.ipynb" download class="inline-flex items-center gap-1 px-2 py-1 rounded bg-white hover:bg-stone-100 text-stone-700 font-semibold text-[10px] border border-stone-300 transition">
+                  <svg class="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  <span>.ipynb</span>
+                </a>
+                <a href="https://colab.research.google.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-1.5 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold text-[10px] border border-amber-200 transition" title="Open in Google Colab">Colab ↗</a>
+              </div>
+            </div>
+
+            <!-- Card Notebook 2 -->
+            <div class="p-4 bg-stone-50 rounded-lg border border-stone-200 flex flex-col justify-between hover:border-sky-300 transition">
+              <div>
+                <div class="flex items-center justify-between text-[10px] text-stone-500 mb-1">
+                  <span class="font-bold text-sky-700 uppercase">Notebook 02</span>
+                  <span>Hydrology Telemetry</span>
+                </div>
+                <h4 class="font-black text-stone-900 text-xs leading-snug">Real-Time Telemetry &amp; Reach Mass-Balance</h4>
+                <p class="text-[11px] text-stone-600 mt-1.5 leading-relaxed">
+                  Sentinel streamgage ingestion across 25 sequential reaches, historical medians comparison, flow health percentiles, and conservation reach deltas (ΔQ).
+                </p>
+                <div class="mt-2 text-[10px] font-mono text-stone-500">02_analyze_flow_and_export.ipynb</div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-stone-200 flex flex-wrap gap-1.5">
+                <a href="notebooks/02_analyze_flow_and_export.html" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2 py-1 rounded bg-sky-700 hover:bg-sky-800 text-white font-bold text-[10px] transition">
+                  <span>View HTML</span>
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>
+                <a href="notebooks/02_analyze_flow_and_export.ipynb" download class="inline-flex items-center gap-1 px-2 py-1 rounded bg-white hover:bg-stone-100 text-stone-700 font-semibold text-[10px] border border-stone-300 transition">
+                  <svg class="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  <span>.ipynb</span>
+                </a>
+                <a href="https://colab.research.google.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-1.5 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold text-[10px] border border-amber-200 transition" title="Open in Google Colab">Colab ↗</a>
+              </div>
+            </div>
+
+            <!-- Card Notebook 3 -->
+            <div class="p-4 bg-stone-50 rounded-lg border border-stone-200 flex flex-col justify-between hover:border-sky-300 transition">
+              <div>
+                <div class="flex items-center justify-between text-[10px] text-stone-500 mb-1">
+                  <span class="font-bold text-purple-700 uppercase">Notebook 03</span>
+                  <span>Machine Learning</span>
+                </div>
+                <h4 class="font-black text-stone-900 text-xs leading-snug">Tributary Flow Regimes, Hydraulic Lag &amp; Reservoir Deficit</h4>
+                <p class="text-[11px] text-stone-600 mt-1.5 leading-relaxed">
+                  Dam buffering (Flaming Gorge, Blue Mesa, Navajo) vs. wild snowmelt pulses, river transit times (1–9 days to Powell), and why desert flash floods cannot fix the multi-year structural deficit.
+                </p>
+                <div class="mt-2 text-[10px] font-mono text-stone-500">03_tributary_ml_analysis.ipynb</div>
+              </div>
+              <div class="mt-4 pt-3 border-t border-stone-200 flex flex-wrap gap-1.5">
+                <a href="notebooks/03_tributary_ml_analysis.html" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2 py-1 rounded bg-purple-700 hover:bg-purple-800 text-white font-bold text-[10px] transition">
+                  <span>View HTML</span>
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                </a>
+                <a href="notebooks/03_tributary_ml_analysis.ipynb" download class="inline-flex items-center gap-1 px-2 py-1 rounded bg-white hover:bg-stone-100 text-stone-700 font-semibold text-[10px] border border-stone-300 transition">
+                  <svg class="w-3 h-3 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                  <span>.ipynb</span>
+                </a>
+                <a href="https://colab.research.google.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center px-1.5 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold text-[10px] border border-amber-200 transition" title="Open in Google Colab">Colab ↗</a>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- SECTION 2: OFFICIAL DATA SOURCES & APIS REGISTRY -->
+        <section id="modal-sec-apis" class="space-y-3">
+          <div class="border-b border-stone-200 pb-2">
+            <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+              <span>2. PRIMARY DATA SOURCES &amp; OFFICIAL API DOCUMENTATION</span>
+            </h3>
+            <p class="text-[11px] text-stone-500">Direct links to official agency developer portals, REST parameter dictionaries, and data schemas</p>
+          </div>
+
+          <div class="overflow-x-auto border border-stone-200 rounded-lg">
+            <table class="w-full text-left border-collapse text-[11px]">
+              <thead>
+                <tr class="bg-stone-100 border-b border-stone-200 text-stone-800 font-bold">
+                  <th class="p-2.5">Source &amp; Agency</th>
+                  <th class="p-2.5">API / Endpoint Service</th>
+                  <th class="p-2.5">Parameters &amp; Identifiers</th>
+                  <th class="p-2.5">Cadence</th>
+                  <th class="p-2.5">Official Documentation Links</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-stone-200 bg-white">
+                
+                <!-- 1. USGS NWIS -->
+                <tr class="hover:bg-stone-50/80 transition">
+                  <td class="p-2.5 align-top">
+                    <span class="font-bold text-stone-900 block">USGS Water Services</span>
+                    <span class="text-[10px] text-stone-500">U.S. Geological Survey (NWIS)</span>
+                  </td>
+                  <td class="p-2.5 align-top">
+                    <code class="text-[10px] text-sky-800 font-mono bg-sky-50 px-1 py-0.5 rounded border border-sky-200">/nwis/iv/</code> (Instantaneous)<br>
+                    <code class="text-[10px] text-stone-600 font-mono bg-stone-100 px-1 py-0.5 rounded border border-stone-200 mt-1 inline-block">/nwis/dv/</code> (Daily Values)
+                  </td>
+                  <td class="p-2.5 align-top">
+                    <strong>00060:</strong> Discharge (cfs)<br>
+                    <strong>00065:</strong> Gage height (ft)<br>
+                    <strong>62614:</strong> Lake elevation (ft)
+                  </td>
+                  <td class="p-2.5 align-top whitespace-nowrap">
+                    <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded font-bold text-[10px]">15–60 min</span>
+                  </td>
+                  <td class="p-2.5 align-top space-y-1">
+                    <a href="https://waterservices.usgs.gov/rest/IV-Service.html" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:text-sky-900 hover:underline font-bold block">
+                      USGS Instantaneous Values (IV) Docs ↗
+                    </a>
+                    <a href="https://waterservices.usgs.gov/rest/DV-Service.html" target="_blank" rel="noopener noreferrer" class="text-stone-600 hover:text-stone-900 hover:underline block text-[10px]">
+                      Daily Values (DV) REST API Docs ↗
+                    </a>
+                    <a href="https://help.waterdata.usgs.gov/parameter_cd?group_cd=PHY" target="_blank" rel="noopener noreferrer" class="text-stone-500 hover:text-stone-800 hover:underline block text-[10px]">
+                      Parameter Code Dictionary (00060) ↗
+                    </a>
+                  </td>
+                </tr>
+
+                <!-- 2. USBR Upper Colorado HydroData -->
+                <tr class="hover:bg-stone-50/80 transition">
+                  <td class="p-2.5 align-top">
+                    <span class="font-bold text-stone-900 block">USBR Upper Colorado</span>
+                    <span class="text-[10px] text-stone-500">Bureau of Reclamation (HDB)</span>
+                  </td>
+                  <td class="p-2.5 align-top">
+                    <code class="text-[10px] text-sky-800 font-mono bg-sky-50 px-1 py-0.5 rounded border border-sky-200">/hydrodata/reservoir_data/</code><br>
+                    <span class="text-[10px] text-stone-500">IDs: 919 (Powell), 917 (F. Gorge)</span>
+                  </td>
+                  <td class="p-2.5 align-top">
+                    <strong>17.csv:</strong> Storage (Acre-Feet)<br>
+                    <strong>49.csv:</strong> Surface Elevation (ft)<br>
+                    Inflows, releases, &amp; evaporation
+                  </td>
+                  <td class="p-2.5 align-top whitespace-nowrap">
+                    <span class="px-1.5 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded font-bold text-[10px]">Daily (06:00 MST)</span>
+                  </td>
+                  <td class="p-2.5 align-top space-y-1">
+                    <a href="https://www.usbr.gov/uc/water/hydrodata/" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:text-sky-900 hover:underline font-bold block">
+                      USBR Upper CO HydroData Portal ↗
+                    </a>
+                    <a href="https://www.usbr.gov/uc/water/crsp/cs/gcd.html" target="_blank" rel="noopener noreferrer" class="text-stone-600 hover:text-stone-900 hover:underline block text-[10px]">
+                      Glen Canyon / Lake Powell Data Center ↗
+                    </a>
+                    <a href="https://www.usbr.gov/uc/water/hydrodata/reservoir_data/" target="_blank" rel="noopener noreferrer" class="text-stone-500 hover:text-stone-800 hover:underline block text-[10px]">
+                      Reservoir Data CSV Catalog ↗
+                    </a>
+                  </td>
+                </tr>
+
+                <!-- 3. USBR Lower Colorado RiverOps -->
+                <tr class="hover:bg-stone-50/80 transition">
+                  <td class="p-2.5 align-top">
+                    <span class="font-bold text-stone-900 block">USBR Lower Colorado</span>
+                    <span class="text-[10px] text-stone-500">River Operations (RiverOps)</span>
+                  </td>
+                  <td class="p-2.5 align-top">
+                    <code class="text-[10px] text-sky-800 font-mono bg-sky-50 px-1 py-0.5 rounded border border-sky-200">/hourly/hourly.html</code><br>
+                    <code class="text-[10px] text-stone-600 font-mono bg-stone-100 px-1 py-0.5 rounded border border-stone-200 mt-1 inline-block">/wtracct.html</code> (Decrees)
+                  </td>
+                  <td class="p-2.5 align-top">
+                    Hoover Dam release (cfs)<br>
+                    Lake Mead elevation &amp; AF<br>
+                    Imperial Dam diversions (AAC)
+                  </td>
+                  <td class="p-2.5 align-top whitespace-nowrap">
+                    <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded font-bold text-[10px]">Hourly Teletype</span>
+                  </td>
+                  <td class="p-2.5 align-top space-y-1">
+                    <a href="https://www.usbr.gov/lc/riverops.html" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:text-sky-900 hover:underline font-bold block">
+                      USBR Lower Colorado RiverOps Home ↗
+                    </a>
+                    <a href="https://www.usbr.gov/lc/region/g4000/hourly/hourly.html" target="_blank" rel="noopener noreferrer" class="text-stone-600 hover:text-stone-900 hover:underline block text-[10px]">
+                      Hourly Teletype Operations Feed ↗
+                    </a>
+                    <a href="https://www.usbr.gov/lc/region/g4000/wtracct.html" target="_blank" rel="noopener noreferrer" class="text-stone-500 hover:text-stone-800 hover:underline block text-[10px]">
+                      Daily Water Accounting Reports &amp; Decrees ↗
+                    </a>
+                  </td>
+                </tr>
+
+                <!-- 4. Colorado DWR HydroBase -->
+                <tr class="hover:bg-stone-50/80 transition">
+                  <td class="p-2.5 align-top">
+                    <span class="font-bold text-stone-900 block">Colorado DWR (CDSS)</span>
+                    <span class="text-[10px] text-stone-500">Division of Water Resources</span>
+                  </td>
+                  <td class="p-2.5 align-top">
+                    <code class="text-[10px] text-sky-800 font-mono bg-sky-50 px-1 py-0.5 rounded border border-sky-200">/Rest/GET/api/v2/</code><br>
+                    <span class="text-[10px] text-stone-500">telemetrytimeserieshour</span>
+                  </td>
+                  <td class="p-2.5 align-top">
+                    Trans-mountain diversion exports:<br>
+                    <code>ADATUNCO</code>, <code>MOFTUNCO</code>,<br>
+                    <code>ROBTUNCO</code>, <code>BOUTUNCO</code> (cfs)
+                  </td>
+                  <td class="p-2.5 align-top whitespace-nowrap">
+                    <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded font-bold text-[10px]">Hourly</span>
+                  </td>
+                  <td class="p-2.5 align-top space-y-1">
+                    <a href="https://dwr.state.co.us/Rest/GET/Help" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:text-sky-900 hover:underline font-bold block">
+                      Colorado DWR REST API Reference ↗
+                    </a>
+                    <a href="https://cdss.colorado.gov/" target="_blank" rel="noopener noreferrer" class="text-stone-600 hover:text-stone-900 hover:underline block text-[10px]">
+                      Colorado Decision Support Systems (CDSS) ↗
+                    </a>
+                    <a href="https://dwr.state.co.us/Rest/GET/Help/Api/GET-api-v2-telemetrystations-telemetrystation" target="_blank" rel="noopener noreferrer" class="text-stone-500 hover:text-stone-800 hover:underline block text-[10px]">
+                      Telemetry Stations API Schema ↗
+                    </a>
+                  </td>
+                </tr>
+
+                <!-- 5. USDA NRCS SNOTEL -->
+                <tr class="hover:bg-stone-50/80 transition">
+                  <td class="p-2.5 align-top">
+                    <span class="font-bold text-stone-900 block">USDA NRCS SNOTEL</span>
+                    <span class="text-[10px] text-stone-500">Nat. Water &amp; Climate Center</span>
+                  </td>
+                  <td class="p-2.5 align-top">
+                    <code class="text-[10px] text-sky-800 font-mono bg-sky-50 px-1 py-0.5 rounded border border-sky-200">AWDB Web Service</code><br>
+                    <span class="text-[10px] text-stone-500">Report Generator / SOAP</span>
+                  </td>
+                  <td class="p-2.5 align-top">
+                    <strong>SWE:</strong> Snow Water Equivalent (in)<br>
+                    Basin SWE % of Median (1991–2020)<br>
+                    Water Year Precip Accumulation
+                  </td>
+                  <td class="p-2.5 align-top whitespace-nowrap">
+                    <span class="px-1.5 py-0.5 bg-blue-50 text-blue-800 border border-blue-200 rounded font-bold text-[10px]">Daily (Midnight)</span>
+                  </td>
+                  <td class="p-2.5 align-top space-y-1">
+                    <a href="https://www.nrcs.usda.gov/wps/portal/wcc/home/aboutUs/monitoringPrograms/automatedSnowMonitoring/" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:text-sky-900 hover:underline font-bold block">
+                      NRCS SNOTEL Network Overview ↗
+                    </a>
+                    <a href="https://www.nrcs.usda.gov/wps/portal/wcc/home/dataAccessServices/webServices/awdbWebServiceReference/" target="_blank" rel="noopener noreferrer" class="text-stone-600 hover:text-stone-900 hover:underline block text-[10px]">
+                      AWDB Web Service Technical Reference ↗
+                    </a>
+                    <a href="https://www.nrcs.usda.gov/wps/portal/wcc/home/quicklinks/states/colorado/" target="_blank" rel="noopener noreferrer" class="text-stone-500 hover:text-stone-800 hover:underline block text-[10px]">
+                      Colorado Basin Snowpack Reports ↗
+                    </a>
+                  </td>
+                </tr>
+
+                <!-- 6. USBR Consumptive Uses & Losses -->
+                <tr class="hover:bg-stone-50/80 transition">
+                  <td class="p-2.5 align-top">
+                    <span class="font-bold text-stone-900 block">USBR CU&amp;L Reports</span>
+                    <span class="text-[10px] text-stone-500">Macro Water Accounting</span>
+                  </td>
+                  <td class="p-2.5 align-top">
+                    <code class="text-[10px] text-stone-700 font-mono bg-stone-100 px-1 py-0.5 rounded border border-stone-200">Statutory Audited PDF/CSV</code>
+                  </td>
+                  <td class="p-2.5 align-top">
+                    Consumptive depletions (MAF/yr)<br>
+                    Reservoir evaporation losses<br>
+                    Upper / Lower Division deliveries
+                  </td>
+                  <td class="p-2.5 align-top whitespace-nowrap">
+                    <span class="px-1.5 py-0.5 bg-stone-100 text-stone-700 border border-stone-200 rounded font-bold text-[10px]">Annual / Decadal</span>
+                  </td>
+                  <td class="p-2.5 align-top space-y-1">
+                    <a href="https://www.usbr.gov/uc/envproc/capp/reports.html" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:text-sky-900 hover:underline font-bold block">
+                      USBR Consumptive Uses &amp; Losses Reports ↗
+                    </a>
+                    <a href="https://www.usbr.gov/lc/region/g4000/24mo/index.html" target="_blank" rel="noopener noreferrer" class="text-stone-600 hover:text-stone-900 hover:underline block text-[10px]">
+                      USBR 24-Month Reservoir Projections ↗
+                    </a>
+                    <a href="https://www.usbr.gov/lc/region/g4000/lawofrvr.html" target="_blank" rel="noopener noreferrer" class="text-stone-500 hover:text-stone-800 hover:underline block text-[10px]">
+                      Law of the River Legal Framework ↗
+                    </a>
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- SECTION 3: NOTEBOOK HOSTING ARCHITECTURE -->
+        <section id="modal-sec-hosting" class="space-y-3">
+          <div class="border-b border-stone-200 pb-2">
+            <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+              <span>3. NOTEBOOK HOSTING ARCHITECTURE &amp; OPEN-SCIENCE DISTRIBUTION</span>
+            </h3>
+            <p class="text-[11px] text-stone-500">How research notebooks are rendered, distributed, and executed across web and cloud environments</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            
+            <div class="p-3.5 bg-stone-50 rounded-lg border border-stone-200 space-y-1.5">
+              <div class="flex items-center gap-1.5 font-bold text-stone-900 text-xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>Option A: Static HTML Web Hosting (Current Implementation)</span>
+              </div>
+              <p class="text-[11px] text-stone-600 leading-relaxed">
+                The portal pre-renders every Jupyter notebook into standalone, zero-dependency HTML files inside <code>web/notebooks/</code> using Pygments and KaTeX. This requires zero Python or Jupyter installation for portal visitors, loads instantly on mobile/desktop, and can be hosted statically on GitHub Pages, Netlify, or any web server.
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-stone-50 rounded-lg border border-stone-200 space-y-1.5">
+              <div class="flex items-center gap-1.5 font-bold text-stone-900 text-xs">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                <span>Option B: Google Colab (Zero-Setup Interactive Execution)</span>
+              </div>
+              <p class="text-[11px] text-stone-600 leading-relaxed">
+                Researchers and students can open any <code>.ipynb</code> notebook directly in Google Colab with 1 click. Colab runs code in a free Google Cloud sandbox, allowing users to rerun live USGS API queries, retrain K-Means clusters, or test new lag parameters without configuring a local Python environment.
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-stone-50 rounded-lg border border-stone-200 space-y-1.5">
+              <div class="flex items-center gap-1.5 font-bold text-stone-900 text-xs">
+                <span class="w-2 h-2 rounded-full bg-sky-500"></span>
+                <span>Option C: Project Jupyter nbviewer (Official Jupyter Service)</span>
+              </div>
+              <p class="text-[11px] text-stone-600 leading-relaxed">
+                Project Jupyter maintains <a href="https://nbviewer.org/" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:underline font-bold">nbviewer.org</a>, an official, free cloud service. By entering the public GitHub repository URL, nbviewer dynamically compiles notebooks on demand with mathematical KaTeX formulas and high-resolution figures.
+              </p>
+            </div>
+
+            <div class="p-3.5 bg-stone-50 rounded-lg border border-stone-200 space-y-1.5">
+              <div class="flex items-center gap-1.5 font-bold text-stone-900 text-xs">
+                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                <span>Option D: MyBinder (Interactive Cloud JupyterLab)</span>
+              </div>
+              <p class="text-[11px] text-stone-600 leading-relaxed">
+                <a href="https://mybinder.org/" target="_blank" rel="noopener noreferrer" class="text-purple-700 hover:underline font-bold">mybinder.org</a> builds reproducible Docker containers directly from a GitHub repository's <code>environment.yml</code> or <code>requirements.txt</code>, launching a full interactive JupyterLab environment in the user's browser.
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- SECTION 4: INGESTION PIPELINE SCRIPTS & CODE SNIPPET -->
+        <section id="modal-sec-scripts" class="space-y-3">
+          <div class="border-b border-stone-200 pb-2">
+            <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-slate-700"></span>
+              <span>4. AUTOMATED PYTHON INGESTION SCRIPTS &amp; ENDPOINT EXAMPLES</span>
+            </h3>
+            <p class="text-[11px] text-stone-500">Production ingestion scripts powering the real-time operational feeds and mass-balance accounting</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-[11px]">
+            <div class="p-2.5 bg-stone-50 rounded border border-stone-200">
+              <div class="font-mono font-bold text-stone-900">src/fetch_water_data.py</div>
+              <div class="text-[10px] text-stone-500 mt-0.5">Automated telemetry fetcher for 25 USGS streamgages and USBR Lake Powell/Mead elevations.</div>
+            </div>
+            <div class="p-2.5 bg-stone-50 rounded border border-stone-200">
+              <div class="font-mono font-bold text-stone-900">src/fetch_historical_portal_data.py</div>
+              <div class="text-[10px] text-stone-500 mt-0.5">Decadal historical backfill engine aggregating 1935–2026 Lake Mead &amp; Powell storage envelopes.</div>
+            </div>
+            <div class="p-2.5 bg-stone-50 rounded border border-stone-200">
+              <div class="font-mono font-bold text-stone-900">src/build_reach_network.py</div>
+              <div class="text-[10px] text-stone-500 mt-0.5">Directed acyclic graph (DAG) mass-balance compiler for topological river routing.</div>
+            </div>
+          </div>
+
+          <!-- Code Snippet Box -->
+          <div class="bg-stone-900 text-stone-200 p-4 rounded-lg font-mono text-[11px] overflow-x-auto relative">
+            <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-stone-800">
+              <span class="text-emerald-400 font-bold"># Live Python Ingestion Example: USGS NWIS Instantaneous Streamflow (cfs)</span>
+              <button id="btn-copy-code" onclick="copyApiSnippet()" class="px-2 py-0.5 rounded text-[10px] font-bold bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-600 transition cursor-pointer">Copy Code</button>
+            </div>
+            <code id="api-code-snippet">import requests
+
+# Base endpoint for USGS Instantaneous Values (IV) Web Service
+url = "https://waterservices.usgs.gov/nwis/iv/"
+
+# Query Sentinel Gauges across Upper Basin Headwaters & Lees Ferry Compact Divide:
+# 09380000 = Colorado River at Lees Ferry, AZ (Compact Dividing Point)
+# 09095500 = Colorado River near Cameo, CO (Upper Mainstem)
+# 09180500 = Colorado River near Cisco, UT (Pre-Powell Mainstem)
+# 09379500 = San Juan River near Bluff, UT (Monsoon Inflow Sentinel)
+params = {
+    "sites": "09380000,09095500,09180500,09379500",
+    "parameterCd": "00060",  # Streamflow Discharge (cfs)
+    "siteStatus": "all",
+    "format": "json"
+}
+
+response = requests.get(url, params=params, timeout=12)
+data = response.json()
+
+print(f"{'Station ID':<12} | {'Gage Name':<38} | {'Discharge (cfs)':>15}")
+print("-" * 70)
+
+for ts in data["value"]["timeSeries"]:
+    site_id = ts["sourceInfo"]["siteCode"][0]["value"]
+    site_name = ts["sourceInfo"]["siteName"]
+    readings = ts["values"][0]["value"]
+    if readings:
+        cfs_val = float(readings[-1]["value"]) if readings[-1]["value"] != "-999999" else 0.0
+        print(f"{site_id:<12} | {site_name[:38]:<38} | {cfs_val:>15,.1f}")</code>
+          </div>
+        </section>
+
       </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 border-t border-stone-200 bg-stone-50 flex items-center justify-between">
+        <span class="text-[11px] text-stone-500">All data retrieved under Open Government Data principles (USGS, USBR, CDWR).</span>
+        <button onclick="closeModals()" class="px-4 py-1.5 text-xs font-bold rounded bg-stone-800 text-white hover:bg-stone-900 transition">Close</button>
+      </div>
+
     </div>
   </div>
 
@@ -915,7 +1584,7 @@ print(f"Lee's Ferry Flow: {cfs} cfs")</code>
 
     function setTab(tabId) {
       currentTab = tabId;
-      document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-top-link, .sidebar-link').forEach(el => el.classList.remove('active'));
       const activeBtn = document.getElementById('tab-btn-' + tabId);
       if (activeBtn) activeBtn.classList.add('active');
 
@@ -928,6 +1597,7 @@ print(f"Lee's Ferry Flow: {cfs} cfs")</code>
       document.getElementById('section-pipeline').classList.add('hidden');
       document.getElementById('section-reservoirs').classList.add('hidden');
       document.getElementById('section-telemetry').classList.add('hidden');
+      document.getElementById('section-ml').classList.add('hidden');
 
       if (tabId === 'overview') {
         topHeader.classList.remove('hidden');
@@ -946,7 +1616,7 @@ print(f"Lee's Ferry Flow: {cfs} cfs")</code>
         topHeader.classList.add('hidden'); // Allow full-bleed geographic transit schematic
         document.getElementById('section-pipeline').classList.remove('hidden');
       } else if (tabId === 'reservoirs') {
-        topHeader.classList.remove('hidden');
+        topHeader.classList.add('hidden'); // Dedicated full-bleed historical charts
         document.getElementById('section-reservoirs').classList.remove('hidden');
         setTimeout(() => {
           renderMacroStorageTimeline();
@@ -960,6 +1630,9 @@ print(f"Lee's Ferry Flow: {cfs} cfs")</code>
       } else if (tabId === 'telemetry') {
         topHeader.classList.add('hidden'); // Telemetry has its own header table
         document.getElementById('section-telemetry').classList.remove('hidden');
+      } else if (tabId === 'ml') {
+        topHeader.classList.add('hidden'); // Flow regimes and ML analysis dashboard
+        document.getElementById('section-ml').classList.remove('hidden');
       }
 
       // Synchronize browser URL query state without page reload
@@ -1039,6 +1712,39 @@ print(f"Lee's Ferry Flow: {cfs} cfs")</code>
       document.getElementById('law-modal').classList.add('hidden');
       document.getElementById('api-modal').classList.add('hidden');
     }
+
+    // Fullscreen Toggle
+    function toggleFullScreen() {
+      const enterIcon = document.getElementById('icon-enter-fullscreen');
+      const exitIcon = document.getElementById('icon-exit-fullscreen');
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+          if (enterIcon) enterIcon.classList.add('hidden');
+          if (exitIcon) exitIcon.classList.remove('hidden');
+        }).catch(err => {
+          console.warn('Fullscreen request denied:', err);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().then(() => {
+            if (enterIcon) enterIcon.classList.remove('hidden');
+            if (exitIcon) exitIcon.classList.add('hidden');
+          });
+        }
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      const enterIcon = document.getElementById('icon-enter-fullscreen');
+      const exitIcon = document.getElementById('icon-exit-fullscreen');
+      if (document.fullscreenElement) {
+        if (enterIcon) enterIcon.classList.add('hidden');
+        if (exitIcon) exitIcon.classList.remove('hidden');
+      } else {
+        if (enterIcon) enterIcon.classList.remove('hidden');
+        if (exitIcon) exitIcon.classList.add('hidden');
+      }
+    });
 
     // Active Reservoir Record ('mead' or 'powell') and view mode ('envelope' or 'heatmap')
     let currentReservoirRecord = 'mead';

@@ -1,7 +1,7 @@
 # Hydro-Bathymetric Geometry: Elevation vs. Fill Volume (The Hypsometric Principle)
 
 **Author:** Douglas Schoch  
-**Project:** Colorado River Basin Hydrology & Capstone Research (DAT1001)  
+**Project:** Colorado River Basin Hydrology & Semester Project (DAT1001)  
 **Domain Standard:** Anti-SaaS / Tufte Hydrological Mass-Balance  
 
 ---

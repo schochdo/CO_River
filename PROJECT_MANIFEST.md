@@ -17,6 +17,7 @@
 ├── README.md                           # Public repository overview and installation guide
 ├── GEMINI.md                           # Workspace domain rules (metric hygiene, confluence laws, anti-SaaS constraints)
 ├── package.json                        # Development tooling dependencies (e.g., Puppeteer for headless visual regression)
+├── requirements.txt                    # Pinned Python dependencies for data ingestion and Jupyter notebooks
 ├── start.sh                            # Development server initialization script (python3 -m http.server 8000)
 ├── stop.sh                             # Development server termination script (kills PID from server.pid)
 ├── server.pid                          # Process ID tracking file for the local web server
@@ -42,7 +43,8 @@
 │
 ├── web/                                # Client-Facing Interactive Dashboard Frontend
 │   ├── index.html                      # Main geospatial cartographic application container (Leaflet/MapLibre GL, controls, panels)
-│   ├── sankey.html                     # Macro Water Budget Diagram (Swiss schematic transit layout, 1922 Compact accounting)
+│   ├── pipeline.html                   # River Network Schematic (Topological reach flow, dams & diversions)
+│   ├── sankey.html                     # Annual Water Budget Diagram (Sankey mass-balance allocation DAG)
 │   ├── style.css                       # Design system stylesheet: typography, responsive glass panels, print media rules
 │   ├── app.js                          # Client engine (172 KB): MapLibre GL layer management, live telemetry fetcher, dynamic river weighting
 │   └── data/                           # Cached and Generated Data Contracts (Static Storage / GitHub Pages Ready)
@@ -250,10 +252,16 @@ In the geospatial interface (`web/index.html` & `web/app.js`), river, canal, and
 #### 1. Mathematical Scaling Functions
 
 * **River Reach Flowlines (`computeRiverWeight(flowCfs, category)`):**
-  River line weight scales non-linearly using a square-root transformation of discharge ($\sqrt{Q}$) to maintain visual differentiation across 3 orders of magnitude (from 50 cfs creeks to 15,000 cfs mainstems) without saturating the screen:
-  $$\text{weight}_{\text{mainstem}} = \text{clamp}\left(2.8,\, 12.5,\, 2.0 + 0.08 \sqrt{Q}\right)$$
-  $$\text{weight}_{\text{major\_tributary}} = \text{clamp}\left(1.8,\, 7.5,\, 1.4 + 0.065 \sqrt{Q}\right)$$
-  $$\text{weight}_{\text{minor\_tributary}} = \text{clamp}\left(1.2,\, 4.0,\, 0.8 + 0.05 \sqrt{Q}\right)$$
+  River line weight scales non-linearly using a square-root transformation of discharge ($\sqrt{Q}$) with bumped baseline thresholds and zoom-dependent interpolation to guarantee crisp legibility against high-contrast terrain basemaps across all zoom levels:
+  $$\text{weight}_{\text{mainstem}} = \text{clamp}\left(4.4,\, 13.0,\, 3.2 + 0.085 \sqrt{Q}\right)$$
+  $$\text{weight}_{\text{major\_tributary}} = \text{clamp}\left(3.2,\, 8.0,\, 2.4 + 0.07 \sqrt{Q}\right)$$
+  $$\text{weight}_{\text{minor\_tributary}} = \text{clamp}\left(2.4,\, 4.8,\, 1.8 + 0.055 \sqrt{Q}\right)$$
+
+  *Zoom Interpolation Curve:* Line width is rendered in MapLibre via dynamic zoom interpolation:
+  * $z \le 6$: $1.00 \times \text{weight}$
+  * $z = 10$: $1.25 \times \text{weight}$
+  * $z \ge 13$: $1.60 \times \text{weight}$
+  * *Opacity:* Mainstem, major tributaries, and secondary streams all render at $0.95$ solid core opacity with calibrated luminous glow halos.
 
 * **Trans-Mountain Diversion Tunnels (`computeTunnelWeight(flowCfs)`):**
   $$\text{weight}_{\text{tunnel}} = \begin{cases} 2.5\text{ px} & \text{if } Q \le 0 \\ \min\left(8.0,\, 2.5 + 0.28 \sqrt{Q}\right)\text{ px} & \text{if } Q > 0 \end{cases}$$
@@ -275,21 +283,19 @@ In the geospatial interface (`web/index.html` & `web/app.js`), river, canal, and
 * **Interaction Hit Buffers:**
   To eliminate pixel-hunting when clicking thin vectors on high-DPI displays, every river reach, tunnel, and canal has an invisible parallel hit layer (`line-width: 22px - 24px`, `line-opacity: 0.0001`) that captures hover tooltips and click events.
 
+* **Cartographic Z-Index & Layer Ordering (`ensurePointLayersOnTop()`):**
+  Points strictly supersede lines across all rendering passes. Gage points (`streamflow-gauges-casing`, `streamflow-gauges-circle`), dam icons (`dams-layer`), and diversion portals (`tunnels-portals-layer`) are systematically elevated above all river flowlines, canals, tunnels, and polygons (`ensurePointLayersOnTop()`). This prevents wider or zoom-scaled river vectors from occluding or bisecting physical sentinel monitoring points.
+
 ---
 
-### B. Water Budget Diagram: Layout & Flow Dimensions (`web/sankey.html`)
+### B. Dual Diagram Architecture: Flow Network vs. Water Budget
 
-The Macro Water Budget Diagram (`web/sankey.html`) visualizes the multi-year legal water budget allocated under the 1922 Colorado River Compact and the 1944 Mexican Water Treaty.
+The project maintains a strict Anti-SaaS separation between the **spatial river network schematic** and the **macro water budget**:
 
-#### 1. Temporal & Dimensional Architecture
-* **Strict Anti-SaaS Separation:** In strict adherence to workspace domain rules, the visual width of diagram conduits represents **annualized volumetric allocations** ($V$, in Million Acre-Feet per year, MAF/yr), **not** instantaneous streamflow.
-* **The Physical Conversion Bridge:** To prevent dimensional confusion, tooltips display both dimensions converted via the physical hydrologic bridge:
-  $$1\text{ cfs sustained for 1 year} = 723.97\text{ AF} \approx 0.00072397\text{ MAF}$$
-  $$\text{Equivalently: } 1\text{ MAF/yr continuous flow} = \frac{1,000,000\text{ AF}}{723.97\text{ AF/(cfs}\cdot\text{yr)}} \approx 1,381.27\text{ cfs}$$
-
-#### 2. Stroke-Width to Volumetric Allocation Table
-
-The visual width (`stroke-width`) in the SVG diagram maps proportionally to the annualized volume ($MAF/yr$):
+#### 1. River Network Schematic (`web/pipeline.html`)
+The River Network Schematic is a **topological flow schematic** (combining diagrammatic transit geometry with variable-width flowline cartography) tracing the physical Colorado River trunk line and major diversions down the basin corridor:
+* **Topology:** Traces physical downstream flow from Rocky Mountain snowpack headwaters through Cataract Canyon, Lake Powell / Lee's Ferry, the Grand Canyon, Lake Mead, Parker Dam, Imperial Dam, Morelos Dam, and the Delta.
+* **Proportional Line Weighting:** The visual width (`stroke-width`) represents annualized volumetric discharge ($MAF/yr$):
 
 | Diagram Path ID | Element Name | Visual `stroke-width` | Budget Allocation ($V$) | Continuous Equivalent ($Q$) |
 | :--- | :--- | :---: | :---: | :---: |
@@ -320,6 +326,14 @@ The visual width (`stroke-width`) in the SVG diagram maps proportionally to the 
 | `loss-mead` | Lake Mead Evaporation & Bank Loss | **3.5 px**| 0.60 MAF/yr | 829 cfs |
 | `loss-lower` | Lower Basin Transit & Riparian Losses| **3.5 px**| 0.80 MAF/yr | 1,105 cfs |
 
+#### 2. Macro Annual Water Budget Diagram (`web/sankey.html`)
+The Macro Water Budget Diagram is a **true D3 Sankey DAG** visualizing multi-year annualized legal water budget accounting under the 1922 Colorado River Compact and the 1944 Mexican Water Treaty:
+* **DAG Flow Architecture:** Categorical snowpack tributary yields (Upper Colorado, Green River, San Juan) and reservoir storage overdraft drawdowns flow into the central **Total Managed Basin Budget**, which distributes into the 10 major consumptive uses, municipal exports, and system losses.
+* **Interactive Scenarios:** Toggles between *Modern Megadrought (2000–2024: 12.40 MAF supply + 2.05 MAF storage deficit)*, *20th-Century Historical Baseline (14.80 MAF balanced)*, and *1922 Statutory Overdraft (17.50 MAF paper water)*.
+* **The Physical Conversion Bridge:** To prevent dimensional confusion, tooltips display both dimensions converted via the physical hydrologic bridge:
+  $$1\text{ cfs sustained for 1 year} = 723.97\text{ AF} \approx 0.00072397\text{ MAF}$$
+  $$\text{Equivalently: } 1\text{ MAF/yr continuous flow} = \frac{1,000,000\text{ AF}}{723.97\text{ AF/(cfs}\cdot\text{yr)}} \approx 1,381.27\text{ cfs}$$
+
 ---
 
 ### C. Hardcoded / Mocked vs. Real Data Audit
@@ -334,9 +348,11 @@ The codebase follows a resilient **dual-tier fallback architecture**. Real live 
 | **Reservoir Storage & Elevation** | **Live Dynamic (with fallback)** | USBR HydroData CSVs (Powell, Flaming Gorge, Navajo, Blue Mesa) + USBR Hourly Scraping (Mead, Mohave, Havasu) + CDWR HydroBase (Dillon, Granby, Green Mtn, Homestake). | Fallbacks in `fetch_reservoirs()` if scrapers fail: Powell (3,518.9 ft / 5,223,099 AF), Mead (1,037.6 ft / 8,600,000 AF), Flaming Gorge (6,006.0 ft / 2,460,597 AF), Navajo (6,018.9 ft / 856,394 AF), Mohave (638.9 ft / 1,582,000 AF), Blue Mesa (7,412.1 ft / 140,029 AF), Havasu (448.7 ft / 595,800 AF). |
 | **Dynamic Shoreline (Powell Contours)** | **Dynamic Selection against Pre-computed Slices** | Live elevation from `latest_metrics.json` / USGS NWIS (`09379900`) determines active contour slice. | Slices themselves (3,490' through 3,700' in 20' increments) are pre-calculated offline by Notebook 01 using a distance-transform bathymetric model. |
 | **Confluence Mass-Balance Cards** | **Live Calculated** | Evaluated dynamically in `applyLiveHydrology()`: $\text{Mainstem} + \text{Tributary} = \text{Downstream}$. | If upstream or tributary live gauge fails, defaults to modeled tributary inflow (e.g. Uncompahgre fallback: 380 cfs; Fryingpan fallback: 180 cfs). |
-| **Sankey Conduit Widths** | **Fixed Statutory Accounting** | Based on multi-year legal allocations (1922 Compact, 1944 Treaty, USBR historical averages). | Static SVG `stroke-width` attributes. Path widths do not flutter with 15-minute weather pulses. |
-| **Sankey Tooltip Telemetry Cards** | **Live Comparison Cards** | In `web/sankey.html`, JavaScript dynamically fetches `latest_metrics.json` and evaluates `flowComparisonBox()`, `combinedInflowBox()`, and `reservoirStorageBox()`. | If `latest_metrics.json` cannot be fetched, comparison boxes gracefully collapse, showing only the static statutory allocation text. |
+| **Flow Network Conduit Widths** | **Fixed Statutory Accounting** | In `web/pipeline.html`, based on multi-year legal allocations (1922 Compact, 1944 Treaty, USBR historical averages). | Static SVG `stroke-width` attributes. Path widths do not flutter with 15-minute weather pulses. |
+| **Flow Network Tooltip Telemetry Cards** | **Live Comparison Cards** | In `web/pipeline.html`, JavaScript dynamically fetches `latest_metrics.json` and evaluates `flowComparisonBox()`, `combinedInflowBox()`, and `reservoirStorageBox()`. | If `latest_metrics.json` cannot be fetched, comparison boxes gracefully collapse, showing only the static statutory allocation text. |
 | **Flow Health Departure (%)** | **Live Calculated** | Real-time flow divided by historical median from `web/data/historical_normals.json`. | Hardcoded default normals in `applyLiveHydrology()` if JSON missing: Cataract (7,210 cfs), Green Middle (1,960 cfs), State Line (3,000 cfs), San Juan (1,410 cfs), Grand Canyon (10,522 cfs). |
+| **Flow Health Departure (%)** | **Live Calculated** | Real-time flow divided by historical median from `web/data/historical_normals.json`. | Hardcoded default normals in `applyLiveHydrology()` if JSON missing: Cataract (7,210 cfs), Green Middle (1,960 cfs), State Line (3,000 cfs), San Juan (1,410 cfs), Grand Canyon (10,522 cfs). |
+| **ML River Regimes & Lagged CCF** | **Empirical Telemetry Analytics** | Daily USGS NWIS records ingested and modeled in `notebooks/03_tributary_ml_analysis.ipynb` and rendered via editorial Chart.js charts in `web/ml_analysis.html` (tab: `Tributaries & Deficit`). | Richards-Baker flashiness index ($0.0$ to $1.0$), empirical CCF travel times (Bluff $1.5\text{d}$, Cisco $3.5\text{d}$, Green River $4.5\text{d}$, Gunnison $5.5\text{d}$, Cameo $6.5\text{d}$, Yampa $8.0\text{d}$), mass-balance deficit accounting ($-3.58\text{ MAF/yr}$ drought loss), and hydrograph AUC volume integration ($1.35\text{ MAF}$ snowmelt vs $0.02\text{ MAF}$ flash flood). |
 
 ---
 *Manifest generated directly from workspace inspection. Preserves documentation and architectural integrity.*

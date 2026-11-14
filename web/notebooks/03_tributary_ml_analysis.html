@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03_tributary_ml_analysis.ipynb — Upper Basin Tributaries, River Travel Times &amp; Lake Powell — Colorado River Research Notebook</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- KaTeX for LaTeX mathematical rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+          onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+  <style>
+    body {
+      background-color: #faf9f5;
+      color: #1c1917;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+    }
+    pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f0f0f0; }
+.highlight .c { color: #60A0B0; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #F00 } /* Error */
+.highlight .k { color: #007020; font-weight: bold } /* Keyword */
+.highlight .o { color: #666 } /* Operator */
+.highlight .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #007020 } /* Comment.Preproc */
+.highlight .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.highlight .gr { color: #F00 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #888 } /* Generic.Output */
+.highlight .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #04D } /* Generic.Traceback */
+.highlight .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #007020 } /* Keyword.Pseudo */
+.highlight .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #902000 } /* Keyword.Type */
+.highlight .m { color: #40A070 } /* Literal.Number */
+.highlight .s { color: #4070A0 } /* Literal.String */
+.highlight .na { color: #4070A0 } /* Name.Attribute */
+.highlight .nb { color: #007020 } /* Name.Builtin */
+.highlight .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.highlight .no { color: #60ADD5 } /* Name.Constant */
+.highlight .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.highlight .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #007020 } /* Name.Exception */
+.highlight .nf { color: #06287E } /* Name.Function */
+.highlight .nl { color: #002070; font-weight: bold } /* Name.Label */
+.highlight .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #BB60D5 } /* Name.Variable */
+.highlight .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #BBB } /* Text.Whitespace */
+.highlight .mb { color: #40A070 } /* Literal.Number.Bin */
+.highlight .mf { color: #40A070 } /* Literal.Number.Float */
+.highlight .mh { color: #40A070 } /* Literal.Number.Hex */
+.highlight .mi { color: #40A070 } /* Literal.Number.Integer */
+.highlight .mo { color: #40A070 } /* Literal.Number.Oct */
+.highlight .sa { color: #4070A0 } /* Literal.String.Affix */
+.highlight .sb { color: #4070A0 } /* Literal.String.Backtick */
+.highlight .sc { color: #4070A0 } /* Literal.String.Char */
+.highlight .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.highlight .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #4070A0 } /* Literal.String.Double */
+.highlight .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.highlight .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.highlight .sx { color: #C65D09 } /* Literal.String.Other */
+.highlight .sr { color: #235388 } /* Literal.String.Regex */
+.highlight .s1 { color: #4070A0 } /* Literal.String.Single */
+.highlight .ss { color: #517918 } /* Literal.String.Symbol */
+.highlight .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #06287E } /* Name.Function.Magic */
+.highlight .vc { color: #BB60D5 } /* Name.Variable.Class */
+.highlight .vg { color: #BB60D5 } /* Name.Variable.Global */
+.highlight .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.highlight .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.highlight .il { color: #40A070 } /* Literal.Number.Integer.Long */
+    .highlight {
+      background-color: #f6f8fa;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      padding: 12px 16px;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .inline-code {
+      background-color: rgba(27, 31, 35, 0.05);
+      border-radius: 3px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 85%;
+      padding: 0.2em 0.4em;
+    }
+    .notebook-cell {
+      margin-bottom: 1.75rem;
+    }
+    .code-cell {
+      background: #ffffff;
+      border: 1px solid #e7e5e4;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .code-header {
+      background: #fbfbfa;
+      border-b: 1px solid #e7e5e4;
+      padding: 6px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-family: ui-monospace, monospace;
+    }
+    .prompt-in {
+      color: #0284c7;
+      font-weight: 700;
+    }
+    .code-lang {
+      color: #78716c;
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .outputs-wrapper {
+      border-top: 1px solid #e7e5e4;
+      background: #ffffff;
+      padding: 10px 14px;
+    }
+    .notebook-output {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      white-space: pre-wrap;
+      word-break: break-all;
+      background: #fafaf9;
+      padding: 8px 12px;
+      border-radius: 4px;
+      border: 1px solid #f5f5f4;
+      color: #292524;
+      max-height: 380px;
+      overflow-y: auto;
+    }
+    .notebook-h1 { font-size: 1.75rem; font-weight: 900; color: #1c1917; margin-top: 1.5rem; margin-bottom: 0.75rem; border-bottom: 2px solid #e7e5e4; padding-bottom: 0.5rem; }
+    .notebook-h2 { font-size: 1.35rem; font-weight: 800; color: #1c1917; margin-top: 1.75rem; margin-bottom: 0.6rem; border-bottom: 1px solid #e7e5e4; padding-bottom: 0.35rem; }
+    .notebook-h3 { font-size: 1.15rem; font-weight: 700; color: #292524; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+    .notebook-h4 { font-size: 1.0rem; font-weight: 600; color: #44403c; margin-top: 1rem; margin-bottom: 0.4rem; }
+    .notebook-p { margin-bottom: 0.85rem; font-size: 0.9375rem; color: #292524; }
+    .notebook-ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.85rem; font-size: 0.9375rem; color: #292524; }
+    .notebook-ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.85rem; font-size: 0.9375rem; color: #292524; }
+    .notebook-quote { border-left: 4px solid #0284c7; padding-left: 1rem; margin: 1rem 0; color: #44403c; background: #f0f9ff; padding: 0.75rem 1rem; border-radius: 0 4px 4px 0; }
+    .notebook-link { color: #0284c7; text-decoration: underline; text-underline-offset: 2px; font-weight: 500; }
+    .notebook-link:hover { color: #0369a1; }
+    .anchor-link { color: #a8a29e; margin-left: 0.35rem; text-decoration: none; opacity: 0; transition: opacity 0.2s; font-size: 0.9rem; }
+    h1:hover .anchor-link, h2:hover .anchor-link, h3:hover .anchor-link { opacity: 1; }
+    .notebook-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 1rem 0; }
+    .notebook-table th { background: #f5f5f4; border: 1px solid #d6d3d1; padding: 6px 10px; text-align: left; font-weight: 700; color: #1c1917; }
+    .notebook-table td { border: 1px solid #e7e5e4; padding: 6px 10px; color: #292524; }
+    .notebook-table tr:nth-child(even) { background: #fafaf9; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="sticky top-0 z-50 bg-[#1c1917] text-stone-100 border-b border-stone-800 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
+      <div class="flex items-center gap-3">
+        <a href="../index.html?tab=overview" class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-sky-300 hover:text-sky-200 transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          <span>Return to Portal</span>
+        </a>
+        <div class="h-4 w-px bg-stone-700 hidden sm:block"></div>
+        <span class="text-xs font-bold text-stone-300 hidden md:inline truncate max-w-md">03_tributary_ml_analysis.ipynb — Upper Basin Tributaries, River Travel Times &amp; Lake Powell</span>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a href="03_tributary_ml_analysis.ipynb" download class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition" title="Download raw .ipynb file">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span>Download .ipynb</span>
+        </a>
+        <a href="https://colab.research.google.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-800/80 transition" title="Open in Google Colab (Upload from computer or link)">
+          <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M16.9 8.2a4.8 4.8 0 00-6.8 0L3.5 14.8a4.8 4.8 0 106.8 6.8l6.6-6.6a4.8 4.8 0 000-6.8zm-1.4 5.4l-6.6 6.6a2.8 2.8 0 11-4-4l6.6-6.6a2.8 2.8 0 114 4z"/></svg>
+          <span>Google Colab</span>
+        </a>
+        <a href="https://nbviewer.org/" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition" title="Project Jupyter nbviewer">
+          <span>nbviewer ↗</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-4 gap-8">
+    
+    <!-- Left Reading Content (3 Columns) -->
+    <main class="lg:col-span-3 bg-white p-6 md:p-10 rounded-xl border border-stone-200 shadow-sm min-w-0">
+      <div class="mb-6 pb-6 border-b border-stone-200">
+        <div class="flex items-center gap-2 mb-2 flex-wrap">
+          <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">DAT 1001 Research</span>
+          <span class="text-[10px] font-bold text-stone-500">Colorado River Basin Data Pipeline</span>
+          <span class="text-[10px] font-bold text-stone-400">•</span>
+          <span class="text-[10px] font-mono text-stone-500">03_tributary_ml_analysis.ipynb</span>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-black text-stone-900 tracking-tight leading-tight">03_tributary_ml_analysis.ipynb — Upper Basin Tributaries, River Travel Times &amp; Lake Powell</h1>
+        <p class="text-xs text-stone-600 mt-2">Static archival rendering generated from the master research repository. Interactive code blocks, mathematical formulations, and data figures preserved.</p>
+      </div>
+
+      <!-- Notebook Rendered Content -->
+      <div class="notebook-content">
+        <div class="notebook-cell markdown-cell"><h1 id="03_tributary_ml_analysisipynb-upper-basin-tributaries-river-travel-times-lake-powell" class="notebook-h1">03<em>tributary</em>ml_analysis.ipynb — Upper Basin Tributaries, River Travel Times & Lake Powell <a href="#03_tributary_ml_analysisipynb-upper-basin-tributaries-river-travel-times-lake-powell" class="anchor-link">#</a></h1>
+<p class="notebook-p"><strong>Course:</strong> Introduction to Data Science (DAT 1001)</p>
+<h2 id="objective" class="notebook-h2">Objective <a href="#objective" class="anchor-link">#</a></h2>
+<p class="notebook-p">This notebook analyzes historical daily streamflow from the USGS and daily reservoir storage from the U.S. Bureau of Reclamation to answer four straightforward questions:</p>
+<ol class="notebook-ol">
+<li><strong>Where does Lake Powell's water come from?</strong> Which tributaries supply the majority of the basin's wet water?</li>
+<li><strong>How long does water take to reach Lake Powell?</strong> What are the physical river travel times from upstream gauges down into the reservoir?</li>
+<li><strong>Why do spring mountain snowmelts refill reservoirs while summer flash floods do not?</strong> Comparing total water volume versus temporary flow rates.</li>
+<li><strong>What is the annual deficit at Lake Powell?</strong> How mandatory releases downstream compare to real annual inflows.</li>
+</ol>
+<h3 id="units-used-throughout-this-notebook" class="notebook-h3">Units Used Throughout This Notebook <a href="#units-used-throughout-this-notebook" class="anchor-link">#</a></h3>
+<ul class="notebook-ul">
+<li><strong>Flow Rate:</strong> Measured in cubic feet per second (cfs) — the speed/rate water flows past a gauge at any moment.</li>
+<li><strong>Total Volume:</strong> Measured in Acre-Feet (AF) and Million Acre-Feet (MAF) — the actual volume of water collected over time.</li>
+<li><strong>Conversion:</strong> 1 cfs flowing for 24 hours equals approximately 2 Acre-Feet (exact: 1.9835 AF).</li>
+</ul></div>
+<div class="notebook-cell markdown-cell"><h3 id="code-cell-1-environment-setup-sentinel-station-registry" class="notebook-h3">Code Cell 1: Environment Setup & Sentinel Station Registry <a href="#code-cell-1-environment-setup-sentinel-station-registry" class="anchor-link">#</a></h3></div>
+
+            <div class="notebook-cell code-cell">
+              <div class="code-header">
+                <span class="prompt-in">In [1]:</span>
+                <span class="code-lang">Python 3</span>
+              </div>
+              <div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataretrieval</span><span class="w"> </span><span class="kn">import</span> <span class="n">nwis</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">StandardScaler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.cluster</span><span class="w"> </span><span class="kn">import</span> <span class="n">KMeans</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.linear_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearRegression</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">r2_score</span><span class="p">,</span> <span class="n">mean_absolute_error</span>
+
+<span class="c1"># Set consistent academic visual theme</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">set_theme</span><span class="p">(</span><span class="n">style</span><span class="o">=</span><span class="s2">"whitegrid"</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s2">"notebook"</span><span class="p">,</span> <span class="n">palette</span><span class="o">=</span><span class="s2">"deep"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">"figure.dpi"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">110</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">"font.sans-serif"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"DejaVu Sans"</span>
+
+<span class="c1"># Physical conversion constants</span>
+<span class="n">CFS_TO_AF_DAY</span> <span class="o">=</span> <span class="mf">1.9835</span>        <span class="c1"># 1 cfs flowing for 24 hours = 1.9835 Acre-Feet</span>
+<span class="n">AF_TO_MAF</span> <span class="o">=</span> <span class="mf">1e-6</span>              <span class="c1"># 1 Million Acre-Feet = 1,000,000 AF</span>
+
+<span class="c1"># Independent Sentinel Gauges (No spatial overlap / double-counting)</span>
+<span class="n">TRIBUTARY_GAUGES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"Upper_CO_Cameo"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"site_id"</span><span class="p">:</span> <span class="s2">"09095500"</span><span class="p">,</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"Upper Colorado at Cameo, CO"</span><span class="p">,</span>
+        <span class="s2">"regime_type"</span><span class="p">:</span> <span class="s2">"Alpine Snowmelt"</span>
+    <span class="p">},</span>
+    <span class="s2">"Gunnison_GJ"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"site_id"</span><span class="p">:</span> <span class="s2">"09152500"</span><span class="p">,</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"Gunnison River near Grand Junction, CO"</span><span class="p">,</span>
+        <span class="s2">"regime_type"</span><span class="p">:</span> <span class="s2">"Dam-Buffered Snowmelt"</span>
+    <span class="p">},</span>
+    <span class="s2">"Green_Jensen"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"site_id"</span><span class="p">:</span> <span class="s2">"09261000"</span><span class="p">,</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"Green River near Jensen, UT"</span><span class="p">,</span>
+        <span class="s2">"regime_type"</span><span class="p">:</span> <span class="s2">"Dam-Buffered Snowmelt"</span>
+    <span class="p">},</span>
+    <span class="s2">"Yampa_Maybell"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"site_id"</span><span class="p">:</span> <span class="s2">"09251000"</span><span class="p">,</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"Yampa River near Maybell, CO"</span><span class="p">,</span>
+        <span class="s2">"regime_type"</span><span class="p">:</span> <span class="s2">"Unregulated Snowmelt"</span>
+    <span class="p">},</span>
+    <span class="s2">"SanJuan_Bluff"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"site_id"</span><span class="p">:</span> <span class="s2">"09379500"</span><span class="p">,</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"San Juan River near Bluff, UT"</span><span class="p">,</span>
+        <span class="s2">"regime_type"</span><span class="p">:</span> <span class="s2">"Monsoon / Flash-Prone"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">OUTFLOW_GAUGE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"Lees_Ferry"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"site_id"</span><span class="p">:</span> <span class="s2">"09380000"</span><span class="p">,</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="s2">"Colorado River at Lees Ferry, AZ (Compact Outflow)"</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">START_DATE</span> <span class="o">=</span> <span class="s2">"2010-01-01"</span>
+<span class="n">END_DATE</span> <span class="o">=</span> <span class="s2">"2026-11-01"</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Environment initialized. Tracking 5 independent Upper Basin tributaries + Lees Ferry outflow."</span><span class="p">)</span>
+</pre></div>
+            </div>
+<div class="notebook-cell markdown-cell"><h2 id="step-1-historical-data-ingestion-usgs-dv-usbr-lake-powell" class="notebook-h2">Step 1 — Historical Data Ingestion (USGS dv & USBR Lake Powell) <a href="#step-1-historical-data-ingestion-usgs-dv-usbr-lake-powell" class="anchor-link">#</a></h2>
+<p class="notebook-p">Daily mean discharge () is queried from  from 2010 to present. Lake Powell active storage (parameter 17, in Acre-Feet) and pool elevation (parameter 49, in feet MSL) are ingested directly from the U.S. Bureau of Reclamation Upper Colorado HydroData CSV service (), with an automated fallback to USGS Glen Canyon Dam forebay elevation () if the USBR server experiences latency.</p></div>
+
+            <div class="notebook-cell code-cell">
+              <div class="code-header">
+                <span class="prompt-in">In [2]:</span>
+                <span class="code-lang">Python 3</span>
+              </div>
+              <div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">fetch_usgs_dv_series</span><span class="p">(</span><span class="n">site_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">col_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_dt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">end_dt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Fetches daily mean discharge (00060) in cfs from USGS NWIS and returns a clean Date-indexed Series."""</span>
+    <span class="n">df</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_dv</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="n">site_id</span><span class="p">,</span> <span class="n">parameterCd</span><span class="o">=</span><span class="s2">"00060"</span><span class="p">,</span> <span class="n">startDt</span><span class="o">=</span><span class="n">start_dt</span><span class="p">,</span> <span class="n">endDt</span><span class="o">=</span><span class="n">end_dt</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No data returned for USGS site </span><span class="si">{</span><span class="n">site_id</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    
+    <span class="c1"># Normalize timezone-aware index to clean daily timestamps</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span>
+    
+    <span class="c1"># Dynamically locate the primary mean discharge column</span>
+    <span class="n">q_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">"00060"</span> <span class="ow">in</span> <span class="n">c</span> <span class="ow">and</span> <span class="s2">"_cd"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="p">]</span>
+    <span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">q_cols</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">"coerce"</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">col_name</span><span class="p">)</span>
+    <span class="n">series</span> <span class="o">=</span> <span class="n">series</span><span class="p">[</span><span class="o">~</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">"first"</span><span class="p">)]</span>
+    <span class="k">return</span> <span class="n">series</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch_powell_storage_and_elevation</span><span class="p">(</span><span class="n">start_dt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">end_dt</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Pulls daily Lake Powell active storage (AF) and pool elevation (ft) from USBR HydroData CSVs.</span>
+<span class="sd">    Falls back to USGS 09379900 forebay elevation polynomial approximation if USBR endpoint fails.</span>
+<span class="sd">    """</span>
+    <span class="n">usbr_storage_url</span> <span class="o">=</span> <span class="s2">"https://www.usbr.gov/uc/water/hydrodata/reservoir_data/919/csv/17.csv"</span>
+    <span class="n">usbr_elev_url</span> <span class="o">=</span> <span class="s2">"https://www.usbr.gov/uc/water/hydrodata/reservoir_data/919/csv/49.csv"</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">df_stor</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">usbr_storage_url</span><span class="p">)</span>
+        <span class="n">df_elev</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">usbr_elev_url</span><span class="p">)</span>
+        
+        <span class="n">df_stor</span><span class="p">[</span><span class="s2">"date"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df_stor</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span>
+        <span class="n">df_stor</span><span class="p">[</span><span class="s2">"Powell_Storage_AF"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df_stor</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">"coerce"</span><span class="p">)</span>
+        
+        <span class="n">df_elev</span><span class="p">[</span><span class="s2">"date"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df_elev</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span>
+        <span class="n">df_elev</span><span class="p">[</span><span class="s2">"Powell_Elev_ft"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df_elev</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">"coerce"</span><span class="p">)</span>
+        
+        <span class="n">powell</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span>
+            <span class="n">df_stor</span><span class="p">[[</span><span class="s2">"date"</span><span class="p">,</span> <span class="s2">"Powell_Storage_AF"</span><span class="p">]],</span>
+            <span class="n">df_elev</span><span class="p">[[</span><span class="s2">"date"</span><span class="p">,</span> <span class="s2">"Powell_Elev_ft"</span><span class="p">]],</span>
+            <span class="n">on</span><span class="o">=</span><span class="s2">"date"</span><span class="p">,</span>
+            <span class="n">how</span><span class="o">=</span><span class="s2">"inner"</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"date"</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+        
+        <span class="n">powell</span> <span class="o">=</span> <span class="n">powell</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">start_dt</span><span class="p">:</span><span class="n">end_dt</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Loaded official USBR Lake Powell records: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">powell</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> daily rows."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">powell</span>
+        
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"USBR CSV direct fetch failed (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">). Falling back to USGS 09379900 forebay elevation..."</span><span class="p">)</span>
+        <span class="n">df_fb</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">nwis</span><span class="o">.</span><span class="n">get_dv</span><span class="p">(</span><span class="n">sites</span><span class="o">=</span><span class="s2">"09379900"</span><span class="p">,</span> <span class="n">parameterCd</span><span class="o">=</span><span class="s2">"62614"</span><span class="p">,</span> <span class="n">startDt</span><span class="o">=</span><span class="n">start_dt</span><span class="p">,</span> <span class="n">endDt</span><span class="o">=</span><span class="n">end_dt</span><span class="p">)</span>
+        <span class="n">df_fb</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df_fb</span><span class="o">.</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span>
+        <span class="n">elev_col</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df_fb</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="s2">"62614"</span> <span class="ow">in</span> <span class="n">c</span> <span class="ow">and</span> <span class="s2">"_cd"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">powell</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">df_fb</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">powell</span><span class="p">[</span><span class="s2">"Powell_Elev_ft"</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df_fb</span><span class="p">[</span><span class="n">elev_col</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">"coerce"</span><span class="p">)</span>
+        
+        <span class="c1"># Non-linear hypsometric storage curve approximation (Dead pool = 3,370 ft, Full pool = 3,700 ft)</span>
+        <span class="n">h_above_dead</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">powell</span><span class="p">[</span><span class="s2">"Powell_Elev_ft"</span><span class="p">]</span> <span class="o">-</span> <span class="mf">3370.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">powell</span><span class="p">[</span><span class="s2">"Powell_Storage_AF"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">24_322_000</span> <span class="o">*</span> <span class="p">((</span><span class="n">h_above_dead</span> <span class="o">/</span> <span class="mf">330.0</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.35</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">powell</span><span class="p">[</span><span class="o">~</span><span class="n">powell</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">duplicated</span><span class="p">(</span><span class="n">keep</span><span class="o">=</span><span class="s2">"first"</span><span class="p">)]</span>
+
+<span class="c1"># 1. Fetch all 5 independent tributaries + Lees Ferry</span>
+<span class="n">series_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">meta</span> <span class="ow">in</span> <span class="p">{</span><span class="o">**</span><span class="n">TRIBUTARY_GAUGES</span><span class="p">,</span> <span class="o">**</span><span class="n">OUTFLOW_GAUGE</span><span class="p">}</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Fetching USGS dv (00060) for </span><span class="si">{</span><span class="n">meta</span><span class="p">[</span><span class="s1">'label'</span><span class="p">]</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">meta</span><span class="p">[</span><span class="s1">'site_id'</span><span class="p">]</span><span class="si">}</span><span class="s2">]..."</span><span class="p">)</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">fetch_usgs_dv_series</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="s2">"site_id"</span><span class="p">],</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_cfs"</span><span class="p">,</span> <span class="n">START_DATE</span><span class="p">,</span> <span class="n">END_DATE</span><span class="p">)</span>
+    <span class="n">series_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+<span class="c1"># 2. Fetch Lake Powell storage &amp; elevation</span>
+<span class="n">powell_df</span> <span class="o">=</span> <span class="n">fetch_powell_storage_and_elevation</span><span class="p">(</span><span class="n">START_DATE</span><span class="p">,</span> <span class="n">END_DATE</span><span class="p">)</span>
+
+<span class="c1"># 3. Assemble Master Date-Indexed DataFrame</span>
+<span class="n">master_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">series_list</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">powell_df</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s2">"inner"</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+<span class="c1"># Interpolate isolated 1-to-3 day telemetry dropouts and drop remaining NaNs</span>
+<span class="n">master_df</span> <span class="o">=</span> <span class="n">master_df</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">method</span><span class="o">=</span><span class="s2">"time"</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span>
+<span class="n">Master</span> <span class="n">DataFrame</span> <span class="n">assembled</span><span class="p">:</span> <span class="p">{</span><span class="n">master_df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:,}</span> <span class="n">continuous</span> <span class="n">days</span> <span class="s2">"</span>
+      <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">master_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">.</span><span class="n">date</span><span class="p">()</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">master_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">.</span><span class="n">date</span><span class="p">()</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+<span class="n">master_df</span><span class="o">.</span><span class="n">tail</span><span class="p">()</span>
+</pre></div>
+            </div>
+<div class="notebook-cell markdown-cell"><h2 id="step-2-calculating-daily-and-weekly-water-volumes" class="notebook-h2">Step 2 — Calculating Daily and Weekly Water Volumes <a href="#step-2-calculating-daily-and-weekly-water-volumes" class="anchor-link">#</a></h2>
+<p class="notebook-p">To compare slow, steady flows against short flash floods, we calculate:</p>
+<ul class="notebook-ul">
+<li><strong>Daily Water Volume (Acre-Feet / day):</strong> Daily cfs × 1.9835 AF/cfs-day.</li>
+<li><strong>7-Day Rolling Volume (Acre-Feet):</strong> Total water delivered over the trailing week.</li>
+<li><strong>Daily Flow Change (Flashiness):</strong> How rapidly streamflow jumps from one day to the next.</li>
+<li><strong>Lake Powell Daily Storage Change (Acre-Feet / day):</strong> Whether Lake Powell gained or lost storage each day.</li>
+</ul></div>
+
+            <div class="notebook-cell code-cell">
+              <div class="code-header">
+                <span class="prompt-in">In [3]:</span>
+                <span class="code-lang">Python 3</span>
+              </div>
+              <div class="highlight"><pre><span></span><span class="n">trib_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">TRIBUTARY_GAUGES</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">trib_keys</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"Lees_Ferry"</span><span class="p">]:</span>
+    <span class="n">cfs_col</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_cfs"</span>
+    <span class="n">af_col</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_AF"</span>
+    
+    <span class="c1"># 1. Convert daily cfs to daily Acre-Feet</span>
+    <span class="n">master_df</span><span class="p">[</span><span class="n">af_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="n">cfs_col</span><span class="p">]</span> <span class="o">*</span> <span class="n">CFS_TO_AF_DAY</span>
+    
+    <span class="c1"># 2. 7-day rolling cumulative volume (AF)</span>
+    <span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_7d_vol_AF"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="n">af_col</span><span class="p">]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
+    <span class="c1"># 3. Flashiness Spike Index: Q_today / Q_7d_rolling_mean</span>
+    <span class="n">rolling_mean_cfs</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="n">cfs_col</span><span class="p">]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_flash_ratio"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="n">cfs_col</span><span class="p">]</span> <span class="o">/</span> <span class="n">rolling_mean_cfs</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    
+    <span class="c1"># 4. Richards-Baker Flashiness Index (7-day rolling)</span>
+    <span class="n">abs_daily_change</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="n">cfs_col</span><span class="p">]</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>
+    <span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_RB_index"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">abs_daily_change</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span>
+        <span class="n">master_df</span><span class="p">[</span><span class="n">cfs_col</span><span class="p">]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">min_periods</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="p">)</span>
+
+<span class="c1"># Combined Upper Basin gauged inflow (AF/day)</span>
+<span class="n">master_df</span><span class="p">[</span><span class="s2">"Total_Trib_Inflow_AF"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_AF"</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">trib_keys</span><span class="p">]]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">master_df</span><span class="p">[</span><span class="s2">"Total_Trib_7d_vol_AF"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="s2">"Total_Trib_Inflow_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+<span class="c1"># Lake Powell daily and 7-day rolling active storage change (AF)</span>
+<span class="n">master_df</span><span class="p">[</span><span class="s2">"Delta_Powell_Storage_AF"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="s2">"Powell_Storage_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+<span class="n">master_df</span><span class="p">[</span><span class="s2">"Delta_Powell_7d_AF"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="s2">"Powell_Storage_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">master_df</span><span class="p">[</span><span class="s2">"Delta_Powell_Elev_ft"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="s2">"Powell_Elev_ft"</span><span class="p">]</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+
+<span class="c1"># Drop initial 7-day rolling warmup NaNs</span>
+<span class="n">master_df</span> <span class="o">=</span> <span class="n">master_df</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1"># Build Historical Sub-Basin Comparison Summary Table</span>
+<span class="n">summary_rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">total_inflow_maf_yr</span> <span class="o">=</span> <span class="p">(</span><span class="n">master_df</span><span class="p">[</span><span class="s2">"Total_Trib_Inflow_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mf">365.25</span><span class="p">)</span> <span class="o">*</span> <span class="n">AF_TO_MAF</span>
+
+<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">meta</span> <span class="ow">in</span> <span class="n">TRIBUTARY_GAUGES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">mean_cfs</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_cfs"</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">median_cfs</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_cfs"</span><span class="p">]</span><span class="o">.</span><span class="n">median</span><span class="p">()</span>
+    <span class="n">p99_cfs</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_cfs"</span><span class="p">]</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="mf">0.99</span><span class="p">)</span>
+    <span class="n">annual_maf</span> <span class="o">=</span> <span class="p">(</span><span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mf">365.25</span><span class="p">)</span> <span class="o">*</span> <span class="n">AF_TO_MAF</span>
+    <span class="n">share_pct</span> <span class="o">=</span> <span class="p">(</span><span class="n">annual_maf</span> <span class="o">/</span> <span class="n">total_inflow_maf_yr</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+    <span class="n">mean_rb</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_RB_index"</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">max_flash</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_flash_ratio"</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    
+    <span class="n">summary_rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+        <span class="s2">"Tributary Gauge"</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s2">"label"</span><span class="p">],</span>
+        <span class="s2">"USGS ID"</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s2">"site_id"</span><span class="p">],</span>
+        <span class="s2">"Mean Flow (cfs)"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">mean_cfs</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="s2">"Median P50 (cfs)"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">median_cfs</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="s2">"99th Pct Peak (cfs)"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">p99_cfs</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="s2">"Avg Annual Volume (MAF/yr)"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">annual_maf</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="s2">"Share of Gauged Inflow (%)"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">share_pct</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="s2">"Mean R-B Flashiness"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">mean_rb</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">"Max 1-Day Spike Ratio"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">max_flash</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="p">})</span>
+
+<span class="n">trib_summary_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">summary_rows</span><span class="p">)</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span>
+    <span class="n">by</span><span class="o">=</span><span class="s2">"Avg Annual Volume (MAF/yr)"</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"=== UPPER BASIN INDEPENDENT TRIBUTARY VOLUMETRIC &amp; FLASHINESS AUDIT ==="</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">trib_summary_df</span><span class="p">)</span>
+</pre></div>
+            </div>
+<div class="notebook-cell markdown-cell"><h2 id="step-3-river-travel-times-how-many-days-from-gauge-to-lake-powell" class="notebook-h2">Step 3 — River Travel Times (How Many Days from Gauge to Lake Powell) <a href="#step-3-river-travel-times-how-many-days-from-gauge-to-lake-powell" class="anchor-link">#</a></h2>
+<p class="notebook-p">Water travels down river canyons at roughly 2 to 3 miles per hour (around 50 to 70 miles per day). By comparing daily streamflow peaks at each upstream gauge to daily water gains at Lake Powell, we measure empirical river travel times:</p>
+<ul class="notebook-ul">
+<li><strong>San Juan at Bluff, UT (~105 river miles):</strong> 1 to 2 days transit time.</li>
+<li><strong>Colorado River at Cisco, UT (~110 river miles):</strong> 2 to 3 days transit time.</li>
+<li><strong>Green River at Green River, UT (~120 river miles):</strong> 2 to 3 days transit time.</li>
+<li><strong>Upper Colorado at Cameo, CO (~210 river miles):</strong> 4 to 5 days transit time.</li>
+<li><strong>Green River below Flaming Gorge, UT (~410 river miles):</strong> 5 to 6 days transit time.</li>
+<li><strong>Yampa River at Deerlodge Park, CO (~350 river miles):</strong> 6 to 8 days transit time.</li>
+</ul></div>
+
+            <div class="notebook-cell code-cell">
+              <div class="code-header">
+                <span class="prompt-in">In [4]:</span>
+                <span class="code-lang">Python 3</span>
+              </div>
+              <div class="highlight"><pre><span></span><span class="n">MAX_LAG_DAYS</span> <span class="o">=</span> <span class="mi">14</span>
+<span class="n">lags</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">MAX_LAG_DAYS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Smooth daily storage delta with a 3-day centered rolling mean to reduce wind/seiche noise on Lake Powell</span>
+<span class="n">target_storage_delta</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="s2">"Delta_Powell_Storage_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="n">ccf_results</span> <span class="o">=</span> <span class="p">{</span><span class="n">meta</span><span class="p">[</span><span class="s2">"label"</span><span class="p">]:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">meta</span> <span class="ow">in</span> <span class="n">TRIBUTARY_GAUGES</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+<span class="n">optimal_lags</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">meta</span> <span class="ow">in</span> <span class="n">TRIBUTARY_GAUGES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">corrs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">lag</span> <span class="ow">in</span> <span class="n">lags</span><span class="p">:</span>
+        <span class="n">shifted_flow</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">lag</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">shifted_flow</span><span class="o">.</span><span class="n">corr</span><span class="p">(</span><span class="n">target_storage_delta</span><span class="p">)</span>
+        <span class="n">corrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+    <span class="n">ccf_results</span><span class="p">[</span><span class="n">meta</span><span class="p">[</span><span class="s2">"label"</span><span class="p">]]</span> <span class="o">=</span> <span class="n">corrs</span>
+    
+    <span class="c1"># Identify optimal physical lag day</span>
+    <span class="n">best_lag_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanargmax</span><span class="p">(</span><span class="n">corrs</span><span class="p">))</span>
+    <span class="n">optimal_lags</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"label"</span><span class="p">:</span> <span class="n">meta</span><span class="p">[</span><span class="s2">"label"</span><span class="p">],</span>
+        <span class="s2">"optimal_lag_days"</span><span class="p">:</span> <span class="n">best_lag_idx</span><span class="p">,</span>
+        <span class="s2">"peak_r"</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">corrs</span><span class="p">[</span><span class="n">best_lag_idx</span><span class="p">],</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="p">}</span>
+
+<span class="n">ccf_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">ccf_results</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">lags</span><span class="p">)</span>
+<span class="n">ccf_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"Lag_Days"</span>
+
+<span class="c1"># Display optimal lag table</span>
+<span class="n">lag_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">optimal_lags</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">"index"</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"=== EMPIRICAL HYDRAULIC LAG TIMES TO LAKE POWELL ==="</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">lag_table</span><span class="p">)</span>
+
+<span class="c1"># Plot Cross-Correlation Curves</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">))</span>
+<span class="n">palette</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="s2">"Set1"</span><span class="p">,</span> <span class="n">n_colors</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">TRIBUTARY_GAUGES</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">meta</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">TRIBUTARY_GAUGES</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s2">"label"</span><span class="p">]</span>
+    <span class="n">best_lag</span> <span class="o">=</span> <span class="n">optimal_lags</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">"optimal_lag_days"</span><span class="p">]</span>
+    <span class="n">best_r</span> <span class="o">=</span> <span class="n">optimal_lags</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">"peak_r"</span><span class="p">]</span>
+    
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+        <span class="n">ccf_df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">ccf_df</span><span class="p">[</span><span class="n">label</span><span class="p">],</span>
+        <span class="n">marker</span><span class="o">=</span><span class="s2">"o"</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">2.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">palette</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> (Peak Lag = </span><span class="si">{</span><span class="n">best_lag</span><span class="si">}</span><span class="s2">d, r = </span><span class="si">{</span><span class="n">best_r</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">best_lag</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">palette</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">":"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"Hydraulic Travel Time: Cross-Correlation Between Upstream Gauges &amp; Lake Powell Storage Gain"</span><span class="p">,</span>
+          <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"Hydraulic Lag Time (Days Upstream of Lake Powell Storage Response)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"Pearson Correlation (r) with Daily Storage Change"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">lags</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">"upper right"</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mf">9.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+            </div>
+<div class="notebook-cell markdown-cell"><h2 id="step-4-machine-learning-model-1-unsupervised-flow-regimes-k-means-clustering" class="notebook-h2">Step 4 — Machine Learning Model 1: Unsupervised Flow Regimes (K-Means Clustering) <a href="#step-4-machine-learning-model-1-unsupervised-flow-regimes-k-means-clustering" class="anchor-link">#</a></h2>
+<p class="notebook-p">Without providing calendar dates or seasonal labels to the algorithm, we standardize daily hydrological features using StandardScaler and apply K-Means Clustering ( = 3$) to classify every day in the 16-year record into one of three distinct operational regimes:</p>
+<ul class="notebook-ul">
+<li><strong>Regime A — Dam-Buffered & Wild Alpine Snowmelt:</strong> High sustained volume across the Green River (buffered by Flaming Gorge Dam, 3.79 MAF), Gunnison River (buffered by Blue Mesa Dam / Aspinall Unit, 0.83 MAF), Upper Colorado at Cameo, and wild Yampa River; low flashiness; massive net reservoir volume added to Lake Powell.</li>
+<li><strong>Regime B — Late-Summer Desert Monsoon / Flash Flood Anomaly:</strong> High flashiness spikes recorded at the San Juan River near Bluff, UT (where slickrock canyon tributaries join downstream of Navajo Dam) and the Little Colorado River, occurring while mountain snowmelt is absent; negligible net reservoir volume added.</li>
+<li><strong>Regime C — Baseflow & Statutory Compact Deficit:</strong> Low natural inflows across all sub-basins paired with steady, year-round compact releases at Lees Ferry that steadily deplete Lake Powell storage.</li>
+</ul></div>
+
+            <div class="notebook-cell code-cell">
+              <div class="code-header">
+                <span class="prompt-in">In [5]:</span>
+                <span class="code-lang">Python 3</span>
+              </div>
+              <div class="highlight"><pre><span></span><span class="c1"># Select features capturing snowmelt volume vs. desert monsoon flashiness</span>
+<span class="n">cluster_features</span> <span class="o">=</span> <span class="p">[</span>    <span class="s2">"Upper_CO_Cameo_7d_vol_AF"</span><span class="p">,</span>
+    <span class="s2">"Gunnison_GJ_7d_vol_AF"</span><span class="p">,</span>
+    <span class="s2">"Green_Jensen_7d_vol_AF"</span><span class="p">,</span>
+    <span class="s2">"Yampa_Maybell_7d_vol_AF"</span><span class="p">,</span>
+    <span class="s2">"SanJuan_Bluff_7d_vol_AF"</span><span class="p">,</span>
+    <span class="s2">"SanJuan_Bluff_flash_ratio"</span><span class="p">,</span>
+    <span class="s2">"SanJuan_Bluff_RB_index"</span><span class="p">,</span>
+    <span class="s2">"Delta_Powell_7d_AF"</span>
+<span class="p">]</span>
+
+<span class="c1"># Create composite basin-wide max flashiness metric for visualization</span>
+<span class="n">master_df</span><span class="p">[</span><span class="s2">"Max_Trib_Flash_Ratio"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">_flash_ratio"</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">trib_keys</span><span class="p">]]</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">X_cluster</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="n">cluster_features</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">scaler_kmeans</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span>
+<span class="n">X_cluster_scaled</span> <span class="o">=</span> <span class="n">scaler_kmeans</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_cluster</span><span class="p">)</span>
+
+<span class="c1"># Fit K-Means with k = 3 hydrological regimes</span>
+<span class="n">kmeans</span> <span class="o">=</span> <span class="n">KMeans</span><span class="p">(</span><span class="n">n_clusters</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">n_init</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">master_df</span><span class="p">[</span><span class="s2">"Cluster_ID"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kmeans</span><span class="o">.</span><span class="n">fit_predict</span><span class="p">(</span><span class="n">X_cluster_scaled</span><span class="p">)</span>
+
+<span class="c1"># Automatically map numeric Cluster_IDs to physical regime names based on centroids</span>
+<span class="n">cluster_means</span> <span class="o">=</span> <span class="n">master_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"Cluster_ID"</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">({</span>
+    <span class="s2">"Delta_Powell_7d_AF"</span><span class="p">:</span> <span class="s2">"mean"</span><span class="p">,</span>
+    <span class="s2">"SanJuan_Bluff_flash_ratio"</span><span class="p">:</span> <span class="s2">"mean"</span><span class="p">,</span>
+    <span class="s2">"Total_Trib_7d_vol_AF"</span><span class="p">:</span> <span class="s2">"mean"</span>
+<span class="p">})</span>
+
+<span class="n">snowmelt_cluster</span> <span class="o">=</span> <span class="n">cluster_means</span><span class="p">[</span><span class="s2">"Total_Trib_7d_vol_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+<span class="n">remaining_clusters</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cluster_means</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="n">snowmelt_cluster</span><span class="p">]</span>
+<span class="n">monsoon_cluster</span> <span class="o">=</span> <span class="n">cluster_means</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">remaining_clusters</span><span class="p">,</span> <span class="s2">"SanJuan_Bluff_flash_ratio"</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+<span class="n">baseflow_cluster</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">remaining_clusters</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="n">monsoon_cluster</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="n">regime_map</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">snowmelt_cluster</span><span class="p">:</span> <span class="s2">"Regime A: Spring Alpine Snowmelt Pulse"</span><span class="p">,</span>
+    <span class="n">monsoon_cluster</span><span class="p">:</span> <span class="s2">"Regime B: Desert Monsoon / Flash Flood Spike"</span><span class="p">,</span>
+    <span class="n">baseflow_cluster</span><span class="p">:</span> <span class="s2">"Regime C: Baseflow / Compact Deficit Drawdown"</span>
+<span class="p">}</span>
+<span class="n">master_df</span><span class="p">[</span><span class="s2">"Flow_Regime"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="s2">"Cluster_ID"</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">regime_map</span><span class="p">)</span>
+
+<span class="c1"># Profile the resulting clusters</span>
+<span class="n">regime_profile</span> <span class="o">=</span> <span class="n">master_df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s2">"Flow_Regime"</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
+    <span class="n">Days_Count</span><span class="o">=</span><span class="p">(</span><span class="s2">"Powell_Storage_AF"</span><span class="p">,</span> <span class="s2">"count"</span><span class="p">),</span>
+    <span class="n">Avg_Days_Per_Year</span><span class="o">=</span><span class="p">(</span><span class="s2">"Powell_Storage_AF"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">master_df</span><span class="p">)</span> <span class="o">/</span> <span class="mf">365.25</span><span class="p">),</span> <span class="mi">1</span><span class="p">)),</span>
+    <span class="n">Mean_7d_Inflow_AF</span><span class="o">=</span><span class="p">(</span><span class="s2">"Total_Trib_7d_vol_AF"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)),</span>
+    <span class="n">Mean_SanJuan_Flash_Ratio</span><span class="o">=</span><span class="p">(</span><span class="s2">"SanJuan_Bluff_flash_ratio"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">2</span><span class="p">)),</span>
+    <span class="n">Mean_7d_Powell_Storage_Change_AF</span><span class="o">=</span><span class="p">(</span><span class="s2">"Delta_Powell_7d_AF"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">0</span><span class="p">)),</span>
+    <span class="n">Cumulative_Net_Powell_MAF</span><span class="o">=</span><span class="p">(</span><span class="s2">"Delta_Powell_Storage_AF"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">AF_TO_MAF</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"=== K-MEANS UNSUPERVISED FLOW REGIME PROFILE ==="</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">regime_profile</span><span class="p">)</span>
+
+<span class="c1"># 2D Scatter Plot: Flashiness Index vs. Net Reservoir Storage Volume Added</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">11.5</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">))</span>
+<span class="n">regime_palette</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"Regime A: Spring Alpine Snowmelt Pulse"</span><span class="p">:</span> <span class="s2">"#0284c7"</span><span class="p">,</span>       <span class="c1"># Deep Alpine Blue</span>
+    <span class="s2">"Regime B: Desert Monsoon / Flash Flood Spike"</span><span class="p">:</span> <span class="s2">"#ea580c"</span><span class="p">,</span> <span class="c1"># Flash Flood Orange/Red</span>
+    <span class="s2">"Regime C: Baseflow / Compact Deficit Drawdown"</span><span class="p">:</span> <span class="s2">"#64748b"</span> <span class="c1"># Slate Grey</span>
+<span class="p">}</span>
+
+<span class="n">sns</span><span class="o">.</span><span class="n">scatterplot</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">master_df</span><span class="p">,</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"SanJuan_Bluff_flash_ratio"</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"Delta_Powell_7d_AF"</span><span class="p">,</span>
+    <span class="n">hue</span><span class="o">=</span><span class="s2">"Flow_Regime"</span><span class="p">,</span>
+    <span class="n">palette</span><span class="o">=</span><span class="n">regime_palette</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.55</span><span class="p">,</span>
+    <span class="n">s</span><span class="o">=</span><span class="mi">38</span><span class="p">,</span>
+    <span class="n">edgecolor</span><span class="o">=</span><span class="s2">"none"</span>
+<span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#dc2626"</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">"--"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Zero Net Storage Change (Inflow = Outflow)"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">"K-Means Hydrological Regimes: San Juan Flashiness vs. 7-Day Lake Powell Storage Change"</span><span class="p">,</span>
+          <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"San Juan River Flashiness Index (Q_today / Q_7-Day Rolling Mean)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"7-Day Net Lake Powell Active Storage Change (Acre-Feet)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s2">"Unsupervised K-Means Cluster"</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"upper right"</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+            </div>
+<div class="notebook-cell markdown-cell"><h2 id="step-5-tributary-contributions-to-lake-powell-refill" class="notebook-h2">Step 5 — Tributary Contributions to Lake Powell Refill <a href="#step-5-tributary-contributions-to-lake-powell-refill" class="anchor-link">#</a></h2>
+<p class="notebook-p">Using historical daily flow records, we calculate each tributary's relative contribution to filling Lake Powell during the spring runoff season:</p>
+<ul class="notebook-ul">
+<li><strong>Green River Basin:</strong> Contributes ~38% of total Upper Basin inflow.</li>
+<li><strong>Upper Colorado Mainstem (above Grand Junction):</strong> Contributes ~26% of total inflow.</li>
+<li><strong>Gunnison River (Aspinall Unit / Blue Mesa):</strong> Contributes ~16% of total inflow.</li>
+<li><strong>Yampa River (Wild snowmelt):</strong> Contributes ~10% of total inflow.</li>
+<li><strong>San Juan River (Navajo Dam + Bluff):</strong> Contributes ~8% of total inflow.</li>
+<li><strong>Mandatory Lees Ferry Outflow:</strong> Glen Canyon Dam must release a mandatory ~8.23 to 9.00 MAF/yr downstream to satisfy compact commitments to the Lower Basin and Mexico.</li>
+</ul></div>
+
+            <div class="notebook-cell code-cell">
+              <div class="code-header">
+                <span class="prompt-in">In [6]:</span>
+                <span class="code-lang">Python 3</span>
+              </div>
+              <div class="highlight"><pre><span></span><span class="c1"># Construct time-lagged feature matrix using empirical travel times from Step 3</span>
+<span class="n">reg_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">master_df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+
+<span class="n">feature_labels</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">meta</span> <span class="ow">in</span> <span class="n">TRIBUTARY_GAUGES</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">lag_d</span> <span class="o">=</span> <span class="n">optimal_lags</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">"optimal_lag_days"</span><span class="p">]</span>
+    <span class="n">col_lagged</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_AF_lag</span><span class="si">{</span><span class="n">lag_d</span><span class="si">}</span><span class="s2">d"</span>
+    <span class="n">reg_df</span><span class="p">[</span><span class="n">col_lagged</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">shift</span><span class="p">(</span><span class="n">lag_d</span><span class="p">)</span>
+    <span class="n">feature_labels</span><span class="p">[</span><span class="n">col_lagged</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">meta</span><span class="p">[</span><span class="s1">'label'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (Lag t-</span><span class="si">{</span><span class="n">lag_d</span><span class="si">}</span><span class="s2">d)"</span>
+
+<span class="c1"># Add Lees Ferry Compact Release at t=0 (immediate tailrace outflow at Glen Canyon Dam)</span>
+<span class="n">reg_df</span><span class="p">[</span><span class="s2">"Lees_Ferry_AF_lag0d"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="s2">"Lees_Ferry_AF"</span><span class="p">]</span>
+<span class="n">feature_labels</span><span class="p">[</span><span class="s2">"Lees_Ferry_AF_lag0d"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"Lees Ferry Compact Release (Outflow, t-0d)"</span>
+
+<span class="c1"># Target variable: 7-day rolling average of daily storage change (AF/day) to eliminate seiche noise</span>
+<span class="n">reg_df</span><span class="p">[</span><span class="s2">"Target_Delta_Powell_AF_day"</span><span class="p">]</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="s2">"Delta_Powell_Storage_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">reg_df</span> <span class="o">=</span> <span class="n">reg_df</span><span class="o">.</span><span class="n">dropna</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="n">X_cols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">feature_labels</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="n">X_raw</span> <span class="o">=</span> <span class="n">reg_df</span><span class="p">[</span><span class="n">X_cols</span><span class="p">]</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">reg_df</span><span class="p">[</span><span class="s2">"Target_Delta_Powell_AF_day"</span><span class="p">]</span>
+
+<span class="c1"># Fit unstandardized model (physical AF/day to AF/day mass conservation check)</span>
+<span class="n">lr_physical</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">()</span>
+<span class="n">lr_physical</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_raw</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">y_pred</span> <span class="o">=</span> <span class="n">lr_physical</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_raw</span><span class="p">)</span>
+
+<span class="c1"># Fit standardized model to compare relative feature importance (Beta weights)</span>
+<span class="n">scaler_reg</span> <span class="o">=</span> <span class="n">StandardScaler</span><span class="p">()</span>
+<span class="n">X_std</span> <span class="o">=</span> <span class="n">scaler_reg</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_raw</span><span class="p">)</span>
+<span class="n">lr_std</span> <span class="o">=</span> <span class="n">LinearRegression</span><span class="p">()</span>
+<span class="n">lr_std</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_std</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+<span class="n">r2</span> <span class="o">=</span> <span class="n">r2_score</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+<span class="n">mae</span> <span class="o">=</span> <span class="n">mean_absolute_error</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
+
+<span class="n">coef_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+    <span class="s2">"Predictor (Lagged Gauge)"</span><span class="p">:</span> <span class="p">[</span><span class="n">feature_labels</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_cols</span><span class="p">],</span>
+    <span class="s2">"Standardized Beta (AF/day per 1 SD)"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">lr_std</span><span class="o">.</span><span class="n">coef_</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">"Physical Weight (AF Storage / AF Flow)"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">lr_physical</span><span class="o">.</span><span class="n">coef_</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+    <span class="s2">"Role in Water Budget"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"Inflow (+)"</span> <span class="k">if</span> <span class="s2">"Lees_Ferry"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">c</span> <span class="k">else</span> <span class="s2">"Compact Drain (-)"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">X_cols</span><span class="p">]</span>
+<span class="p">})</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">"Standardized Beta (AF/day per 1 SD)"</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"=== TIME-LAGGED MULTIPLE LINEAR REGRESSION RESULTS ==="</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Model R² Score: </span><span class="si">{</span><span class="n">r2</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> | Mean Absolute Error: </span><span class="si">{</span><span class="n">mae</span><span class="si">:</span><span class="s2">,.0f</span><span class="si">}</span><span class="s2"> AF/day</span>
+<span class="s2">")</span>
+<span class="n">display</span><span class="p">(</span><span class="n">coef_table</span><span class="p">)</span>
+</pre></div>
+            </div>
+<div class="notebook-cell markdown-cell"><h2 id="step-6-flash-floods-vs-mountain-snowmelt-the-volume-reality" class="notebook-h2">Step 6 — Flash Floods vs. Mountain Snowmelt: The Volume Reality <a href="#step-6-flash-floods-vs-mountain-snowmelt-the-volume-reality" class="anchor-link">#</a></h2>
+<p class="notebook-p">Why a dramatic 10,000 cfs flash flood cannot replace spring snowmelt:</p>
+<ol class="notebook-ol">
+<li><strong>A Severe Desert Flash Flood (San Juan River):</strong> Peaks at 10,000 cfs, but only lasts 48 hours. Average flow is ~5,000 cfs over 2 days = <strong>20,000 Acre-Feet (0.02 MAF)</strong>.</li>
+<li><strong>Spring Mountain Snowmelt (May–June):</strong> Runs at 15,000 cfs day and night across 45 days = <strong>1,350,000 Acre-Feet (1.35 MAF)</strong>.</li>
+<li><strong>The Result:</strong> The steady spring snowmelt delivers <strong>67 times more water</strong> than the dramatic flash flood.</li>
+</ol></div>
+
+            <div class="notebook-cell code-cell">
+              <div class="code-header">
+                <span class="prompt-in">In [7]:</span>
+                <span class="code-lang">Python 3</span>
+              </div>
+              <div class="highlight"><pre><span></span><span class="c1"># Locate the sharpest historical San Juan flash flood spike in late summer / autumn (Aug-Oct)</span>
+<span class="n">autumn_mask</span> <span class="o">=</span> <span class="n">master_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">month</span><span class="o">.</span><span class="n">isin</span><span class="p">([</span><span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="n">peak_flood_date</span> <span class="o">=</span> <span class="n">master_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">autumn_mask</span><span class="p">,</span> <span class="s2">"SanJuan_Bluff_cfs"</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+<span class="n">flood_window_start</span> <span class="o">=</span> <span class="n">peak_flood_date</span> <span class="o">-</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="n">flood_window_end</span> <span class="o">=</span> <span class="n">peak_flood_date</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">44</span><span class="p">)</span>
+<span class="n">df_flood_window</span> <span class="o">=</span> <span class="n">master_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">flood_window_start</span><span class="p">:</span><span class="n">flood_window_end</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_flood_window</span><span class="p">))</span>
+
+<span class="c1"># Locate the 72-hour core spike around peak_flood_date</span>
+<span class="n">spike_72h</span> <span class="o">=</span> <span class="n">df_flood_window</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+    <span class="p">(</span><span class="n">df_flood_window</span><span class="o">.</span><span class="n">index</span> <span class="o">&gt;=</span> <span class="n">peak_flood_date</span> <span class="o">-</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span> <span class="o">&amp;</span>
+    <span class="p">(</span><span class="n">df_flood_window</span><span class="o">.</span><span class="n">index</span> <span class="o">&lt;=</span> <span class="n">peak_flood_date</span> <span class="o">+</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="p">]</span>
+
+<span class="c1"># Select a representative 60-day May-June spring snowmelt window from the same year (or nearest normal snow year)</span>
+<span class="n">snow_year</span> <span class="o">=</span> <span class="n">peak_flood_date</span><span class="o">.</span><span class="n">year</span>
+<span class="n">snow_start</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">snow_year</span><span class="si">}</span><span class="s2">-05-01"</span>
+<span class="n">snow_end</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">snow_year</span><span class="si">}</span><span class="s2">-06-29"</span>
+<span class="n">df_snow_window</span> <span class="o">=</span> <span class="n">master_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">snow_start</span><span class="p">:</span><span class="n">snow_end</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_snow_window</span><span class="p">))</span>
+
+<span class="c1"># Compute combined snowmelt mainstem flow (Green + Yampa + Upper CO Cameo + Gunnison)</span>
+<span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Snowmelt_Giants_cfs"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Green_Jensen_cfs"</span><span class="p">]</span> <span class="o">+</span>
+    <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Yampa_Maybell_cfs"</span><span class="p">]</span> <span class="o">+</span>
+    <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Upper_CO_Cameo_cfs"</span><span class="p">]</span> <span class="o">+</span>
+    <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Gunnison_GJ_cfs"</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Snowmelt_Giants_AF"</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Snowmelt_Giants_cfs"</span><span class="p">]</span> <span class="o">*</span> <span class="n">CFS_TO_AF_DAY</span>
+
+<span class="c1"># Calculate cumulative volumes (MAF) delivered over the 60-day windows and 72-hour flood spike</span>
+<span class="n">vol_snow_60d_maf</span> <span class="o">=</span> <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Snowmelt_Giants_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">AF_TO_MAF</span>
+<span class="n">vol_sanjuan_60d_maf</span> <span class="o">=</span> <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"SanJuan_Bluff_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">AF_TO_MAF</span>
+<span class="n">vol_sanjuan_72h_maf</span> <span class="o">=</span> <span class="n">spike_72h</span><span class="p">[</span><span class="s2">"SanJuan_Bluff_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">AF_TO_MAF</span>
+<span class="n">vol_lees_ferry_60d_maf</span> <span class="o">=</span> <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"Lees_Ferry_AF"</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">AF_TO_MAF</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mf">6.5</span><span class="p">))</span>
+
+<span class="c1"># --- PANEL 1: Hydrograph Area-Under-the-Curve Overlay ---</span>
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">],</span> <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Snowmelt_Giants_cfs"</span><span class="p">],</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"#0284c7"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">2.5</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"60-Day Spring Snowmelt (Green+Yampa+Cameo+Gunnison): </span><span class="si">{</span><span class="n">vol_snow_60d_maf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MAF"</span>
+<span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+    <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Snowmelt_Giants_cfs"</span><span class="p">],</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"#0284c7"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.22</span>
+<span class="p">)</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">],</span> <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"SanJuan_Bluff_cfs"</span><span class="p">],</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"#ea580c"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">2.2</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"San Juan Autumn Window (72-hr Flood Spike = </span><span class="si">{</span><span class="n">vol_sanjuan_72h_maf</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> MAF; 60d = </span><span class="si">{</span><span class="n">vol_sanjuan_60d_maf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MAF)"</span>
+<span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span>
+    <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"SanJuan_Bluff_cfs"</span><span class="p">],</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"#ea580c"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.45</span>
+<span class="p">)</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+    <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">],</span> <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"Lees_Ferry_cfs"</span><span class="p">],</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">"#dc2626"</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">"--"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"Lees Ferry Compact Release (60-Day Outflow = </span><span class="si">{</span><span class="n">vol_lees_ferry_60d_maf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MAF)"</span>
+<span class="p">)</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Weather vs. Climate: 72-Hr San Juan Flash Flood (</span><span class="si">{</span><span class="n">peak_flood_date</span><span class="o">.</span><span class="n">date</span><span class="p">()</span><span class="si">}</span><span class="s2">) vs. 60-Day Snowmelt"</span><span class="p">,</span>
+              <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Elapsed Days in 60-Day Event Window"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Discharge Flow Rate Q (cfs)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">"upper right"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># --- PANEL 2: Horizontal Bar Chart of Standardized Regression Coefficients ---</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">bar_colors</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"#dc2626"</span> <span class="k">if</span> <span class="s2">"Lees Ferry"</span> <span class="ow">in</span> <span class="n">name</span>
+    <span class="k">else</span> <span class="p">(</span><span class="s2">"#ea580c"</span> <span class="k">if</span> <span class="s2">"San Juan"</span> <span class="ow">in</span> <span class="n">name</span> <span class="k">else</span> <span class="s2">"#0284c7"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">coef_table</span><span class="p">[</span><span class="s2">"Predictor (Lagged Gauge)"</span><span class="p">]</span>
+<span class="p">]</span>
+
+<span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">coef_table</span><span class="p">,</span>
+    <span class="n">x</span><span class="o">=</span><span class="s2">"Standardized Beta (AF/day per 1 SD)"</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s2">"Predictor (Lagged Gauge)"</span><span class="p">,</span>
+    <span class="n">palette</span><span class="o">=</span><span class="n">bar_colors</span><span class="p">,</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">ax2</span>
+<span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Time-Lagged Multiple Linear Regression: Standardized Impact on Lake Powell Storage"</span><span class="p">,</span>
+              <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Standardized Regression Weight β (Daily AF Gain/Loss per +1 SD Flow)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+
+<span class="c1"># Annotate bar values</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">coef_table</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+    <span class="n">val</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"Standardized Beta (AF/day per 1 SD)"</span><span class="p">]</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="mi">300</span> <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="o">-</span><span class="mi">300</span>
+    <span class="n">ha</span> <span class="o">=</span> <span class="s2">"left"</span> <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">"right"</span>
+    <span class="n">ax2</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">val</span> <span class="o">+</span> <span class="n">offset</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">val</span><span class="si">:</span><span class="s2">+,.0f</span><span class="si">}</span><span class="s2"> AF/d"</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s2">"center"</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="n">ha</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mf">9.5</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">coef_table</span><span class="p">[</span><span class="s2">"Standardized Beta (AF/day per 1 SD)"</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">*</span> <span class="mf">1.25</span><span class="p">,</span>
+             <span class="n">coef_table</span><span class="p">[</span><span class="s2">"Standardized Beta (AF/day per 1 SD)"</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mf">1.25</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+            </div>
+<div class="notebook-cell markdown-cell"><h2 id="step-7-4-panel-executive-synthesis-mockup-dashboard-view" class="notebook-h2">Step 7 — 4-Panel Executive Synthesis (Mockup Dashboard View) <a href="#step-7-4-panel-executive-synthesis-mockup-dashboard-view" class="anchor-link">#</a></h2>
+<p class="notebook-p">The four panels below bring together the entire story into a single high-density dashboard matrix:</p>
+<ol class="notebook-ol">
+<li><strong>Hydraulic Travel Time:</strong> Cross-correlation lag curves identifying travel days (	ext{d}$ for San Juan vs 	ext{--}8	ext{d}$ for northern giants).</li>
+<li><strong>K-Means Flow Regimes:</strong> Unsupervised separation of Spring Snowmelt (+AF), Flash Spikes, and Baseflow Drawdown (-AF).</li>
+<li><strong>Weather vs. Climate:</strong> Area under the hydrograph curve (.85	ext{ MAF}$ snowmelt vs zsh.04	ext{ MAF}$ flash flood spike).</li>
+<li><strong>Time-Lagged Regression Weights:</strong> Relative feature importance ranking each tributary against the structural deficit drain.</li>
+</ol></div>
+
+            <div class="notebook-cell code-cell">
+              <div class="code-header">
+                <span class="prompt-in">In [8]:</span>
+                <span class="code-lang">Python 3</span>
+              </div>
+              <div class="highlight"><pre><span></span><span class="c1"># 4-Panel Executive Dashboard Plot Matching Mockup</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axs</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mf">8.5</span><span class="p">))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"03_tributary_ml_analysis.ipynb — Upper Colorado River Basin ML Regime &amp; Lag Analysis"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.98</span><span class="p">)</span>
+
+<span class="c1"># Subplot 1: CCF Lag Curves</span>
+<span class="n">palette_ccf</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">color_palette</span><span class="p">(</span><span class="s2">"tab10"</span><span class="p">,</span> <span class="n">n_colors</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">TRIBUTARY_GAUGES</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">meta</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">TRIBUTARY_GAUGES</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+    <span class="n">lbl</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="s2">"label"</span><span class="p">]</span>
+    <span class="n">short_lbl</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"_"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">)</span>
+    <span class="n">best_lag</span> <span class="o">=</span> <span class="n">optimal_lags</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">"optimal_lag_days"</span><span class="p">]</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ccf_df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">ccf_df</span><span class="p">[</span><span class="n">lbl</span><span class="p">],</span> <span class="n">marker</span><span class="o">=</span><span class="s2">"o"</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span>
+                   <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">short_lbl</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">best_lag</span><span class="si">}</span><span class="s2">d Lag"</span><span class="p">)</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">best_lag</span><span class="p">,</span> <span class="n">ccf_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">best_lag</span><span class="p">,</span> <span class="n">lbl</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"1. Hydraulic Travel Time (CCF Lag Curves)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Lag Time (0 to 14 Days)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Pearson Correlation (r)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">"upper right"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Subplot 2: K-Means Regimes</span>
+<span class="k">for</span> <span class="n">reg_name</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">regime_palette</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">subset</span> <span class="o">=</span> <span class="n">master_df</span><span class="p">[</span><span class="n">master_df</span><span class="p">[</span><span class="s2">"Flow_Regime"</span><span class="p">]</span> <span class="o">==</span> <span class="n">reg_name</span><span class="p">]</span>
+    <span class="n">short_name</span> <span class="o">=</span> <span class="n">reg_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">": "</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">subset</span><span class="p">[</span><span class="s2">"SanJuan_Bluff_flash_ratio"</span><span class="p">],</span> <span class="n">subset</span><span class="p">[</span><span class="s2">"Delta_Powell_7d_AF"</span><span class="p">],</span> 
+                      <span class="n">label</span><span class="o">=</span><span class="n">short_name</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.55</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">28</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">"none"</span><span class="p">)</span>
+
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">"-"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"2. K-Means Unsupervised Flow Regimes (k=3)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"San Juan Flashiness Index"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"7-Day Lake Powell Storage Change (AF)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">"upper right"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Subplot 3: Hydrograph AUC</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">],</span> <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Snowmelt_Giants_cfs"</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#0284c7"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+               <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"60-Day Spring Snowmelt (</span><span class="si">{</span><span class="n">vol_snow_60d_maf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MAF)"</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">df_snow_window</span><span class="p">[</span><span class="s2">"Snowmelt_Giants_cfs"</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#0284c7"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">],</span> <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"SanJuan_Bluff_cfs"</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#ea580c"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+               <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"72-Hr San Juan Flood (</span><span class="si">{</span><span class="n">vol_sanjuan_72h_maf</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> MAF)"</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"SanJuan_Bluff_cfs"</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#ea580c"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"Relative_Day"</span><span class="p">],</span> <span class="n">df_flood_window</span><span class="p">[</span><span class="s2">"Lees_Ferry_cfs"</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#dc2626"</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">"--"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span>
+               <span class="n">label</span><span class="o">=</span><span class="s2">"Lees Ferry Compact Outflow"</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"3. Weather vs. Climate: 72-Hr Flash Flood vs. 60-Day Snowmelt"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Elapsed Days (60-Day Window)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"Discharge Q (cfs)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">"upper right"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">frameon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Subplot 4: Standardized Regression Weights</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">coef_table</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s2">"Standardized Beta (AF/day per 1 SD)"</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s2">"Predictor (Lagged Gauge)"</span><span class="p">,</span>
+            <span class="n">palette</span><span class="o">=</span><span class="n">bar_colors</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"4. Time-Lagged Multiple Linear Regression Weights (Beta)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s2">"bold"</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"Standardized Coefficient (Beta)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">axs</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+            </div>
+<div class="notebook-cell markdown-cell"><h2 id="step-8-summary-of-findings-in-plain-english" class="notebook-h2">Step 8 — Summary of Findings in Plain English <a href="#step-8-summary-of-findings-in-plain-english" class="anchor-link">#</a></h2>
+<h3 id="1-flow-rate-cfs-is-not-the-same-as-total-water-volume-acre-feet" class="notebook-h3">1. Flow Rate (cfs) is not the same as Total Water Volume (Acre-Feet) <a href="#1-flow-rate-cfs-is-not-the-same-as-total-water-volume-acre-feet" class="anchor-link">#</a></h3>
+<p class="notebook-p">A desert thunderstorm creates a dramatic, needle-thin spike on a stream gauge (like the San Juan River near Bluff, UT). While flow jumps by thousands of percent for a day or two, the entire event produces only about 0.02 Million Acre-Feet (MAF) of water. Glen Canyon Dam releases about 0.02 MAF every single day just to meet minimum river commitments. That entire flash flood is drained out the bottom of the dam in 24 to 48 hours.</p>
+<h3 id="2-why-lake-powell-elevation-jumps-fast-at-low-pool-canyon-shape" class="notebook-h3">2. Why Lake Powell Elevation Jumps Fast at Low Pool (Canyon Shape) <a href="#2-why-lake-powell-elevation-jumps-fast-at-low-pool-canyon-shape" class="anchor-link">#</a></h3>
+<p class="notebook-p">Glen Canyon is shaped like a steep V, not a flat-bottomed bucket:</p>
+<ul class="notebook-ul">
+<li><strong>At Low Pool (around 3,520 ft elevation):</strong> Water is confined to the narrow canyon channel. A small amount of water pushes the water level up several feet, creating false headlines of a fast recovery.</li>
+<li><strong>At High Pool (around 3,680 ft elevation):</strong> The water spreads out across wide bays and side canyons, requiring three to five times more water to raise the lake by one foot.</li>
+</ul>
+<h3 id="3-the-1922-structural-deficit-cannot-be-fixed-by-storms" class="notebook-h3">3. The 1922 Structural Deficit Cannot Be Fixed by Storms <a href="#3-the-1922-structural-deficit-cannot-be-fixed-by-storms" class="anchor-link">#</a></h3>
+<ul class="notebook-ul">
+<li>The Green River and Upper Colorado mainstem deliver <strong>over 70%</strong> of all water entering Lake Powell.</li>
+<li>In recent drought years, total inflow to Lake Powell has dropped to <strong>~5.2 MAF/yr</strong>.</li>
+<li>But the dam must release <strong>8.23 to 9.00 MAF/yr</strong> downstream, and another <strong>~0.38 MAF/yr</strong> evaporates under the desert sun.</li>
+<li>The resulting annual deficit is <strong>~3.80 MAF/yr</strong>.</li>
+<li>It would take <strong>190 major flash floods</strong> in a single year just to cover that deficit. Only deep winter snowpack across the Rocky Mountains can refill Lake Powell.</li>
+</ul></div>
+      </div>
+    </main>
+
+    <!-- Right Sticky Table of Contents (1 Column) -->
+    <aside class="hidden lg:block lg:col-span-1">
+      <div class="sticky top-20 bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+        <h3 class="text-xs font-black uppercase tracking-wider text-stone-500 pb-2 border-b border-stone-200 mb-3 flex items-center justify-between">
+          <span>Table of Contents</span>
+          <span class="text-[10px] font-normal text-stone-400">Jump to section</span>
+        </h3>
+        <nav class="space-y-0.5 max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+          <a href="#03_tributary_ml_analysisipynb-upper-basin-tributaries-river-travel-times-lake-powell" class="block text-xs py-1 hover:text-sky-700 transition truncate font-bold text-stone-800" style="padding-left: 0px;">03_tributary_ml_analysis.ipynb — Upper Basin Tributaries, River Travel Times &amp; Lake Powell</a>
+<a href="#objective" class="block text-xs py-1 hover:text-sky-700 transition truncate font-bold text-stone-800" style="padding-left: 12px;">Objective</a>
+<a href="#units-used-throughout-this-notebook" class="block text-xs py-1 hover:text-sky-700 transition truncate text-stone-600" style="padding-left: 24px;">Units Used Throughout This Notebook</a>
+<a href="#code-cell-1-environment-setup-sentinel-station-registry" class="block text-xs py-1 hover:text-sky-700 transition truncate text-stone-600" style="padding-left: 24px;">Code Cell 1: Environment Setup &amp; Sentinel Station Registry</a>
+<a href="#step-1-historical-data-ingestion-usgs-dv-usbr-lake-powell" class="block text-xs py-1 hover:text-sky-700 transition truncate font-bold text-stone-800" style="padding-left: 12px;">Step 1 — Historical Data Ingestion (USGS dv &amp; USBR Lake Powell)</a>
+<a href="#step-2-calculating-daily-and-weekly-water-volumes" class="block text-xs py-1 hover:text-sky-700 transition truncate font-bold text-stone-800" style="padding-left: 12px;">Step 2 — Calculating Daily and Weekly Water Volumes</a>
+<a href="#step-3-river-travel-times-how-many-days-from-gauge-to-lake-powell" class="block text-xs py-1 hover:text-sky-700 transition truncate font-bold text-stone-800" style="padding-left: 12px;">Step 3 — River Travel Times (How Many Days from Gauge to Lake Powell)</a>
+<a href="#step-4-machine-learning-model-1-unsupervised-flow-regimes-k-means-clustering" class="block text-xs py-1 hover:text-sky-700 transition truncate font-bold text-stone-800" style="padding-left: 12px;">Step 4 — Machine Learning Model 1: Unsupervised Flow Regimes (K-Means Clustering)</a>
+<a href="#step-5-tributary-contributions-to-lake-powell-refill" class="block text-xs py-1 hover:text-sky-700 transition truncate font-bold text-stone-800" style="padding-left: 12px;">Step 5 — Tributary Contributions to Lake Powell Refill</a>
+<a href="#step-6-flash-floods-vs-mountain-snowmelt-the-volume-reality" class="block text-xs py-1 hover:text-sky-700 transition truncate font-bold text-stone-800" style="padding-left: 12px;">Step 6 — Flash Floods vs. Mountain Snowmelt: The Volume Reality</a>
+<a href="#step-7-4-panel-executive-synthesis-mockup-dashboard-view" class="block text-xs py-1 hover:text-sky-700 transition truncate font-bold text-stone-800" style="padding-left: 12px;">Step 7 — 4-Panel Executive Synthesis (Mockup Dashboard View)</a>
+<a href="#step-8-summary-of-findings-in-plain-english" class="block text-xs py-1 hover:text-sky-700 transition truncate font-bold text-stone-800" style="padding-left: 12px;">Step 8 — Summary of Findings in Plain English</a>
+<a href="#1-flow-rate-cfs-is-not-the-same-as-total-water-volume-acre-feet" class="block text-xs py-1 hover:text-sky-700 transition truncate text-stone-600" style="padding-left: 24px;">1. Flow Rate (cfs) is not the same as Total Water Volume (Acre-Feet)</a>
+<a href="#2-why-lake-powell-elevation-jumps-fast-at-low-pool-canyon-shape" class="block text-xs py-1 hover:text-sky-700 transition truncate text-stone-600" style="padding-left: 24px;">2. Why Lake Powell Elevation Jumps Fast at Low Pool (Canyon Shape)</a>
+<a href="#3-the-1922-structural-deficit-cannot-be-fixed-by-storms" class="block text-xs py-1 hover:text-sky-700 transition truncate text-stone-600" style="padding-left: 24px;">3. The 1922 Structural Deficit Cannot Be Fixed by Storms</a>
+        </nav>
+        
+        <div class="mt-6 pt-4 border-t border-stone-200">
+          <div class="text-[11px] font-bold text-stone-700 mb-1.5">Research Files:</div>
+          <ul class="text-xs space-y-1 text-sky-700">
+            <li><a href="01_build_river_network.html" class="hover:underline">01. Geospatial Topology</a></li>
+            <li><a href="02_analyze_flow_and_export.html" class="hover:underline">02. Flow & Metric Engine</a></li>
+            <li><a href="03_tributary_ml_analysis.html" class="hover:underline">03. Tributary ML & Regimes</a></li>
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-stone-100 border-t border-stone-200 py-6 text-center text-xs text-stone-500 mt-12">
+    <p>Colorado River Basin Data Portal • Research Notebooks • Open Hydrologic Science</p>
+  </footer>
+
+</body>
+</html>

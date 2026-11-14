@@ -10,10 +10,12 @@
 
 const { spawn } = require('child_process');
 const http = require('http');
+const path = require('path');
+const fs = require('fs');
 
 const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const DEBUG_PORT = 9223;
-const TARGET_URL = 'http://localhost:8088/sankey.html';
+const TARGET_URL = 'http://localhost:8088/pipeline.html';
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -77,6 +79,31 @@ class CDPClient {
 }
 
 async function runVerification() {
+  // Ensure local static server is running on 8088
+  let localServer = null;
+  const isServerRunning = await new Promise(resolve => {
+    const req = http.get('http://127.0.0.1:8088/pipeline.html', () => resolve(true));
+    req.on('error', () => resolve(false));
+  });
+  if (!isServerRunning) {
+    const webDir = path.join(__dirname, '..', 'web');
+    localServer = http.createServer((req, res) => {
+      let filePath = path.join(webDir, req.url.split('?')[0]);
+      if (filePath.endsWith('/')) filePath += 'index.html';
+      fs.readFile(filePath, (err, data) => {
+        if (err) {
+          res.writeHead(404);
+          res.end();
+        } else {
+          const ext = path.extname(filePath);
+          const mime = ext === '.html' ? 'text/html' : ext === '.json' ? 'application/json' : ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'application/octet-stream';
+          res.writeHead(200, { 'Content-Type': mime });
+          res.end(data);
+        }
+      });
+    }).listen(8088);
+  }
+
   console.log('🚀 Launching Headless Chrome for Graphic Clearance Verification...');
   
   const chromeProc = spawn(CHROME_PATH, [
@@ -125,7 +152,7 @@ async function runVerification() {
     await sleep(1500);
 
     function auditPage() {
-      const svg = document.getElementById('canvas');
+      const svg = document.getElementById('canvas') || document.querySelector('#sankey-container svg');
       if (!svg) return { error: 'SVG canvas not found' };
 
       const texts = Array.from(svg.querySelectorAll('text'));
@@ -276,6 +303,9 @@ async function runVerification() {
     try {
       chromeProc.kill('SIGTERM');
     } catch(e) {}
+    if (localServer) {
+      try { localServer.close(); } catch(e) {}
+    }
   }
 }
 

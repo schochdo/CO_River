@@ -23,3 +23,29 @@ This project is split into two components to satisfy both academic requirements 
 ### Mega-Reservoirs (USBR)
 * Lake Powell
 * Lake Mead
+
+## Quickstart & Environment Setup
+
+### 1. Install Dependencies
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+npm install
+```
+
+### 2. Update Live Telemetry
+```bash
+npm run update:data
+```
+
+### 3. Run Automated Tests
+```bash
+npm test
+```
+
+### 4. Launch Local Web Dashboard
+```bash
+./start.sh
+# Open http://localhost:8000/web/index.html in your browser
+```

@@ -8,12 +8,13 @@ Writes web/data/historical_normals.json:
 import requests
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 USER_AGENT = "DAT1001-Research (Colorado River Dashboard)"
 
 GAUGE_SITES = [
     # Mainstem Upper Basin
+    "09010500",  # Colorado River below Baker Gulch (Headwaters)
     "09034250",  # Colorado River at Windy Gap near Granby, CO
     "09058000",  # Colorado River near Kremmling, CO
     "09070500",  # Colorado River near Dotsero, CO
@@ -36,10 +37,18 @@ GAUGE_SITES = [
     "09307000",  # Green River near Ouray, UT
     "09302000",  # Duchesne River near Randlett
     "09306500",  # White River near Watson
+    "09314500",  # Price River at Woodside, UT
     "09315000",  # Green River at Green River, UT
+    "09328500",  # San Rafael River near Green River, UT
+    "09333500",  # Dirty Devil River near Hanksville, UT
+    "09337500",  # Escalante River near Escalante, UT
+    "09114500",  # Gunnison River near Gunnison, CO (Headwaters)
     "09128000",  # Gunnison River below Gunnison Tunnel
     "09152500",  # Gunnison River near Grand Junction
+    "09166500",  # Dolores River at Dolores, CO (Headwaters)
+    "09169500",  # Dolores River at Bedrock, CO (McPhee Dam Release)
     "09180000",  # Dolores River near Cisco
+    "09342500",  # San Juan River at Pagosa Springs (Headwaters)
     "09355500",  # San Juan River near Archuleta (Navajo Dam)
     "09364500",  # Animas River at Farmington
     "09365000",  # San Juan River at Farmington
@@ -47,6 +56,10 @@ GAUGE_SITES = [
     "09379500",  # San Juan River near Bluff
     
     # Headwaters & West Slope Tributaries
+    "09037500",  # Williams Fork near Parshall, CO
+    "09041400",  # Muddy Creek below Wolford Mtn Reservoir
+    "09046600",  # Blue River near Dillon, CO
+    "09050700",  # Blue River below Dillon, CO
     "09057500",  # Blue River below Green Mtn Reservoir
     "09070000",  # Eagle River below Gypsum
     "09085000",  # Roaring Fork at Glenwood Springs
@@ -112,7 +125,7 @@ def main():
 
     # Write output
     out_data = {
-        "fetched_at": datetime.utcnow().isoformat() + "Z",
+        "fetched_at": datetime.now(timezone.utc).isoformat(),
         "description": "USGS historical daily-mean streamflow (cfs) keyed by site_no -> MM-DD",
         "sites": all_normals
     }
