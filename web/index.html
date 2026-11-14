@@ -1576,6 +1576,11 @@ for ts in data["value"]["timeSeries"]:
   </div>
 
   <script>
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.animation = false;
+      Chart.defaults.animations = false;
+      Chart.defaults.transitions = false;
+    }
     // Tab switching logic for the unified Research Workspace
     let currentTab = 'overview';
     const urlParams = new URLSearchParams(window.location.search);
