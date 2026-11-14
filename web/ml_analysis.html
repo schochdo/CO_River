@@ -50,7 +50,7 @@
         <span>Back to Map</span>
       </a>
       <div class="flex items-center gap-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-[#0f766e]"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-[#0072B2]"></span>
         <h1 class="text-sm font-bold text-slate-900 tracking-tight">Upper Basin River Dynamics &amp; Lake Powell Water Balance</h1>
       </div>
     </div>
@@ -60,13 +60,13 @@
       <button id="btn-all" onclick="filterRegime('all')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-slate-800 text-white shadow-xs">
         All Rivers
       </button>
-      <button id="btn-snowmelt" onclick="filterRegime('snowmelt')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200">
+      <button id="btn-snowmelt" onclick="filterRegime('snowmelt')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-sky-50 hover:bg-sky-100 text-[#0072B2] border border-[#0072B2]/30">
         Snowmelt Rivers
       </button>
-      <button id="btn-dam" onclick="filterRegime('dam_controlled')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300">
+      <button id="btn-dam" onclick="filterRegime('dam_controlled')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-emerald-50 hover:bg-emerald-100 text-[#009E73] border border-[#009E73]/30">
         Dam-Controlled
       </button>
-      <button id="btn-flash" onclick="filterRegime('flash_flood')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200">
+      <button id="btn-flash" onclick="filterRegime('flash_flood')" class="px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-orange-50 hover:bg-orange-100 text-[#D55E00] border border-[#D55E00]/30">
         Desert Flash-Flood
       </button>
     </div>
@@ -88,7 +88,7 @@
     <section class="bg-white border border-slate-300 rounded-lg p-3 flex flex-col min-h-0 shadow-xs">
       <div class="flex items-center justify-between gap-2 shrink-0 mb-1">
         <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-[#0f766e]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#0072B2]"></span>
           River Behavior &amp; Annual Water Volume
         </h2>
         <span class="text-[10px] text-slate-500 font-mono">Bubble Size = % of Powell Inflow</span>
@@ -105,7 +105,7 @@
     <section class="bg-white border border-slate-300 rounded-lg p-3 flex flex-col min-h-0 shadow-xs">
       <div class="flex items-center justify-between gap-2 shrink-0 mb-1">
         <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-[#475569]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#009E73]"></span>
           How Many Days Until Water Reaches Lake Powell?
         </h2>
         <span class="text-[10px] text-slate-500 font-mono">Arrival Delay: 1.5 to 8 Days</span>
@@ -122,7 +122,7 @@
     <section class="bg-white border border-slate-300 rounded-lg p-3 flex flex-col min-h-0 shadow-xs">
       <div class="flex items-center justify-between gap-2 shrink-0 mb-1">
         <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-[#0f172a]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#1e293b]"></span>
           100 Years of Wet Water vs. Paper Promises (1922–2026)
         </h2>
         <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-slate-100 text-slate-800 border border-slate-300">
@@ -141,10 +141,10 @@
     <section class="bg-white border border-slate-300 rounded-lg p-3 flex flex-col min-h-0 shadow-xs">
       <div class="flex items-center justify-between gap-2 shrink-0 mb-1">
         <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-[#0f766e]"></span>
+          <span class="w-2 h-2 rounded-full bg-[#0072B2]"></span>
           Why Reservoirs Drain 9 Months of the Year (Seasonal Supply vs. Demand)
         </h2>
-        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-teal-50 text-teal-900 border border-teal-200">
+        <span class="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-50 text-[#0072B2] border border-[#0072B2]/30">
           May–July Surplus (96d) • Aug–Apr Drawdown (269d)
         </span>
       </div>
@@ -164,7 +164,7 @@
   <script>
     Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
     Chart.defaults.color = "#475569";
-    Chart.defaults.borderColor = "#f1f5f9";
+    Chart.defaults.borderColor = "#e2e8f0";
     Chart.defaults.animation = false;
     Chart.defaults.animations = false;
     Chart.defaults.transitions = false;
@@ -190,12 +190,18 @@
     }
 
     // ================================================================
-    // CORE RIVER DATASET (LINKED ACROSS CARD 1 & CARD 2)
-    // Editorial Color Palette:
-    //   - Snowmelt: Deep Alpine Teal (#0f766e)
-    //   - Dam-Controlled: Muted Steel Slate (#475569)
-    //   - Desert Flash-Flood: Warm Canyon Terracotta (#c2410c)
+    // COLORBLIND-SAFE PALETTE (OKABE-ITO / COLORBREWER STANDARD)
+    //   - Snowmelt Rivers / Lake Mead / Wet Water Surplus: #0072B2 (Deep Blue, fill rgba(0, 114, 178, 0.16))
+    //   - Dam-Regulated Rivers / Lake Powell:              #009E73 (Bluish-Green, fill rgba(0, 158, 115, 0.16))
+    //   - Desert Flash-Flood / Structural Deficit:         #D55E00 (Vermilion Terracotta, fill rgba(213, 94, 0, 0.16))
+    //   - Secondary Series (Flaming Gorge, Navajo, Blue Mesa): #E69F00, #56B4E9, #CC79A7
+    //   - 16.5 MAF Compact Paper Target / Thresholds:      #1e293b (Charcoal dashed 2px)
     // ================================================================
+    const COLOR_SNOWMELT = '#0072B2';
+    const COLOR_DAM = '#009E73';
+    const COLOR_FLASH = '#D55E00';
+    const COLOR_TARGET = '#1e293b';
+
     const RIVERS = [
       {
         id: 'green_river',
@@ -205,7 +211,7 @@
         x: 0.18, // Steady flow
         y: 3.80, // 3.80 MAF/yr
         r: 18,
-        color: '#475569',
+        color: COLOR_DAM,
         travelDays: 4.5,
         distanceMi: 120,
         sharePct: 35,
@@ -220,7 +226,7 @@
         x: 0.28,
         y: 3.30,
         r: 16,
-        color: '#0f766e',
+        color: COLOR_SNOWMELT,
         travelDays: 3.5,
         distanceMi: 110,
         sharePct: 30,
@@ -235,7 +241,7 @@
         x: 0.32,
         y: 2.85,
         r: 15,
-        color: '#0f766e',
+        color: COLOR_SNOWMELT,
         travelDays: 6.5,
         distanceMi: 210,
         sharePct: 26,
@@ -250,7 +256,7 @@
         x: 0.15,
         y: 2.00,
         r: 13,
-        color: '#475569',
+        color: COLOR_DAM,
         travelDays: 5.5,
         distanceMi: 180,
         sharePct: 18,
@@ -265,7 +271,7 @@
         x: 0.08,
         y: 1.40,
         r: 10,
-        color: '#475569',
+        color: COLOR_DAM,
         travelDays: 7.0,
         distanceMi: 290,
         sharePct: 13,
@@ -280,7 +286,7 @@
         x: 0.42,
         y: 1.25,
         r: 10,
-        color: '#0f766e',
+        color: COLOR_SNOWMELT,
         travelDays: 8.0,
         distanceMi: 350,
         sharePct: 11,
@@ -295,7 +301,7 @@
         x: 0.78,
         y: 1.15,
         r: 9,
-        color: '#c2410c',
+        color: COLOR_FLASH,
         travelDays: 1.5,
         distanceMi: 105,
         sharePct: 10,
@@ -310,7 +316,7 @@
         x: 0.88,
         y: 0.07,
         r: 6,
-        color: '#c2410c',
+        color: COLOR_FLASH,
         travelDays: 1.0,
         distanceMi: 40,
         sharePct: 1,
@@ -325,7 +331,7 @@
         x: 0.84,
         y: 0.05,
         r: 5,
-        color: '#c2410c',
+        color: COLOR_FLASH,
         travelDays: 1.0,
         distanceMi: 35,
         sharePct: 1,
@@ -416,7 +422,7 @@
                 font: { size: 9.5 },
                 color: '#64748b'
               },
-              grid: { color: '#f1f5f9' }
+              grid: { display: false }
             },
             y: {
               min: 0,
@@ -432,7 +438,7 @@
                 font: { size: 9.5 },
                 color: '#64748b'
               },
-              grid: { color: '#f1f5f9' }
+              grid: { color: '#e2e8f0', lineWidth: 1 }
             }
           },
           onClick: (evt, elements) => {
@@ -461,7 +467,7 @@
         regime: r.regime,
         data: r.travelCurve,
         borderColor: r.color,
-        backgroundColor: hexToRgba(r.color, 0.18),
+        backgroundColor: hexToRgba(r.color, 0.16),
         borderWidth: 2,
         tension: 0.35,
         fill: false,
@@ -526,7 +532,7 @@
                 color: '#475569'
               },
               ticks: { font: { size: 9.5 }, color: '#64748b' },
-              grid: { color: '#f1f5f9' }
+              grid: { display: false }
             },
             y: {
               min: 0.0,
@@ -547,7 +553,7 @@
                 font: { size: 9.5 },
                 color: '#64748b'
               },
-              grid: { color: '#f1f5f9' }
+              grid: { color: '#e2e8f0', lineWidth: 1 }
             }
           },
           onClick: (evt, elements) => {
@@ -565,11 +571,11 @@
 
     // ================================================================
     // CARD 3: 100 YEARS WET WATER VS PAPER PROMISES (1922-2026)
-    // Cohesive Palette:
-    //   - Wet Water Surplus: Deep Alpine Teal (#0f766e)
-    //   - Structural Deficit: Warm Canyon Terracotta (#c2410c)
-    //   - Lake Powell Releases: Muted Steel Slate (#475569)
-    //   - 16.5 MAF Target Line: Charcoal (#0f172a)
+    // Okabe-Ito Colorblind-Safe Palette:
+    //   - Wet Water Surplus: COLOR_SNOWMELT (#0072B2)
+    //   - Structural Deficit: COLOR_FLASH (#D55E00)
+    //   - Lake Powell Releases: COLOR_DAM (#009E73)
+    //   - 16.5 MAF Target Line: COLOR_TARGET (#1e293b dashed 2px)
     // ================================================================
     async function initCompactChart() {
       const seasonalData = await loadSeasonalData();
@@ -580,7 +586,7 @@
       const labels = ts.map(d => d.wy);
       const supplyVals = ts.map(d => d.supply_maf);
       const releaseVals = ts.map(d => d.lees_ferry_release_maf);
-      const bgColors = ts.map(d => d.meets_compact ? '#0f766e' : '#c2410c');
+      const bgColors = ts.map(d => d.meets_compact ? COLOR_SNOWMELT : COLOR_FLASH);
 
       const ctx = document.getElementById('chart-compact-100yr').getContext('2d');
       chartCompact = new Chart(ctx, {
@@ -601,7 +607,7 @@
               type: 'line',
               label: 'Downstream Lake Powell Releases (MAF)',
               data: releaseVals,
-              borderColor: '#475569',
+              borderColor: COLOR_DAM,
               borderWidth: 1.8,
               pointRadius: 0,
               tension: 0.1,
@@ -611,8 +617,8 @@
               type: 'line',
               label: '16.5 MAF/yr Paper Promise (1922 Compact)',
               data: labels.map(() => 16.5),
-              borderColor: '#0f172a',
-              borderWidth: 1.8,
+              borderColor: COLOR_TARGET,
+              borderWidth: 2,
               borderDash: [5, 4],
               pointRadius: 0,
               fill: false,
@@ -653,7 +659,7 @@
                 font: { size: 9.5 },
                 color: '#64748b'
               },
-              grid: { color: '#f8fafc' }
+              grid: { display: false }
             },
             y: {
               min: 0,
@@ -669,7 +675,7 @@
                 font: { size: 9.5 },
                 color: '#64748b'
               },
-              grid: { color: '#f1f5f9' }
+              grid: { color: '#e2e8f0', lineWidth: 1 }
             }
           }
         }
@@ -679,8 +685,8 @@
     // ================================================================
     // CARD 4: REAL 365-DAY SEASONAL SUPPLY VS. DEMAND MISMATCH
     // Driven by real daily hydrology from web/data/seasonal_regimes.json
-    //   - Total Basin Snowmelt Inflow: #0f766e Alpine Teal area
-    //   - Total System Outflow & Demand: #c2410c Terracotta line
+    //   - Total Basin Snowmelt Inflow: COLOR_SNOWMELT (#0072B2 Blue, fill rgba(0, 114, 178, 0.16))
+    //   - Total System Outflow & Demand: COLOR_FLASH (#D55E00 Vermilion line)
     // ================================================================
     async function initHydrographChart() {
       const data = await loadSeasonalData();
@@ -701,8 +707,8 @@
             {
               label: 'Total Basin Snowmelt Inflow (cfs)',
               data: supply,
-              borderColor: '#0f766e',
-              backgroundColor: 'rgba(15, 118, 110, 0.22)',
+              borderColor: COLOR_SNOWMELT,
+              backgroundColor: 'rgba(0, 114, 178, 0.16)',
               fill: true,
               borderWidth: 2,
               tension: 0.25,
@@ -712,7 +718,7 @@
             {
               label: 'Total System Outflow & Canal Demand (cfs)',
               data: demand,
-              borderColor: '#c2410c',
+              borderColor: COLOR_FLASH,
               backgroundColor: 'transparent',
               fill: false,
               borderWidth: 2.2,
@@ -777,7 +783,7 @@
                 font: { size: 9.5, weight: 600 },
                 color: '#64748b'
               },
-              grid: { color: '#f1f5f9' }
+              grid: { display: false }
             },
             y: {
               min: 0,
@@ -793,7 +799,7 @@
                 font: { size: 9.5 },
                 color: '#64748b'
               },
-              grid: { color: '#f1f5f9' }
+              grid: { color: '#e2e8f0', lineWidth: 1 }
             }
           }
         }
@@ -818,9 +824,9 @@
         const river = RIVERS.find(r => r.id === riverId);
         if (river) {
           pill.textContent = river.summary;
-          const pillClass = river.regime === 'snowmelt' ? 'text-teal-900 bg-teal-50 border-teal-300' :
-                            river.regime === 'flash_flood' ? 'text-orange-900 bg-orange-50 border-orange-300' :
-                            'text-slate-900 bg-slate-100 border-slate-300';
+          const pillClass = river.regime === 'snowmelt' ? 'text-[#0072B2] bg-sky-50 border-[#0072B2]/40' :
+                            river.regime === 'flash_flood' ? 'text-[#D55E00] bg-orange-50 border-[#D55E00]/40' :
+                            'text-[#009E73] bg-emerald-50 border-[#009E73]/40';
           pill.className = `text-[11px] font-semibold ${pillClass} border rounded-full px-3 py-0.5 truncate max-w-[440px]`;
         }
       }
@@ -845,9 +851,9 @@
         if (key === regime) {
           btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-slate-800 text-white shadow-xs';
         } else {
-          if (key === 'snowmelt') btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200';
-          else if (key === 'dam_controlled') btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300';
-          else if (key === 'flash_flood') btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-orange-50 hover:bg-orange-100 text-orange-800 border border-orange-200';
+          if (key === 'snowmelt') btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-sky-50 hover:bg-sky-100 text-[#0072B2] border border-[#0072B2]/30';
+          else if (key === 'dam_controlled') btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-emerald-50 hover:bg-emerald-100 text-[#009E73] border border-[#009E73]/30';
+          else if (key === 'flash_flood') btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-orange-50 hover:bg-orange-100 text-[#D55E00] border border-[#D55E00]/30';
           else btn.className = 'px-2.5 py-1 text-xs font-semibold rounded transition-colors bg-white hover:bg-slate-100 text-slate-700 border border-slate-200';
         }
       }
@@ -863,13 +869,13 @@
         pill.className = 'text-[11px] font-medium text-slate-700 bg-slate-100 border border-slate-200 rounded-full px-3 py-0.5 truncate max-w-[440px]';
       } else if (selectedRegime === 'snowmelt') {
         pill.textContent = 'Filter: Mountain Snowmelt Rivers — Deliver 37% of inflow in a concentrated 60-day spring surge';
-        pill.className = 'text-[11px] font-semibold text-teal-900 bg-teal-50 border border-teal-200 rounded-full px-3 py-0.5 truncate max-w-[440px]';
+        pill.className = 'text-[11px] font-semibold text-[#0072B2] bg-sky-50 border border-[#0072B2]/30 rounded-full px-3 py-0.5 truncate max-w-[440px]';
       } else if (selectedRegime === 'dam_controlled') {
         pill.textContent = 'Filter: Dam-Controlled Rivers — Deliver 53% of inflow via upstream storage releases';
-        pill.className = 'text-[11px] font-semibold text-slate-900 bg-slate-100 border border-slate-300 rounded-full px-3 py-0.5 truncate max-w-[440px]';
+        pill.className = 'text-[11px] font-semibold text-[#009E73] bg-emerald-50 border border-[#009E73]/30 rounded-full px-3 py-0.5 truncate max-w-[440px]';
       } else if (selectedRegime === 'flash_flood') {
         pill.textContent = 'Filter: Desert Flash-Flood Streams — Sudden mudflow spikes that drain out in hours';
-        pill.className = 'text-[11px] font-semibold text-orange-900 bg-orange-50 border border-orange-200 rounded-full px-3 py-0.5 truncate max-w-[440px]';
+        pill.className = 'text-[11px] font-semibold text-[#D55E00] bg-orange-50 border border-[#D55E00]/30 rounded-full px-3 py-0.5 truncate max-w-[440px]';
       }
     }
 
@@ -882,10 +888,10 @@
 
           if (isSelected) {
             ds.backgroundColor = hexToRgba(r.color, 0.85);
-            ds.borderColor = selectedRiverId ? '#0f172a' : r.color;
+            ds.borderColor = selectedRiverId ? '#1e293b' : r.color;
             ds.borderWidth = selectedRiverId ? 3.0 : 1.5;
           } else {
-            ds.backgroundColor = hexToRgba(r.color, 0.18);
+            ds.backgroundColor = hexToRgba(r.color, 0.16);
             ds.borderColor = hexToRgba(r.color, 0.75); // Crisp 1.5px border with 0.75 opacity
             ds.borderWidth = 1.5;
           }
@@ -900,12 +906,12 @@
           const r = RIVERS.find(item => item.id === ds.riverId);
 
           if (isSelected) {
-            ds.borderColor = r ? r.color : '#475569';
-            ds.backgroundColor = hexToRgba(r ? r.color : '#475569', 0.22);
+            ds.borderColor = r ? r.color : COLOR_DAM;
+            ds.backgroundColor = hexToRgba(r ? r.color : COLOR_DAM, 0.16);
             ds.borderWidth = selectedRiverId ? 3.5 : 2.0;
           } else {
             const baseColor = r ? r.color : '#94a3b8';
-            ds.borderColor = hexToRgba(baseColor, 0.20);
+            ds.borderColor = hexToRgba(baseColor, 0.18);
             ds.backgroundColor = 'transparent';
             ds.borderWidth = 1.0;
           }

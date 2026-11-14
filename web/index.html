@@ -1577,6 +1577,7 @@ for ts in data["value"]["timeSeries"]:
 
   <script>
     if (typeof Chart !== 'undefined') {
+      Chart.defaults.borderColor = '#e2e8f0';
       Chart.defaults.animation = false;
       Chart.defaults.animations = false;
       Chart.defaults.transitions = false;
@@ -1863,6 +1864,15 @@ for ts in data["value"]["timeSeries"]:
         
         // Render charts once data is loaded
         initOverviewCharts();
+        if (currentTab === 'reservoirs') {
+          renderMacroStorageTimeline();
+          renderHypsometricChart();
+          if (currentReservoirRecord === 'mead') {
+            renderMeadHistoricalCharts();
+          } else {
+            renderPowellHistoricalCharts();
+          }
+        }
       } catch (err) {
         console.error('Failed loading portal data:', err);
       }
@@ -1934,8 +1944,8 @@ for ts in data["value"]["timeSeries"]:
           datasets: [{
             label: 'Discharge (cfs)',
             data: lfCfs,
-            borderColor: '#0284c7',
-            backgroundColor: 'rgba(2, 132, 199, 0.12)',
+            borderColor: '#0072B2',
+            backgroundColor: 'rgba(0, 114, 178, 0.16)',
             borderWidth: 1.5,
             fill: true,
             tension: 0.1,
@@ -1963,7 +1973,7 @@ for ts in data["value"]["timeSeries"]:
             },
             y: {
               ticks: { font: { size: 9 }, maxTicksLimit: 4 },
-              grid: { color: '#e5e7eb' }
+              grid: { color: '#e2e8f0', lineWidth: 1 }
             }
           }
         }
@@ -1985,8 +1995,8 @@ for ts in data["value"]["timeSeries"]:
             datasets: [{
               label: 'Total Basin Storage (MAF)',
               data: macroTotalMaf,
-              borderColor: '#0284c7',
-              backgroundColor: 'rgba(2, 132, 199, 0.14)',
+              borderColor: '#0072B2',
+              backgroundColor: 'rgba(0, 114, 178, 0.16)',
               borderWidth: 2.2,
               fill: true,
               tension: 0.15,
@@ -2000,8 +2010,8 @@ for ts in data["value"]["timeSeries"]:
             plugins: {
               horizontalThresholdPlugin: {
                 lines: [
-                  { value: 60.0, label: 'Capacity', color: '#64748b', dash: [6, 4], unit: 'MAF' },
-                  { value: 6.0, label: 'Min Power', color: '#d97706', dash: [5, 3], unit: 'MAF' }
+                  { value: 60.0, label: 'Capacity', color: '#1e293b', dash: [6, 4], unit: 'MAF' },
+                  { value: 6.0, label: 'Min Power', color: '#D55E00', dash: [5, 3], unit: 'MAF' }
                 ]
               },
               legend: { display: false },
@@ -2020,7 +2030,7 @@ for ts in data["value"]["timeSeries"]:
                 min: 0,
                 max: 65,
                 ticks: { font: { size: 9 }, stepSize: 15, callback: (v) => v + 'M' },
-                grid: { color: '#e5e7eb' }
+                grid: { color: '#e2e8f0', lineWidth: 1 }
               }
             }
           }
@@ -2106,8 +2116,8 @@ for ts in data["value"]["timeSeries"]:
           {
             label: 'Combined Basin Total Storage',
             data: totalMaf,
-            borderColor: '#0f172a',
-            backgroundColor: 'rgba(15, 23, 42, 0.08)',
+            borderColor: '#1e293b',
+            backgroundColor: 'rgba(30, 41, 59, 0.16)',
             borderWidth: 2.8,
             fill: true,
             tension: 0.15,
@@ -2115,13 +2125,13 @@ for ts in data["value"]["timeSeries"]:
           }
         ];
       } else {
-        // Individual reservoirs or Stacked area
+        // Individual reservoirs or Stacked area (Okabe-Ito Colorblind-Safe Palette)
         datasets = [
           {
             label: 'Lake Mead (26.1M AF)',
             data: meadMaf,
-            borderColor: '#0284c7',
-            backgroundColor: isStacked ? 'rgba(2, 132, 199, 0.45)' : 'rgba(2, 132, 199, 0.08)',
+            borderColor: '#0072B2',
+            backgroundColor: isStacked ? 'rgba(0, 114, 178, 0.45)' : 'rgba(0, 114, 178, 0.16)',
             borderWidth: isStacked ? 1 : 2.2,
             fill: isStacked ? true : false,
             tension: 0.15,
@@ -2130,8 +2140,8 @@ for ts in data["value"]["timeSeries"]:
           {
             label: 'Lake Powell (24.3M AF)',
             data: powellMaf,
-            borderColor: '#0d9488',
-            backgroundColor: isStacked ? 'rgba(13, 148, 136, 0.45)' : 'rgba(13, 148, 136, 0.08)',
+            borderColor: '#009E73',
+            backgroundColor: isStacked ? 'rgba(0, 158, 115, 0.45)' : 'rgba(0, 158, 115, 0.16)',
             borderWidth: isStacked ? 1 : 2.2,
             fill: isStacked ? true : false,
             tension: 0.15,
@@ -2140,8 +2150,8 @@ for ts in data["value"]["timeSeries"]:
           {
             label: 'Flaming Gorge (3.75M AF)',
             data: fgMaf,
-            borderColor: '#16a34a',
-            backgroundColor: isStacked ? 'rgba(22, 163, 74, 0.45)' : 'rgba(22, 163, 74, 0.08)',
+            borderColor: '#E69F00',
+            backgroundColor: isStacked ? 'rgba(230, 159, 0, 0.45)' : 'rgba(230, 159, 0, 0.16)',
             borderWidth: isStacked ? 1 : 1.8,
             fill: isStacked ? true : false,
             tension: 0.15,
@@ -2150,8 +2160,8 @@ for ts in data["value"]["timeSeries"]:
           {
             label: 'Navajo (1.70M AF)',
             data: navajoMaf,
-            borderColor: '#0891b2',
-            backgroundColor: isStacked ? 'rgba(8, 145, 178, 0.45)' : 'rgba(8, 145, 178, 0.08)',
+            borderColor: '#56B4E9',
+            backgroundColor: isStacked ? 'rgba(86, 180, 233, 0.45)' : 'rgba(86, 180, 233, 0.16)',
             borderWidth: isStacked ? 1 : 1.8,
             fill: isStacked ? true : false,
             tension: 0.15,
@@ -2160,8 +2170,8 @@ for ts in data["value"]["timeSeries"]:
           {
             label: 'Blue Mesa (0.83M AF)',
             data: bmMaf,
-            borderColor: '#ea580c',
-            backgroundColor: isStacked ? 'rgba(234, 88, 12, 0.45)' : 'rgba(234, 88, 12, 0.08)',
+            borderColor: '#CC79A7',
+            backgroundColor: isStacked ? 'rgba(204, 121, 167, 0.45)' : 'rgba(204, 121, 167, 0.16)',
             borderWidth: isStacked ? 1 : 1.8,
             fill: isStacked ? true : false,
             tension: 0.15,
@@ -2177,14 +2187,14 @@ for ts in data["value"]["timeSeries"]:
       if (isStacked || isSystemTotal) {
         yMax = 65; // Accommodates full 56.2M AF peak without running off top
         thresholdLines = [
-          { value: 60.0, label: 'Full System Capacity', color: '#64748b', dash: [6, 4], unit: 'M AF' },
-          { value: 6.0, label: 'Min Power Combined', color: '#d97706', dash: [5, 3], unit: 'M AF' }
+          { value: 60.0, label: 'Full System Capacity', color: '#1e293b', dash: [6, 4], unit: 'M AF' },
+          { value: 6.0, label: 'Min Power Combined', color: '#D55E00', dash: [5, 3], unit: 'M AF' }
         ];
       } else {
         yMax = 30; // Accommodates individual Mead/Powell capacities (26.1M and 24.3M) cleanly
         thresholdLines = [
-          { value: 26.1, label: 'Mead Capacity', color: '#0284c7', dash: [4, 4], unit: 'M AF' },
-          { value: 24.3, label: 'Powell Capacity', color: '#0d9488', dash: [4, 4], unit: 'M AF' }
+          { value: 26.1, label: 'Mead Capacity', color: '#0072B2', dash: [4, 4], unit: 'M AF' },
+          { value: 24.3, label: 'Powell Capacity', color: '#009E73', dash: [4, 4], unit: 'M AF' }
         ];
       }
 
@@ -2229,7 +2239,7 @@ for ts in data["value"]["timeSeries"]:
                 font: { size: 10 },
                 callback: (val) => val + 'M AF'
               },
-              grid: { color: '#e5e7eb' }
+              grid: { color: '#e2e8f0', lineWidth: 1 }
             }
           }
         }
@@ -2320,8 +2330,8 @@ for ts in data["value"]["timeSeries"]:
             {
               label: 'Annual Mean Elevation',
               data: meanElv,
-              borderColor: '#0284c7',
-              backgroundColor: 'rgba(2, 132, 199, 0.08)',
+              borderColor: '#0072B2',
+              backgroundColor: 'rgba(0, 114, 178, 0.16)',
               borderWidth: 2.2,
               pointRadius: 0,
               tension: 0.15
@@ -2329,17 +2339,17 @@ for ts in data["value"]["timeSeries"]:
             {
               label: 'Annual Max Elevation',
               data: maxElv,
-              borderColor: 'rgba(56, 189, 248, 0.6)',
+              borderColor: 'rgba(0, 114, 178, 0.5)',
               borderWidth: 1,
               borderDash: [2, 2],
               pointRadius: 0,
               fill: '+1',
-              backgroundColor: 'rgba(186, 230, 253, 0.35)'
+              backgroundColor: 'rgba(0, 114, 178, 0.10)'
             },
             {
               label: 'Annual Min Elevation',
               data: minElv,
-              borderColor: 'rgba(56, 189, 248, 0.6)',
+              borderColor: 'rgba(0, 114, 178, 0.5)',
               borderWidth: 1,
               borderDash: [2, 2],
               pointRadius: 0,
@@ -2357,9 +2367,9 @@ for ts in data["value"]["timeSeries"]:
           plugins: {
             horizontalThresholdPlugin: {
               lines: [
-                { value: 1221.4, label: 'Spillway Crest', color: '#64748b', dash: [6, 4] },
-                { value: 1075.0, label: 'Tier 1 Shortage', color: '#0284c7', dash: [5, 3] },
-                { value: 950.0, label: 'Min Power Pool', color: '#d97706', dash: [5, 3] },
+                { value: 1221.4, label: 'Spillway Crest', color: '#1e293b', dash: [6, 4] },
+                { value: 1075.0, label: 'Tier 1 Shortage', color: '#0072B2', dash: [5, 3] },
+                { value: 950.0, label: 'Min Power Pool', color: '#D55E00', dash: [5, 3] },
                 { value: 895.0, label: 'Dead Pool', color: '#dc2626', dash: [6, 3] }
               ]
             },
@@ -2385,7 +2395,7 @@ for ts in data["value"]["timeSeries"]:
                 font: { size: 10 },
                 callback: (val) => val + ' ft'
               },
-              grid: { color: '#e5e7eb' }
+              grid: { color: '#e2e8f0', lineWidth: 1 }
             }
           }
         }
@@ -2558,8 +2568,8 @@ for ts in data["value"]["timeSeries"]:
               label: 'Elevation vs Storage Curve',
               data: curvePoints,
               showLine: true,
-              borderColor: currentHypsoRes === 'mead' ? '#0284c7' : '#0d9488',
-              backgroundColor: currentHypsoRes === 'mead' ? 'rgba(2, 132, 199, 0.12)' : 'rgba(13, 148, 136, 0.12)',
+              borderColor: currentHypsoRes === 'mead' ? '#0072B2' : '#009E73',
+              backgroundColor: currentHypsoRes === 'mead' ? 'rgba(0, 114, 178, 0.16)' : 'rgba(0, 158, 115, 0.16)',
               fill: true,
               tension: 0.25,
               borderWidth: 2.5,
@@ -2597,7 +2607,7 @@ for ts in data["value"]["timeSeries"]:
                 font: { size: 10, weight: 'bold' }
               },
               ticks: { font: { size: 9 }, callback: (v) => v + 'M' },
-              grid: { color: '#e5e7eb' }
+              grid: { display: false }
             },
             y: {
               type: 'linear',
@@ -2609,7 +2619,7 @@ for ts in data["value"]["timeSeries"]:
                 font: { size: 10, weight: 'bold' }
               },
               ticks: { font: { size: 9 }, callback: (v) => v.toLocaleString() + "'" },
-              grid: { color: '#e5e7eb' }
+              grid: { color: '#e2e8f0', lineWidth: 1 }
             }
           }
         }
@@ -2647,8 +2657,8 @@ for ts in data["value"]["timeSeries"]:
             {
               label: 'Annual Mean Elevation',
               data: meanElv,
-              borderColor: '#0f766e',
-              backgroundColor: 'rgba(15, 118, 110, 0.08)',
+              borderColor: '#009E73',
+              backgroundColor: 'rgba(0, 158, 115, 0.16)',
               borderWidth: 2.2,
               pointRadius: 0,
               tension: 0.15
@@ -2656,17 +2666,17 @@ for ts in data["value"]["timeSeries"]:
             {
               label: 'Annual Max Elevation',
               data: maxElv,
-              borderColor: 'rgba(45, 212, 191, 0.6)',
+              borderColor: 'rgba(0, 158, 115, 0.5)',
               borderWidth: 1,
               borderDash: [2, 2],
               pointRadius: 0,
               fill: '+1',
-              backgroundColor: 'rgba(204, 251, 241, 0.35)'
+              backgroundColor: 'rgba(0, 158, 115, 0.10)'
             },
             {
               label: 'Annual Min Elevation',
               data: minElv,
-              borderColor: 'rgba(45, 212, 191, 0.6)',
+              borderColor: 'rgba(0, 158, 115, 0.5)',
               borderWidth: 1,
               borderDash: [2, 2],
               pointRadius: 0,
@@ -2684,9 +2694,9 @@ for ts in data["value"]["timeSeries"]:
           plugins: {
             horizontalThresholdPlugin: {
               lines: [
-                { value: 3700.0, label: 'Spillway / Full Pool', color: '#64748b', dash: [6, 4] },
-                { value: 3648.0, label: 'Top Joint Use', color: '#0d9488', dash: [5, 3] },
-                { value: 3490.0, label: 'Min Power Pool', color: '#d97706', dash: [5, 3] },
+                { value: 3700.0, label: 'Spillway / Full Pool', color: '#1e293b', dash: [6, 4] },
+                { value: 3648.0, label: 'Top Joint Use', color: '#009E73', dash: [5, 3] },
+                { value: 3490.0, label: 'Min Power Pool', color: '#D55E00', dash: [5, 3] },
                 { value: 3370.0, label: 'Dead Pool', color: '#dc2626', dash: [6, 3] }
               ]
             },
@@ -2712,7 +2722,7 @@ for ts in data["value"]["timeSeries"]:
                 font: { size: 10 },
                 callback: (val) => val + ' ft'
               },
-              grid: { color: '#e5e7eb' }
+              grid: { color: '#e2e8f0', lineWidth: 1 }
             }
           }
         }
