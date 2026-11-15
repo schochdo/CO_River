@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Colorado River Basin Data Portal | Academic Research Edition</title>
   
-  <!-- Inter & JetBrains Mono Fonts -->
+  <!-- Editorial Typography: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -27,9 +27,12 @@
       height: 100vh;
       overflow: hidden;
     }
-    .mono, .tabular-nums {
-      font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    .tabular-nums {
       font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+    }
+    .mono, code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     
     /* Academic editorial palette matching Tufte / data science presentation */

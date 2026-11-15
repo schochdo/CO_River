@@ -6,7 +6,7 @@
   <title>Colorado River Basin: Unified Annual Water Budget & Structural Deficit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- D3.js & D3-Sankey (Local vendor fallback for offline/sandboxed reliability) -->
   <script src="./vendor/d3.min.js"></script>
@@ -28,9 +28,12 @@
       overflow-x: hidden;
       padding: 16px 20px;
     }
-    .mono, .tabular-nums {
-      font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    .tabular-nums {
       font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum";
+    }
+    .mono, code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     
     /* Sankey Node & Link Styles */
@@ -151,20 +154,20 @@
         </div>
         <h1 class="text-xl md:text-2xl font-black text-stone-900 tracking-tight mt-1 flex items-center gap-3">
           Colorado River: Unified Annual Water Budget &amp; Structural Deficit
-          <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-sky-100 text-sky-900 border border-sky-300">Annual Scale: MAF/yr</span>
+          <span class="text-xs font-bold tabular-nums px-2.5 py-0.5 rounded bg-sky-100 text-sky-900 border border-sky-300">Annual Scale: MAF/yr</span>
         </h1>
       </div>
 
       <!-- Live Metric Indicator Pills -->
       <div class="flex items-center gap-2 text-xs">
         <div class="px-3 py-1 rounded-lg bg-sky-50 border border-sky-200 text-sky-900 font-semibold">
-          Natural Runoff: <strong class="font-mono text-sky-950">12.40 MAF</strong>
+          Natural Runoff: <strong class="tabular-nums text-sky-950">12.40 MAF</strong>
         </div>
         <div class="px-3 py-1 rounded-lg bg-red-50 border border-red-200 text-red-900 font-semibold">
-          Consumptive Overdraft: <strong class="font-mono text-red-950">-2.05 MAF/yr</strong>
+          Consumptive Overdraft: <strong class="tabular-nums text-red-950">-2.05 MAF/yr</strong>
         </div>
         <div class="px-3 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 font-semibold">
-          Total Depletion: <strong class="font-mono text-amber-950">14.45 MAF</strong>
+          Total Depletion: <strong class="tabular-nums text-amber-950">14.45 MAF</strong>
         </div>
       </div>
     </header>
@@ -401,7 +404,7 @@
             <div class="font-bold text-stone-900 text-xs">${d.source.name} → ${d.target.name}</div>
             <div class="mt-1 flex items-baseline justify-between gap-4">
               <span class="text-stone-500 text-xs">Annual Volume:</span>
-              <span class="font-mono font-bold text-sm" style="color: ${colorMap[d.category] || '#0f172a'}">${d.value.toFixed(2)} MAF/yr</span>
+              <span class="tabular-nums font-bold text-sm" style="color: ${colorMap[d.category] || '#0f172a'}">${d.value.toFixed(2)} MAF/yr</span>
             </div>
             <div class="text-[10px] text-stone-400 mt-1">Equivalent continuous flow: ~${Math.round(d.value * 1381.18).toLocaleString()} cfs</div>
           `;
@@ -437,7 +440,7 @@
             ${d.legal_priority ? `<div class="text-[10px] text-stone-600 mt-0.5"><span class="font-bold">Legal Priority:</span> ${d.legal_priority}</div>` : ''}
             <div class="mt-1.5 pt-1.5 border-t border-stone-200 flex items-baseline justify-between gap-4">
               <span class="text-stone-500 text-xs">Total Accounting:</span>
-              <span class="font-mono font-bold text-sm" style="color: ${colorMap[d.category] || '#0f172a'}">${d.value.toFixed(2)} MAF/yr</span>
+              <span class="tabular-nums font-bold text-sm" style="color: ${colorMap[d.category] || '#0f172a'}">${d.value.toFixed(2)} MAF/yr</span>
             </div>
             <div class="text-[10px] text-stone-400 mt-0.5">Continuous rate: ~${Math.round(d.value * 1381.18).toLocaleString()} cfs</div>
           `;
@@ -474,13 +477,14 @@
         .attr("fill", "#0f172a")
         .text(d => d.name);
 
-      // Line 2: Value Badge in Monospace
+      // Line 2: Value Badge with Tabular Figures
       textGroup.append("tspan")
         .attr("x", function() { return d3.select(this.parentNode).attr("x"); })
         .attr("dy", "1.35em")
-        .attr("font-size", "10px")
-        .attr("font-family", "'JetBrains Mono', monospace")
-        .attr("font-weight", "700")
+        .attr("font-size", "10.5px")
+        .attr("font-family", "'Inter', -apple-system, sans-serif")
+        .style("font-variant-numeric", "tabular-nums")
+        .attr("font-weight", "600")
         .attr("fill", d => colorMap[d.category] || "#475569")
         .text(d => `${d.value.toFixed(2)} MAF/yr`);
     }

@@ -56,6 +56,11 @@ body {
   overflow: hidden;
 }
 
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
 /* Header */
 .app-header {
   height: 60px;
