@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <!-- Editorial Design Standard (Edward Tufte / NYT Restrained Palette) -->
+  <link rel="stylesheet" href="editorial.css">
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -76,16 +78,16 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <button id="btn-toggle-map" onclick="showStationOnMap('')" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#f1f5f9] hover:bg-white text-slate-800 text-xs font-semibold border-[1.5px] border-[#94a3b8] shadow-sm transition" title="Switch to Full-Bleed Cartographic Map">
-          <span>🗺️ Map View</span>
+        <button id="btn-toggle-map" onclick="showStationOnMap('')" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#f1f5f9] hover:bg-white text-slate-800 text-xs font-semibold border border-[#94a3b8] transition" title="Switch to Full-Bleed Cartographic Map">
+          <span>Map View</span>
         </button>
-        <a id="btn-flow-diagram" href="./pipeline.html" onclick="goToFlowDiagram(event)" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#f1f5f9] hover:bg-white text-slate-800 text-xs font-semibold border-[1.5px] border-[#94a3b8] shadow-sm transition" title="Open River Flow Network Diagram">
-          <span>〰 Flow Network</span>
+        <a id="btn-flow-diagram" href="./pipeline.html" onclick="goToFlowDiagram(event)" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#f1f5f9] hover:bg-white text-slate-800 text-xs font-semibold border border-[#94a3b8] transition" title="Open River Flow Network Diagram">
+          <span>Flow Network</span>
         </a>
-        <a id="btn-water-budget" href="./sankey.html" onclick="goToBudgetDiagram(event)" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#f1f5f9] hover:bg-white text-slate-800 text-xs font-semibold border-[1.5px] border-[#94a3b8] shadow-sm transition" title="Open Annual Water Budget Diagram">
-          <span>⚖️ Water Budget</span>
+        <a id="btn-water-budget" href="./sankey.html" onclick="goToBudgetDiagram(event)" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#f1f5f9] hover:bg-white text-slate-800 text-xs font-semibold border border-[#94a3b8] transition" title="Open Annual Water Budget Diagram">
+          <span>Water Budget</span>
         </a>
-        <button id="refresh-btn" onclick="fetchData()" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#f1f5f9] hover:bg-white text-slate-800 text-xs font-semibold border-[1.5px] border-[#94a3b8] shadow-sm transition">
+        <button id="refresh-btn" onclick="fetchData()" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[2px] bg-[#f1f5f9] hover:bg-white text-slate-800 text-xs font-semibold border border-[#94a3b8] transition">
           <svg id="refresh-icon" class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <polyline points="23 4 23 10 17 10"></polyline>
             <polyline points="1 20 1 14 7 14"></polyline>
@@ -165,12 +167,12 @@
         </div>
 
         <!-- View Mode Switcher -->
-        <div class="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-300">
-          <button onclick="setViewMode('grouped')" id="btn-view-grouped" class="px-3 py-1 text-xs font-bold rounded-md bg-white text-slate-900 shadow-xs transition">
-            📑 Grouped by Reach
+        <div class="inline-flex rounded-[2px] bg-slate-100 p-0.5 border border-slate-300">
+          <button onclick="setViewMode('grouped')" id="btn-view-grouped" class="px-3 py-1 text-xs font-bold rounded-[2px] bg-white text-slate-900 transition">
+            Grouped by Reach
           </button>
-          <button onclick="setViewMode('flat')" id="btn-view-flat" class="px-3 py-1 text-xs font-semibold rounded-md text-slate-600 hover:text-slate-900 transition">
-            ↕ Flat Sortable
+          <button onclick="setViewMode('flat')" id="btn-view-flat" class="px-3 py-1 text-xs font-semibold rounded-[2px] text-slate-600 hover:text-slate-900 transition">
+            Flat Sortable
           </button>
         </div>
       </div>

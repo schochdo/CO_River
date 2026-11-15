@@ -13,6 +13,9 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
+  <!-- Editorial Design Standard (Edward Tufte / NYT Restrained Palette) -->
+  <link rel="stylesheet" href="editorial.css">
+  
   <!-- Chart.js CDN for responsive, publication-quality academic charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
@@ -832,192 +835,170 @@
   <!-- MODAL 1: LAW OF THE RIVER (Full Master Historical Text) -->
   <!-- ======================================================= -->
   <div id="law-modal" onclick="if(event.target === this) closeModals()" class="fixed inset-0 academic-modal-backdrop hidden z-50 flex items-center justify-center p-3 md:p-6">
-    <div class="bg-white rounded-xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col border border-stone-300 overflow-hidden">
+    <div class="bg-white rounded-[3px] max-w-5xl w-full max-h-[90vh] flex flex-col border border-[#d6d3d1] overflow-hidden">
       
       <!-- Modal Header -->
-      <div class="flex justify-between items-center px-6 py-4 border-b border-stone-200 bg-[#faf9f5]">
+      <div class="flex justify-between items-start px-6 py-4 border-b border-[#d6d3d1] bg-[#fafaf9]">
         <div>
-          <div class="flex items-center gap-2">
-            <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-200">Legal &amp; Historical Foundation</span>
-            <span class="text-[10px] font-bold text-stone-500">1922–2026 Statutory Framework</span>
+          <div class="text-[11px] font-bold tracking-[0.08em] uppercase text-[#475569] mb-1">
+            Legal &amp; Historical Foundation <span class="mx-1.5 text-slate-400">•</span> 1922–2026 Statutory Framework
           </div>
-          <h2 class="text-lg font-black text-stone-900 tracking-tight mt-1">⚖️ The Law of the River: Paper Water vs. Wet Water</h2>
-          <p class="text-xs text-stone-600">How the 1922 Compact's overestimate of river flow, the senior priority system, and two decades of reservoir drawdowns led to the post-2026 negotiations.</p>
+          <h2 class="text-xl font-black text-[#0f172a] tracking-tight">The Law of the River: Paper Water vs. Wet Water</h2>
+          <p class="text-xs text-slate-600 mt-1 max-w-3xl leading-relaxed">How the 1922 Compact's overestimate of river flow, the senior priority system, and two decades of reservoir drawdowns led to the post-2026 negotiations.</p>
         </div>
-        <button onclick="closeModals()" class="text-stone-400 hover:text-stone-700 p-1.5 rounded-lg hover:bg-stone-200/60 transition" title="Close dialog (Esc)">
+        <button onclick="closeModals()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-[2px] hover:bg-slate-200/60 transition" title="Close dialog (Esc)">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
 
       <!-- Quick Jump Navigation Bar -->
-      <div class="flex items-center gap-2 px-6 py-2 border-b border-stone-200 bg-stone-50 overflow-x-auto text-[11px] font-semibold text-stone-700">
-        <span class="text-stone-400 text-[10px] uppercase font-bold tracking-wider">Jump To:</span>
-        <a href="#law-sec-ch1" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-amber-900 transition">1. The 1922 Compact Baseline</a>
-        <a href="#law-sec-ch2" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-amber-900 transition">2. Senior Rights and Priority Cuts</a>
-        <a href="#law-sec-ch3" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-amber-900 transition">3. Draining Storage to Cover the Deficit</a>
-        <a href="#law-sec-ch4" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-amber-900 transition">4. Critical Reservoir Levels and Paid Conservation</a>
-        <a href="#law-sec-ch5" class="px-2.5 py-0.5 rounded-full bg-white border border-stone-300 hover:bg-stone-100 text-amber-900 transition">5. Post-2026 Operating Rules</a>
+      <div class="sticky top-0 z-20 bg-[#fafaf9] border-b border-[#e2e8f0] px-6 py-2.5 flex items-center gap-3 sm:gap-4 flex-wrap text-xs font-medium">
+        <span class="text-[10px] uppercase font-bold tracking-[0.08em] text-[#64748b]">Jump To:</span>
+        <a href="#law-sec-ch1" class="text-slate-700 hover:text-[#0072B2] hover:underline">1. 1922 Baseline</a>
+        <span class="text-slate-300">•</span>
+        <a href="#law-sec-ch2" class="text-slate-700 hover:text-[#0072B2] hover:underline">2. Seniority &amp; Cuts</a>
+        <span class="text-slate-300">•</span>
+        <a href="#law-sec-ch3" class="text-slate-700 hover:text-[#0072B2] hover:underline">3. Reservoir Drawdown</a>
+        <span class="text-slate-300">•</span>
+        <a href="#law-sec-ch4" class="text-slate-700 hover:text-[#0072B2] hover:underline">4. Low-Storage Triggers</a>
+        <span class="text-slate-300">•</span>
+        <a href="#law-sec-ch5" class="text-slate-700 hover:text-[#0072B2] hover:underline">5. Post-2026 Rules</a>
       </div>
 
       <!-- Modal Body (Scrollable Master Legal Chapters) -->
-      <div class="p-6 overflow-y-auto space-y-6 text-xs text-stone-700 leading-relaxed">
+      <div class="p-6 overflow-y-auto space-y-8 text-xs text-slate-700 leading-relaxed bg-[#fafaf9]">
 
         <!-- Chapter 1: The 1922 Compact Baseline -->
-        <section id="law-sec-ch1" class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
-          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
-            <div>
-              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span>
-                <span>1. The 1922 Compact Baseline</span>
-              </h3>
-              <p class="text-[11px] text-stone-500">Negotiators assumed the river produced over 17 MAF per year, creating an immediate gap between legal promises and physical supply.</p>
-            </div>
-            <span class="text-[10px] font-bold text-sky-800 bg-sky-100 border border-sky-200 px-2 py-0.5 rounded">Historic Foundation</span>
+        <section id="law-sec-ch1" class="pt-2">
+          <div class="flex items-baseline justify-between gap-3 mb-1">
+            <h3 class="text-base font-black text-[#0f172a] tracking-tight">1. The 1922 Compact Baseline</h3>
+            <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded-[2px] whitespace-nowrap">Historic Foundation</span>
           </div>
+          <p class="text-xs text-slate-500 mb-3">Negotiators assumed the river produced over 17 MAF per year, creating an immediate gap between legal promises and physical supply.</p>
           <p>
             Delegates from the seven basin states and Herbert Hoover signed the 1922 Colorado River Compact in Santa Fe, New Mexico, splitting the watershed at Lees Ferry, Arizona. The compact apportioned 7.5 million acre-feet (MAF) per year to the Upper Basin and 7.5 MAF per year to the Lower Basin in perpetuity. In 1944, the Mexican Water Treaty committed another 1.5 MAF per year at Morelos Dam, bringing statutory paper water promises to 16.5 MAF per year without setting aside water for reservoir evaporation.
           </p>
-          <div class="p-3 bg-amber-50/80 rounded-lg border border-amber-200 text-amber-950 space-y-1">
-            <div class="font-bold text-[11.5px] text-amber-900">Baseline Hydrology: Paper Allocations vs. Physical Wet Water</div>
-            <p class="text-[11px] leading-relaxed">
+          <div class="my-4 p-4 bg-[#f5f5f4] border-l-[3px] border-l-[#334155] rounded-none">
+            <div class="font-bold text-xs text-[#0f172a] mb-1">Baseline Hydrology: Paper Allocations vs. Physical Wet Water</div>
+            <p class="text-xs leading-relaxed text-slate-700 m-0">
               Negotiators based their allocations on gage records from the unusually wet period between 1905 and 1922, estimating average annual river runoff above 17 MAF. Early USGS field warnings from hydrologist E.C. LaRue showed that long-term flows were significantly lower, but commissioners prioritized state unanimity over hydrology. A century of USGS records and tree-ring data show that natural inflow averages closer to 12.5 to 13.2 MAF per year. Because reservoir evaporation and transit losses consume another 1.5 to 1.8 MAF per year, statutory paper allocations exceed physical wet water by roughly 4 to 5 MAF annually.
             </p>
           </div>
           <!-- Stats Grid -->
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 pt-1 tabular-nums text-center">
-            <div class="bg-white p-2.5 rounded-lg border border-stone-200">
-              <div class="text-[9.5px] font-sans font-bold text-stone-500 uppercase">Upper Basin</div>
-              <div class="text-xs font-black text-stone-800 mt-0.5">7.5 MAF/yr</div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 my-4 tabular-nums text-center">
+            <div class="bg-white p-2.5 rounded-[3px] border border-[#e2e8f0]">
+              <div class="text-[9.5px] font-bold text-slate-500 uppercase">Upper Basin</div>
+              <div class="text-xs font-black text-slate-800 mt-0.5">7.5 MAF/yr</div>
             </div>
-            <div class="bg-white p-2.5 rounded-lg border border-stone-200">
-              <div class="text-[9.5px] font-sans font-bold text-stone-500 uppercase">Lower Basin (III.a)</div>
-              <div class="text-xs font-black text-stone-800 mt-0.5">7.5 MAF/yr</div>
+            <div class="bg-white p-2.5 rounded-[3px] border border-[#e2e8f0]">
+              <div class="text-[9.5px] font-bold text-slate-500 uppercase">Lower Basin (III.a)</div>
+              <div class="text-xs font-black text-slate-800 mt-0.5">7.5 MAF/yr</div>
             </div>
-            <div class="bg-white p-2.5 rounded-lg border border-stone-200">
-              <div class="text-[9.5px] font-sans font-bold text-stone-500 uppercase">Lower Basin (III.b)</div>
-              <div class="text-xs font-black text-stone-800 mt-0.5">1.0 MAF/yr</div>
+            <div class="bg-white p-2.5 rounded-[3px] border border-[#e2e8f0]">
+              <div class="text-[9.5px] font-bold text-slate-500 uppercase">Lower Basin (III.b)</div>
+              <div class="text-xs font-black text-slate-800 mt-0.5">1.0 MAF/yr</div>
             </div>
-            <div class="bg-white p-2.5 rounded-lg border border-stone-200">
-              <div class="text-[9.5px] font-sans font-bold text-stone-500 uppercase">Mexico Treaty</div>
-              <div class="text-xs font-black text-stone-800 mt-0.5">1.5 MAF/yr</div>
+            <div class="bg-white p-2.5 rounded-[3px] border border-[#e2e8f0]">
+              <div class="text-[9.5px] font-bold text-slate-500 uppercase">Mexico Treaty</div>
+              <div class="text-xs font-black text-slate-800 mt-0.5">1.5 MAF/yr</div>
             </div>
-            <div class="bg-sky-50 p-2.5 rounded-lg border border-sky-200">
-              <div class="text-[9.5px] font-sans font-bold text-sky-800 uppercase">Total Apportionments</div>
-              <div class="text-xs font-black text-sky-900 mt-0.5">17.5 MAF/yr</div>
+            <div class="bg-white p-2.5 rounded-[3px] border border-[#e2e8f0] border-t-[3px] border-t-[#0072B2]">
+              <div class="text-[9.5px] font-bold text-slate-500 uppercase">Total Apportionments</div>
+              <div class="text-xs font-black text-[#0072B2] mt-0.5">17.5 MAF/yr</div>
             </div>
-            <div class="bg-rose-50 p-2.5 rounded-lg border border-rose-200">
-              <div class="text-[9.5px] font-sans font-bold text-rose-800 uppercase">Observed Natural Inflow</div>
-              <div class="text-xs font-black text-rose-700 mt-0.5">~12.5 MAF/yr</div>
+            <div class="bg-white p-2.5 rounded-[3px] border border-[#e2e8f0] border-t-[3px] border-t-[#D55E00]">
+              <div class="text-[9.5px] font-bold text-slate-500 uppercase">Observed Natural Inflow</div>
+              <div class="text-xs font-black text-[#D55E00] mt-0.5">~12.5 MAF/yr</div>
             </div>
           </div>
         </section>
 
         <!-- Chapter 2: Senior Rights and Priority Cuts -->
-        <section id="law-sec-ch2" class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
-          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
-            <div>
-              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
-                <span>2. Senior Rights and Priority Cuts</span>
-              </h3>
-              <p class="text-[11px] text-stone-500">The doctrine of prior appropriation protects older agricultural claims while junior municipal canals take early cuts during shortages.</p>
-            </div>
-            <span class="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded">Legal Hierarchy</span>
+        <section id="law-sec-ch2" class="border-t border-[#d6d3d1] pt-7 mt-8">
+          <div class="flex items-baseline justify-between gap-3 mb-1">
+            <h3 class="text-base font-black text-[#0f172a] tracking-tight">2. Senior Rights and Priority Cuts</h3>
+            <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded-[2px] whitespace-nowrap">Legal Hierarchy</span>
           </div>
+          <p class="text-xs text-slate-500 mb-3">The doctrine of prior appropriation protects older agricultural claims while junior municipal canals take early cuts during shortages.</p>
           <p>
             Western water administration follows the doctrine of prior appropriation: <em>"first in time, first in right."</em> The user who first put river water to beneficial use holds senior legal priority and receives a full allocation before newer rights receive water. In the Colorado River Basin, this rule created an unequal priority structure that determines which states absorb shortages first:
           </p>
-          <ul class="space-y-2 pl-2">
-            <li class="p-2.5 bg-white rounded-lg border border-stone-200">
-              <strong class="text-stone-900">Senior Present Perfected Rights in California (1901):</strong> Southern California agricultural users—led by the Imperial Irrigation District (IID) and Coachella Valley Water District—hold senior water rights established in 1901 that pre-date the 1922 Compact. Confirmed by the Supreme Court in <em>Arizona v. California</em> (1963), IID's 3.1 MAF entitlement is senior to all municipal water projects across the Lower Basin.
-            </li>
-            <li class="p-2.5 bg-white rounded-lg border border-stone-200">
-              <strong class="text-stone-900">Subordination of the Central Arizona Project (1968):</strong> To obtain federal authorization and funding for the 336-mile Central Arizona Project (CAP) canal in the 1968 Basin Project Act, Arizona agreed that CAP deliveries are junior to California's 4.4 MAF baseline allocation. As a result, when shortage triggers occur, Arizona takes the first and deepest cuts while senior California agricultural users receive their full supply.
-            </li>
-            <li class="p-2.5 bg-white rounded-lg border border-stone-200">
-              <strong class="text-stone-900">Upper Basin Headwater Administration:</strong> Without large downstream regulatory reservoirs above their diversion points, Upper Basin users divert water directly from mountain streams based on local priority calls. Senior calls at headwater facilities regularly curtail junior Front Range trans-mountain diversions during late-summer low flows. Because of these physical and legal limits, Upper Basin consumptive use averages 4.0 to 4.5 MAF per year, well below its 7.5 MAF paper apportionment.
-            </li>
-          </ul>
+          <div class="space-y-2.5 my-3">
+            <div class="p-3 bg-white rounded-[3px] border border-[#e2e8f0]">
+              <strong class="text-slate-900">Senior Present Perfected Rights in California (1901):</strong> Southern California agricultural users—led by the Imperial Irrigation District (IID) and Coachella Valley Water District—hold senior water rights established in 1901 that pre-date the 1922 Compact. Confirmed by the Supreme Court in <em>Arizona v. California</em> (1963), IID's 3.1 MAF entitlement is senior to all municipal water projects across the Lower Basin.
+            </div>
+            <div class="p-3 bg-white rounded-[3px] border border-[#e2e8f0]">
+              <strong class="text-slate-900">Subordination of the Central Arizona Project (1968):</strong> To obtain federal authorization and funding for the 336-mile Central Arizona Project (CAP) canal in the 1968 Basin Project Act, Arizona agreed that CAP deliveries are junior to California's 4.4 MAF baseline allocation. As a result, when shortage triggers occur, Arizona takes the first and deepest cuts while senior California agricultural users receive their full supply.
+            </div>
+            <div class="p-3 bg-white rounded-[3px] border border-[#e2e8f0]">
+              <strong class="text-slate-900">Upper Basin Headwater Administration:</strong> Without large downstream regulatory reservoirs above their diversion points, Upper Basin users divert water directly from mountain streams based on local priority calls. Senior calls at headwater facilities regularly curtail junior Front Range trans-mountain diversions during late-summer low flows. Because of these physical and legal limits, Upper Basin consumptive use averages 4.0 to 4.5 MAF per year, well below its 7.5 MAF paper apportionment.
+            </div>
+          </div>
         </section>
 
         <!-- Chapter 3: Draining Storage to Cover the Deficit -->
-        <section id="law-sec-ch3" class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
-          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
-            <div>
-              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-rose-600"></span>
-                <span>3. Draining Storage to Cover the Deficit</span>
-              </h3>
-              <p class="text-[11px] text-stone-500">The basin covered a multi-year gap between high demand and falling snowmelt by drawing down 37 MAF of stored reservoir water.</p>
-            </div>
-            <span class="text-[10px] font-bold text-rose-800 bg-rose-100 border border-rose-200 px-2 py-0.5 rounded">Storage Depletion</span>
+        <section id="law-sec-ch3" class="border-t border-[#d6d3d1] pt-7 mt-8">
+          <div class="flex items-baseline justify-between gap-3 mb-1">
+            <h3 class="text-base font-black text-[#0f172a] tracking-tight">3. Draining Storage to Cover the Deficit</h3>
+            <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded-[2px] whitespace-nowrap">Storage Depletion</span>
           </div>
+          <p class="text-xs text-slate-500 mb-3">The basin covered a multi-year gap between high demand and falling snowmelt by drawing down 37 MAF of stored reservoir water.</p>
           <p>
             Even when Upper Basin snowmelt dropped after 2000, Lower Basin users continued drawing full allocations while reservoir evaporation and transit losses consumed roughly 1.5 MAF per year. Instead of reducing water use to match lower snowmelt, the basin operated at an annual structural deficit of 2.0 to 3.5 MAF per year.
           </p>
-          <p>
+          <p class="mt-2">
             The basin bridged this multi-year deficit by draining Lake Powell and Lake Mead, which stood 95% full in 1999 with over 50 MAF in reserve. Over two decades, prolonged overdraft drew down roughly 37 MAF of stored water, leaving combined storage at just 25% of capacity by 2022.
           </p>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 tabular-nums text-center">
-            <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200">
-              <div class="text-[10px] font-sans font-bold text-emerald-800 uppercase">1999 Combined Storage</div>
-              <div class="text-sm font-black text-emerald-700 mt-0.5">~50 MAF (95% Full)</div>
-              <div class="text-[10px] font-sans text-stone-500 mt-1">Multi-year buffer intact</div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 my-3.5 tabular-nums text-center">
+            <div class="bg-white p-3 rounded-[3px] border border-[#e2e8f0]">
+              <div class="text-[10px] font-bold text-slate-500 uppercase">1999 Combined Storage</div>
+              <div class="text-sm font-black text-[#0072B2] mt-0.5">~50 MAF (95% Full)</div>
+              <div class="text-[10px] text-slate-500 mt-1">Multi-year buffer intact</div>
             </div>
-            <div class="bg-rose-50 p-3 rounded-lg border border-rose-200">
-              <div class="text-[10px] font-sans font-bold text-rose-800 uppercase">2022 Storage Low</div>
-              <div class="text-sm font-black text-rose-700 mt-0.5">~13 MAF (25% Full)</div>
-              <div class="text-[10px] font-sans text-stone-500 mt-1">Near dead pool thresholds</div>
+            <div class="bg-white p-3 rounded-[3px] border border-[#e2e8f0]">
+              <div class="text-[10px] font-bold text-slate-500 uppercase">2022 Storage Low</div>
+              <div class="text-sm font-black text-[#D55E00] mt-0.5">~13 MAF (25% Full)</div>
+              <div class="text-[10px] text-slate-500 mt-1">Near dead pool thresholds</div>
             </div>
-            <div class="bg-red-50 p-3 rounded-lg border border-red-200">
-              <div class="text-[10px] font-sans font-bold text-red-800 uppercase">Total Stored Water Depleted</div>
-              <div class="text-sm font-black text-red-700 mt-0.5">~37 MAF Lost</div>
-              <div class="text-[10px] font-sans text-stone-500 mt-1">Sustained 22-year structural deficit</div>
+            <div class="bg-white p-3 rounded-[3px] border border-[#e2e8f0]">
+              <div class="text-[10px] font-bold text-slate-500 uppercase">Total Stored Water Depleted</div>
+              <div class="text-sm font-black text-rose-700 mt-0.5">~37 MAF Lost</div>
+              <div class="text-[10px] text-slate-500 mt-1">Sustained 22-year structural deficit</div>
             </div>
           </div>
         </section>
 
         <!-- Chapter 4: Critical Reservoir Levels and Paid Conservation -->
-        <section id="law-sec-ch4" class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
-          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
-            <div>
-              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span>
-                <span>4. Critical Reservoir Levels and Paid Conservation</span>
-              </h3>
-              <p class="text-[11px] text-stone-500">Near-record low elevations prompted mandatory shortage cuts and temporary federal payments to keep reservoirs above dead pool.</p>
-            </div>
-            <span class="text-[10px] font-bold text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded">Shortage Tiers &amp; Conservation</span>
+        <section id="law-sec-ch4" class="border-t border-[#d6d3d1] pt-7 mt-8">
+          <div class="flex items-baseline justify-between gap-3 mb-1">
+            <h3 class="text-base font-black text-[#0f172a] tracking-tight">4. Critical Reservoir Levels and Paid Conservation</h3>
+            <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded-[2px] whitespace-nowrap">Shortage Tiers &amp; Conservation</span>
           </div>
+          <p class="text-xs text-slate-500 mb-3">Near-record low elevations prompted mandatory shortage cuts and temporary federal payments to keep reservoirs above dead pool.</p>
           <p>
             By mid-2022, Lake Powell dropped to 3,522 ft, within 32 feet of minimum power pool (3,490 ft), where Glen Canyon Dam can no longer generate electricity. Water managers faced the risk of reservoirs falling toward dead pool (3,370 ft at Powell, 895 ft at Mead), where water can no longer pass through dam outlets by gravity.
           </p>
-          <div class="space-y-2">
-            <div class="p-3 bg-white rounded-lg border border-stone-200">
-              <strong class="text-stone-900">Mandatory Lower Basin Shortage Cuts:</strong> The Bureau of Reclamation triggered Tier 1 and Tier 2 shortage reductions under the 2007 Interim Guidelines. Under its junior priority, Arizona absorbed cuts exceeding 590,000 AF—over 20% of its Colorado River supply—leading to extensive agricultural fallowing in Pinal County while senior California rights sustained zero mandatory cuts.
+          <div class="space-y-2.5 my-3">
+            <div class="p-3 bg-white rounded-[3px] border border-[#e2e8f0]">
+              <strong class="text-slate-900">Mandatory Lower Basin Shortage Cuts:</strong> The Bureau of Reclamation triggered Tier 1 and Tier 2 shortage reductions under the 2007 Interim Guidelines. Under its junior priority, Arizona absorbed cuts exceeding 590,000 AF—over 20% of its Colorado River supply—leading to extensive agricultural fallowing in Pinal County while senior California rights sustained zero mandatory cuts.
             </div>
-            <div class="p-3 bg-white rounded-lg border border-stone-200">
-              <strong class="text-stone-900">Compensated System Conservation (IRA Funding):</strong> To prevent storage from crashing before permanent rules could be written, the federal government committed $1.2 billion through the Inflation Reduction Act. Reclamation paid irrigation districts and tribal nations roughly $400 per acre-foot to temporarily leave 3.0 MAF of water in Lake Mead and Lake Powell through 2026.
+            <div class="p-3 bg-white rounded-[3px] border border-[#e2e8f0]">
+              <strong class="text-slate-900">Compensated System Conservation (IRA Funding):</strong> To prevent storage from crashing before permanent rules could be written, the federal government committed $1.2 billion through the Inflation Reduction Act. Reclamation paid irrigation districts and tribal nations roughly $400 per acre-foot to temporarily leave 3.0 MAF of water in Lake Mead and Lake Powell through 2026.
             </div>
           </div>
         </section>
 
         <!-- Chapter 5: Post-2026 Operating Rules -->
-        <section id="law-sec-ch5" class="p-4 bg-stone-50 rounded-xl border border-stone-200 space-y-3">
-          <div class="flex items-center justify-between border-b border-stone-200 pb-2">
-            <div>
-              <h3 class="text-sm font-black text-stone-900 tracking-tight flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-violet-600"></span>
-                <span>5. Post-2026 Operating Rules</span>
-              </h3>
-              <p class="text-[11px] text-stone-500">Current interim guidelines expire at the end of 2026, requiring basin states to tie future water use directly to actual river yields.</p>
-            </div>
-            <span class="text-[10px] font-bold text-violet-800 bg-violet-100 border border-violet-200 px-2 py-0.5 rounded">Post-2026 Framework</span>
+        <section id="law-sec-ch5" class="border-t border-[#d6d3d1] pt-7 mt-8">
+          <div class="flex items-baseline justify-between gap-3 mb-1">
+            <h3 class="text-base font-black text-[#0f172a] tracking-tight">5. Post-2026 Operating Rules</h3>
+            <span class="text-[10px] font-semibold text-slate-600 bg-slate-100 border border-slate-300 px-2 py-0.5 rounded-[2px] whitespace-nowrap">Post-2026 Framework</span>
           </div>
+          <p class="text-xs text-slate-500 mb-3">Current interim guidelines expire at the end of 2026, requiring basin states to tie future water use directly to actual river yields.</p>
           <p>
             The 2007 Interim Guidelines, the 2019 Drought Contingency Plans, and short-term federal conservation payouts all expire on December 31, 2026. Because Lake Powell and Lake Mead no longer hold enough stored water to buffer multi-year deficits, the next set of operating rules must match water use to actual river flow rather than 1922 paper targets.
           </p>
-          <div class="p-3 bg-stone-100 rounded-lg border border-stone-300 font-medium text-stone-900 italic">
+          <div class="my-4 p-3.5 bg-[#f8fafc] border-l-[3px] border-l-[#0072B2] rounded-none italic text-xs text-slate-800">
             "Paper water rights cannot fill a canal when storage runs out. Post-2026 rules must tie annual withdrawals directly to measured hydrology."
           </div>
           <p>
@@ -1028,9 +1009,9 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-between">
-        <span class="text-[11px] text-stone-500 font-medium">Source: <a href="https://www.usbr.gov/lc/region/g4000/lawofrvr.html" target="_blank" rel="noopener noreferrer" class="underline decoration-stone-400 hover:text-stone-800 transition">U.S. Bureau of Reclamation Law of the River Compendium ↗</a> (1922 Compact &amp; Consolidated Supreme Court Decrees)</span>
-        <button onclick="closeModals()" class="px-5 py-2 text-xs font-bold rounded-lg bg-stone-800 text-white hover:bg-stone-900 transition shadow-sm">Close Legal Review</button>
+      <div class="p-4 border-t border-[#d6d3d1] bg-[#fafaf9] flex items-center justify-between">
+        <span class="text-[11px] text-slate-500 font-medium">Source: <a href="https://www.usbr.gov/lc/region/g4000/lawofrvr.html" target="_blank" rel="noopener noreferrer" class="underline decoration-slate-400 hover:text-slate-800 transition">U.S. Bureau of Reclamation Law of the River Compendium ↗</a> (1922 Compact &amp; Consolidated Supreme Court Decrees)</span>
+        <button onclick="closeModals()" class="px-5 py-2 text-xs font-bold rounded-[2px] bg-slate-800 text-white hover:bg-slate-900 transition">Close Legal Review</button>
       </div>
 
     </div>
