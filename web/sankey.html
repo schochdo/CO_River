@@ -153,7 +153,7 @@
           <a href="./pipeline.html" onclick="goToPipeline(event)" class="text-xs font-semibold text-sky-700 hover:underline">View River Reach Network Diagram →</a>
         </div>
         <h1 class="text-xl md:text-2xl font-black text-stone-900 tracking-tight mt-1 flex items-center gap-3">
-          Colorado River: Unified Annual Water Budget &amp; Structural Deficit
+          Colorado River Annual Water Budget
           <span class="text-xs font-bold tabular-nums px-2.5 py-0.5 rounded bg-sky-100 text-sky-900 border border-sky-300">Annual Scale: MAF/yr</span>
         </h1>
       </div>
@@ -221,10 +221,10 @@
     <div class="relative bg-white rounded-xl border border-stone-300 shadow-sm overflow-hidden p-4">
       <!-- 4-Tier Column Headers -->
       <div class="grid grid-cols-4 text-center text-[11px] font-bold tracking-wider uppercase pb-2 mb-2 border-b border-stone-200 text-stone-500">
-        <div class="text-left pl-2">1. Inflow Sources &amp; Storage Deficit</div>
-        <div>2. 1922 Compact Divisions</div>
-        <div>3. Regional Conveyance &amp; Hubs</div>
-        <div class="text-right pr-2">4. Consumptive Uses &amp; Evaporative Losses</div>
+        <div class="text-left pl-2">1. Inflow Sources and Drawdown</div>
+        <div>2. Compact Allocations</div>
+        <div>3. Regional Conveyance</div>
+        <div class="text-right pr-2">4. Consumptive Use and Losses</div>
       </div>
 
       <div id="sankey-container" class="w-full h-[650px] overflow-x-auto"></div>
@@ -246,10 +246,10 @@
       <div class="bg-white p-3.5 rounded-xl border border-stone-200 shadow-xs">
         <div class="font-bold text-stone-900 mb-1 flex items-center gap-1.5">
           <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-          The Red Deficit Bridge (2.05 MAF Mined)
+          Annual Storage Drawdown (2.05 MAF)
         </div>
         <p class="leading-relaxed text-stone-600">
-          The red band entering the Lower Basin represents <strong>unsustainable reservoir drawdown</strong>. Because Lower Basin uses, Mexico treaty deliveries, and evaporation total 9.95 MAF while Lees Ferry only delivers 7.90 MAF, the system has relied on draining Lake Mead and Lake Powell storage by ~2.05 MAF each year.
+          The red band entering the Lower Basin represents <strong>annual storage drawdown</strong>. Lower Basin consumptive use, Mexico treaty deliveries, and reservoir evaporation total 9.95 MAF per year, while Lees Ferry releases average 7.90 MAF. The basin bridges this 2.05 MAF deficit by drawing down storage in Lake Powell and Lake Mead.
         </p>
       </div>
       <div class="bg-white p-3.5 rounded-xl border border-stone-200 shadow-xs">
@@ -283,7 +283,7 @@
         { name: "Upper Colorado Mainstem", category: "inflow", desc: "Alpine snowpack originating in the Colorado Rockies", tier: "Tier 1: Basin Headwaters (50% Upper Inflow)", era: "Natural Hydrologic Regime", legal_priority: "Originating Source Waters" },
         { name: "Green River Basin", category: "inflow", desc: "Wind River & Uinta snowpack across WY, UT, and CO", tier: "Tier 1: Largest Tributary Basin (34% Upper Inflow)", era: "Natural Hydrologic Regime", legal_priority: "Originating Source Waters" },
         { name: "San Juan River Basin", category: "inflow", desc: "Alpine snowmelt from the San Juan Mountains in CO and NM", tier: "Tier 1: Monsoon & Alpine Basin (16% Upper Inflow)", era: "Natural Hydrologic Regime", legal_priority: "Originating Source Waters" },
-        { name: "Reservoir Storage Deficit (Mined Water)", category: "deficit", desc: "Annual net drawdown of Lake Mead & Lake Powell storage", tier: "System-Wide Storage Depletion", era: "21st-Century Structural Deficit Era (2000–Present)", legal_priority: "Overdraft bridging ~1.2–2.0 MAF/yr structural gap" },
+        { name: "Reservoir Storage Drawdown", category: "deficit", desc: "Annual net drawdown of Lake Mead & Lake Powell storage", tier: "System-Wide Storage Depletion", era: "21st-Century Structural Deficit Era (2000–Present)", legal_priority: "Overdraft bridging ~1.2–2.0 MAF/yr structural gap" },
 
         // --- Tier 2: 1922 Compact Divisions ---
         { name: "Upper Basin Allocations", category: "inflow", desc: "Water diverted in CO, WY, UT, NM before reaching Lees Ferry", tier: "Upper Basin Percentage Division (CO 51.75%, UT 23%, WY 14%, NM 11.25%)", era: "1948 Upper Colorado River Basin Compact", legal_priority: "Upper Basin Compact Entitlements (~4.5 MAF/yr actual)" },
@@ -319,7 +319,7 @@
         { source: "San Juan River Basin", target: "Upper Basin Allocations", value: 0.70, category: "inflow" },
         { source: "San Juan River Basin", target: "Lees Ferry Compact Delivery", value: 1.00, category: "inflow" },
 
-        { source: "Reservoir Storage Deficit (Mined Water)", target: "Lower Basin Storage Drawdown", value: 2.05, category: "deficit" },
+        { source: "Reservoir Storage Drawdown", target: "Lower Basin Storage Drawdown", value: 2.05, category: "deficit" },
 
         // --- Tier 2 -> Tier 3 (Compact Divisions to Conveyance & Hubs) ---
         { source: "Upper Basin Allocations", target: "Western Slope In-Basin Canals", value: 4.00, category: "ag" },

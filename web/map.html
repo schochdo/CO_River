@@ -488,7 +488,7 @@
               <div class="law-stat-val" style="color:#047857;">~50 MAF (95% Full)</div>
             </div>
             <div class="law-stat-box">
-              <div class="law-stat-label">2022 Crisis Low</div>
+              <div class="law-stat-label">2022 Storage Low</div>
               <div class="law-stat-val" style="color:#dc2626;">~13 MAF (25% Full)</div>
             </div>
             <div class="law-stat-box">
@@ -546,7 +546,7 @@
     <div class="modal-card" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title-group">
-          <h2>💻 Hydrologic APIs &amp; Python Data Pipeline</h2>
+          <h2>💻 Hydrologic Data and APIs</h2>
           <p>Real-time telemetry feeds, REST endpoints, and conservation-of-mass river routing code powering this project.</p>
         </div>
         <button class="modal-close-btn" onclick="closeApiModal()" title="Close dialog">✕</button>
@@ -556,7 +556,7 @@
         <!-- Chapter 1: USGS NWIS Instantaneous Values API -->
         <div class="api-section">
           <div class="api-section-header">
-            <h3 class="api-section-title">1. USGS National Water Information System (NWIS)</h3>
+            <h3 class="api-section-title">1. USGS Streamflow Telemetry</h3>
             <span class="api-tag usgs">USGS REST API</span>
           </div>
           <p class="law-text">
@@ -631,7 +631,7 @@ for ts in data["value"]["timeSeries"]:
         <!-- Chapter 2: Colorado DWR HydroBase v2 -->
         <div class="api-section">
           <div class="api-section-header">
-            <h3 class="api-section-title">2. Colorado DWR HydroBase v2 (Trans-Mountain Diversions)</h3>
+            <h3 class="api-section-title">2. Colorado Trans-Mountain Diversions</h3>
             <span class="api-tag cdwr">Colorado DWR API</span>
           </div>
           <p class="law-text">
@@ -699,10 +699,10 @@ for code, info in tunnel_flows.items():
           </div>
         </div>
 
-        <!-- Chapter 3: USBR Reclamation HydroData & Hourly Operations -->
+        <!-- Chapter 3: Reclamation Reservoir Operations -->
         <div class="api-section">
           <div class="api-section-header">
-            <h3 class="api-section-title">3. USBR Reclamation HydroData &amp; Hourly Operations</h3>
+            <h3 class="api-section-title">3. Reclamation Reservoir Operations</h3>
             <span class="api-tag usbr">USBR HydroData</span>
           </div>
           <p class="law-text">
@@ -758,10 +758,10 @@ for line in txt.splitlines():
           </div>
         </div>
 
-        <!-- Chapter 4: Ingestion Engine & Mass-Balance Pipeline -->
+        <!-- Chapter 4: River Reach Mass-Balance Pipeline -->
         <div class="api-section">
           <div class="api-section-header">
-            <h3 class="api-section-title">4. Automated Ingestion &amp; Conservation-of-Mass GeoJSON Pipeline</h3>
+            <h3 class="api-section-title">4. River Reach Mass-Balance Pipeline</h3>
             <span class="api-tag pipeline">Data Architecture</span>
           </div>
           <p class="law-text">
@@ -807,10 +807,10 @@ print("Hydrologic telemetry pipeline synced successfully.")</code></pre>
           </div>
         </div>
 
-        <!-- Chapter 5: Decoupled Jupyter Spatial Data Engineering & ML Notebooks -->
+        <!-- Chapter 5: Reproducible Research Notebooks -->
         <div class="api-section">
           <div class="api-section-header">
-            <h3 class="api-section-title">5. Decoupled Spatial Data Engineering &amp; ML Notebooks</h3>
+            <h3 class="api-section-title">5. Reproducible Research Notebooks</h3>
             <span class="api-tag pipeline" style="background:#e0e7ff; color:#3730a3; border-color:#c7d2fe;">Jupyter Notebooks (DAT 1001)</span>
           </div>
           <p class="law-text">
