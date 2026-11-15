@@ -5693,25 +5693,37 @@ window.toggleSidebar = function() {
   const arrow = document.getElementById('sidebar-tab-arrow');
   if (!panel) return;
 
-  const isOpen = panel.classList.contains('drawer-open') || panel.classList.contains('mobile-open');
-  if (!isOpen) {
-    // Mutual exclusivity: Close Map Controls tray before opening Basin Metrics drawer
-    if (typeof closeMapMenu === 'function') {
-      closeMapMenu();
+  const isMobile = window.innerWidth <= 900;
+  if (isMobile) {
+    const isOpen = panel.classList.contains('mobile-open') || panel.classList.contains('drawer-open');
+    if (!isOpen) {
+      if (typeof closeMapMenu === 'function') closeMapMenu();
+      panel.classList.add('mobile-open');
+      panel.classList.add('drawer-open');
+      if (backdrop) backdrop.classList.add('show');
+      if (btn) btn.classList.add('active');
+      if (arrow) arrow.textContent = '▶';
+      document.body.classList.add('sidebar-drawer-active');
+    } else {
+      panel.classList.remove('mobile-open');
+      panel.classList.remove('drawer-open');
+      if (backdrop) backdrop.classList.remove('show');
+      if (btn) btn.classList.remove('active');
+      if (arrow) arrow.textContent = '◀';
+      document.body.classList.remove('sidebar-drawer-active');
     }
-    panel.classList.add('drawer-open');
-    panel.classList.add('mobile-open');
-    if (backdrop) backdrop.classList.add('show');
-    if (btn) btn.classList.add('active');
-    if (arrow) arrow.textContent = '▶';
-    document.body.classList.add('sidebar-drawer-active');
   } else {
-    panel.classList.remove('drawer-open');
-    panel.classList.remove('mobile-open');
-    if (backdrop) backdrop.classList.remove('show');
-    if (btn) btn.classList.remove('active');
-    if (arrow) arrow.textContent = '◀';
-    document.body.classList.remove('sidebar-drawer-active');
+    // Desktop layout toggling
+    const isCollapsed = panel.classList.contains('desktop-collapsed');
+    if (isCollapsed) {
+      panel.classList.remove('desktop-collapsed');
+      if (btn) btn.classList.add('active');
+      if (arrow) arrow.textContent = '▶';
+    } else {
+      panel.classList.add('desktop-collapsed');
+      if (btn) btn.classList.remove('active');
+      if (arrow) arrow.textContent = '◀';
+    }
   }
 
   // Trigger MapLibre resize smoothly after transition
@@ -5728,6 +5740,7 @@ window.closeSidebar = function() {
   if (panel) {
     panel.classList.remove('drawer-open');
     panel.classList.remove('mobile-open');
+    panel.classList.add('desktop-collapsed');
   }
   if (backdrop) {
     backdrop.classList.remove('show');
