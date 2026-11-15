@@ -161,51 +161,51 @@
           <span>Executive Overview</span>
         </button>
 
-        <!-- Group 1: Live Operational Flow (t = now, cfs • USGS & CDSS) -->
+        <!-- Group 1: Live Operational Flow -->
         <div class="sidebar-category-header pt-3">
-          <span>Live Flow (t = now, cfs)</span>
+          <span>Live Streamflow</span>
         </div>
-        <button onclick="setTab('map')" id="tab-btn-map" class="sidebar-link" title="Operational Hydrology (cfs, t=now): Cartographic Map">
+        <button onclick="setTab('map')" id="tab-btn-map" class="sidebar-link" title="GIS Hydrology Map">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
           </svg>
           <span>GIS Hydrology Map</span>
         </button>
-        <button onclick="setTab('telemetry')" id="tab-btn-telemetry" class="sidebar-link" title="Operational Hydrology (cfs, t=now): Searchable Gage &amp; Diversion Ledger">
+        <button onclick="setTab('telemetry')" id="tab-btn-telemetry" class="sidebar-link" title="Gage Telemetry Ledger">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
           </svg>
           <span>Gage Telemetry Ledger</span>
         </button>
 
-        <!-- Group 2: Annual Water Budget (t = 1 yr, MAF/yr • USBR Accounting) -->
+        <!-- Group 2: Annual Water Budget -->
         <div class="sidebar-category-header pt-3">
-          <span>Annual Budget (MAF/yr)</span>
+          <span>Annual Budget</span>
         </div>
-        <button onclick="setTab('pipeline')" id="tab-btn-pipeline" class="sidebar-link" title="Annual Accounting (MAF/yr): Topological River Network Schematic">
+        <button onclick="setTab('pipeline')" id="tab-btn-pipeline" class="sidebar-link" title="River Flow Schematic">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
           </svg>
           <span>River Flow Schematic</span>
         </button>
-        <button onclick="setTab('sankey')" id="tab-btn-sankey" class="sidebar-link" title="Annual Accounting (MAF/yr): End-to-End Mass-Balance Budget (Sankey)">
+        <button onclick="setTab('sankey')" id="tab-btn-sankey" class="sidebar-link" title="Annual Water Budget Diagram">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
           </svg>
-          <span>Water Budget (Sankey)</span>
+          <span>Water Budget</span>
         </button>
 
-        <!-- Group 3: Decadal Storage & ML (1935–Today • Dynamics & History) -->
+        <!-- Group 3: Decadal Storage & Historical Regimes -->
         <div class="sidebar-category-header pt-3">
           <span>Decadal &amp; Regimes</span>
         </div>
-        <button onclick="setTab('reservoirs')" id="tab-btn-reservoirs" class="sidebar-link" title="Decadal Storage (1935–2026): 91-Year Powell &amp; Mead Storage Records">
+        <button onclick="setTab('reservoirs')" id="tab-btn-reservoirs" class="sidebar-link" title="91-Year Powell &amp; Mead Storage Records">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
           </svg>
           <span>Reservoirs (1935–Today)</span>
         </button>
-        <button onclick="setTab('ml')" id="tab-btn-ml" class="sidebar-link" title="Upper Basin Tributary Inflows, River Travel Times &amp; Lake Powell Deficit">
+        <button onclick="setTab('ml')" id="tab-btn-ml" class="sidebar-link" title="Upper Basin Tributaries &amp; Powell Deficit">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
           </svg>
