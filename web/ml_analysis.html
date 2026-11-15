@@ -386,6 +386,26 @@
     Chart.defaults.animations = false;
     Chart.defaults.transitions = false;
 
+    // Light editorial card tooltip styling across all charts
+    if (Chart.defaults.plugins && Chart.defaults.plugins.tooltip) {
+      const tt = Chart.defaults.plugins.tooltip;
+      tt.backgroundColor = 'rgba(255, 255, 255, 0.98)';
+      tt.borderColor = '#cbd5e1';
+      tt.borderWidth = 1;
+      tt.cornerRadius = 3;
+      tt.titleColor = '#0f172a';
+      tt.titleFont = { family: 'Inter, sans-serif', size: 13, weight: '700' };
+      tt.bodyColor = '#334155';
+      tt.bodyFont = { family: 'Inter, sans-serif', size: 12, weight: '500' };
+      tt.footerColor = '#64748b';
+      tt.footerFont = { family: 'Inter, sans-serif', size: 11, weight: '400' };
+      tt.padding = { top: 10, right: 12, bottom: 10, left: 12 };
+      tt.boxWidth = 8;
+      tt.boxHeight = 8;
+      tt.boxPadding = 6;
+      tt.usePointStyle = true;
+    }
+
     // Handle iframe detection and navigation
     if (window.self !== window.top) {
       document.body.classList.add('in-iframe');
@@ -891,7 +911,7 @@
     // Custom plugin for Card 3: Glen Canyon Dam Closes vertical reference marker at 1963
     const glenCanyonDamMarkerPlugin = {
       id: 'glenCanyonDamMarkerPlugin',
-      afterDraw(chart) {
+      afterDatasetsDraw(chart) {
         if (!chart || !chart.chartArea || !chart.scales || !chart.scales.x) return;
         const { ctx, chartArea } = chart;
         const xScale = chart.scales.x;
