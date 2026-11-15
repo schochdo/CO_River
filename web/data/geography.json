@@ -16708,33 +16708,81 @@
       "id": "09522000",
       "name": "Canal Alimentador Central (Central Feeder Canal)",
       "length_miles": 45.0,
-      "operator": "Comisión Nacional del Agua (CONAGUA) / CILA (IBWC)",
+      "operator": "Comisi\u00f3n Nacional del Agua (CONAGUA) / CILA (IBWC)",
       "from": "Morelos Dam Diversion Works / Northerly International Boundary",
       "to": "Mexicali Valley Irrigation District 014 (Baja California & Sonora)",
       "destination": "Mexicali Valley Agriculture & Municipal Users (District 014)",
       "capacity_cfs": 7500,
       "coords": [
-        [-114.72917, 32.70556],
-        [-114.7335, 32.7032],
-        [-114.7412, 32.6985],
-        [-114.7520, 32.6918],
-        [-114.7685, 32.6812],
-        [-114.7920, 32.6668],
-        [-114.8210, 32.6495],
-        [-114.8560, 32.6280],
-        [-114.8980, 32.6025],
-        [-114.9450, 32.5740],
-        [-114.9980, 32.5420],
-        [-115.0560, 32.5110],
-        [-115.1180, 32.4820],
-        [-115.1850, 32.4540],
-        [-115.2280, 32.4410],
-        [-115.26258, 32.43592]
+        [
+          -114.72917,
+          32.70556
+        ],
+        [
+          -114.7335,
+          32.7032
+        ],
+        [
+          -114.7412,
+          32.6985
+        ],
+        [
+          -114.752,
+          32.6918
+        ],
+        [
+          -114.7685,
+          32.6812
+        ],
+        [
+          -114.792,
+          32.6668
+        ],
+        [
+          -114.821,
+          32.6495
+        ],
+        [
+          -114.856,
+          32.628
+        ],
+        [
+          -114.898,
+          32.6025
+        ],
+        [
+          -114.945,
+          32.574
+        ],
+        [
+          -114.998,
+          32.542
+        ],
+        [
+          -115.056,
+          32.511
+        ],
+        [
+          -115.118,
+          32.482
+        ],
+        [
+          -115.185,
+          32.454
+        ],
+        [
+          -115.228,
+          32.441
+        ],
+        [
+          -115.26258,
+          32.43592
+        ]
       ],
-      "era": "Era 3 (1947–1953): Mexican Treaty & C-BT Era",
+      "era": "Era 3 (1947\u20131953): Mexican Treaty & C-BT Era",
       "tier": "Tier 4: International Treaty Diversion Canal (1.5 MAF/yr)",
       "legal_priority": "1944 Mexican Water Treaty Sovereign Commitment (Guaranteed 1.5 MAF/yr)",
-      "historical_note": "Primary Mexican diversion canal distributing Colorado River water diverted at Morelos Dam across 500,000+ acres in the Mexicali and San Luis valleys. Conveyance is guaranteed under the 1944 United States–Mexico Water Treaty.",
+      "historical_note": "Primary Mexican diversion canal distributing Colorado River water diverted at Morelos Dam across 500,000+ acres in the Mexicali and San Luis valleys. Conveyance is guaranteed under the 1944 United States\u2013Mexico Water Treaty.",
       "year": 1950,
       "lat": 32.70556,
       "lon": -114.72917
@@ -17002,8 +17050,8 @@
       "height_ft": 231,
       "year": 1963,
       "purpose": "Denver's largest water storage facility & Roberts Tunnel intake",
-      "lat": 39.6183,
-      "lon": -106.065,
+      "lat": 39.6234,
+      "lon": -106.06556,
       "era": "Era 4 (1962\u20131972): CRSP Act / Upper Basin Escrow Bank",
       "tier": "Tier 3: Collection Forebay (Dillon Reservoir, 257,114 AF)",
       "legal_priority": "Denver Water Largest Storage Facility",
@@ -17032,8 +17080,8 @@
       "height_ft": 285,
       "year": 1968,
       "purpose": "Compensatory storage for West Slope (Fryingpan-Arkansas Project)",
-      "lat": 39.3639,
-      "lon": -106.8208,
+      "lat": 39.36332,
+      "lon": -106.81893,
       "era": "Era 4 (1962\u20131972): CRSP Act / Upper Basin Escrow Bank",
       "tier": "Tier 3: West Slope Compensatory Storage (102,374 AF)",
       "legal_priority": "Fryingpan-Arkansas Project Act (1962)",
@@ -17047,8 +17095,8 @@
       "height_ft": 265,
       "year": 1967,
       "purpose": "Trans-mountain diversion to Aurora and Colorado Springs (Homestake Project)",
-      "lat": 39.3579,
-      "lon": -106.468,
+      "lat": 39.3678,
+      "lon": -106.4618,
       "era": "Era 4 (1962\u20131972): CRSP Act / Upper Basin Escrow Bank",
       "tier": "Tier 3: Trans-Mountain Collection (43,600 AF)",
       "legal_priority": "Aurora & Colorado Springs Municipal Partnership",
@@ -17107,8 +17155,8 @@
       "height_ft": 35,
       "year": 1950,
       "purpose": "Terminal diversion dam routing Mexican 1.5M AF treaty water into Mexicali Valley canals",
-      "lat": 32.70556,
-      "lon": -114.72917,
+      "lat": 32.70516,
+      "lon": -114.72874,
       "era": "Era 3 (1947\u20131953): Mexican Treaty & C-BT Era",
       "tier": "Tier 4: International Treaty Diversion Dam",
       "legal_priority": "1944 Mexican Water Treaty Sovereign Commitment (1.5 MAF/yr)",
@@ -17122,8 +17170,8 @@
       "height_ft": 390,
       "year": 1966,
       "purpose": "Wayne N. Aspinall Storage Unit impounding Colorado largest reservoir body",
-      "lat": 38.4533,
-      "lon": -107.3338,
+      "lat": 38.45312,
+      "lon": -107.33572,
       "era": "Era 4 (1962\u20131972): CRSP Act / Upper Basin Escrow Bank",
       "tier": "Tier 2: CRSP Aspinall Unit Backup Storage (829,500 AF)",
       "legal_priority": "CRSP Storage & Drought Response Operations",
@@ -17152,8 +17200,8 @@
       "height_ft": 357,
       "year": 1911,
       "purpose": "Historic 1911 cornerstone of the Salt River Project feeding Phoenix agricultural & urban grid",
-      "lat": 33.6711,
-      "lon": -111.1564,
+      "lat": 33.6718,
+      "lon": -111.1613,
       "era": "Era 1 (1901\u20131915): Pre-Compact Ag & Salton Sea Trigger",
       "tier": "Tier 2: Salt River Project (SRP) Storage (1.65 MAF)",
       "legal_priority": "Senior 1903 Salt River Valley Water Users Rights",
@@ -17182,8 +17230,8 @@
       "height_ft": 323,
       "year": 1976,
       "purpose": "Aspinall Unit terminal regulating dam; stabilizes downstream Black Canyon baseflows and supplies Gunnison Tunnel diversion",
-      "lat": 38.5107,
-      "lon": -107.6252,
+      "lat": 38.51041,
+      "lon": -107.62413,
       "era": "Era 4 (1962\u20131972): CRSP Act / Upper Basin Escrow Bank",
       "tier": "Tier 4: Aspinall Unit Re-regulation Forebay (26,000 AF)",
       "legal_priority": "CRSP Wayne N. Aspinall Unit Re-regulation",
@@ -17197,8 +17245,8 @@
       "height_ft": 206,
       "year": 1937,
       "purpose": "Upper Gunnison headwater storage providing late-season irrigation exchange for the Uncompahgre Valley",
-      "lat": 38.8183,
-      "lon": -106.6083,
+      "lat": 38.81845,
+      "lon": -106.6062,
       "era": "Era 2 (1935\u20131943): Boulder Canyon Project Act / CA First Mover",
       "tier": "Tier 3: Uncompahgre Project Upper Storage (106,200 AF)",
       "legal_priority": "Senior 1904/1937 Uncompahgre Valley Decree",
@@ -17212,8 +17260,8 @@
       "height_ft": 139,
       "year": 1964,
       "purpose": "CRSP seed storage unit regulating the upper Green River in Wyoming upstream of Flaming Gorge",
-      "lat": 42.0284,
-      "lon": -110.0605,
+      "lat": 42.02782,
+      "lon": -110.06358,
       "era": "Era 4 (1962\u20131972): CRSP Act / Upper Basin Escrow Bank",
       "tier": "Tier 2: CRSP Seedskadee Unit Storage (345,360 AF)",
       "legal_priority": "CRSP Participating Project (1956 Act)",
@@ -17287,8 +17335,8 @@
       "height_ft": 33,
       "year": 1968,
       "purpose": "Diversion dam routing senior California priority water into Palo Verde Canal for Blythe agriculture",
-      "lat": 33.7315,
-      "lon": -114.5122,
+      "lat": 33.73255,
+      "lon": -114.511,
       "era": "Era 4 (1962\u20131972): CRSP Act / Upper Basin Escrow Bank",
       "tier": "Tier 4: Run-of-the-River Agricultural Diversion Dam",
       "legal_priority": "Senior 1877 Present Perfected Rights (First Lower Basin Priority)",
@@ -17302,8 +17350,8 @@
       "height_ft": 72,
       "year": 1941,
       "purpose": "Diversion dam providing irrigation water for the Colorado River Indian Tribes reservation",
-      "lat": 34.1691,
-      "lon": -114.2748,
+      "lat": 34.16845,
+      "lon": -114.27712,
       "era": "Era 2 (1935\u20131943): Boulder Canyon Project Act / CA First Mover",
       "tier": "Tier 4: Indian Reservation Agricultural Diversion Dam",
       "legal_priority": "Senior 1865 Federal Reserved Tribal Water Rights",
