@@ -87,6 +87,15 @@
 
       <!-- Floating Map Top Actions (Layers Menu) -->
       <div class="map-top-actions" id="map-top-actions" style="position: absolute; top: 14px; right: 14px; z-index: 400; display: flex; align-items: flex-start; gap: 8px;">
+        <!-- 7-Day Flow Replay Button -->
+        <button class="map-menu-btn" id="btn-flow-replay" onclick="FlowReplayEngine.toggle()" title="7-Day Historical Flow Replay" aria-label="Toggle 7-Day Flow Replay">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span style="font-size:12px; font-weight:700; margin-left:6px; display:inline-block;">7D Replay</span>
+        </button>
+
         <div class="map-menu-container" id="map-menu-container" style="position: relative; top: auto; right: auto;">
           <button class="map-menu-btn" id="map-menu-btn" onclick="toggleMapMenu(event)" title="Choose Layers and Basemap">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -384,6 +393,61 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- 7-Day Flow Replay Scrubber Bar (Docked Bottom Center) -->
+      <div id="flow-replay-bar" class="flow-replay-bar hidden" onclick="event.stopPropagation()">
+        <!-- Top Row: Kicker, Timestamp, Sentinel Readouts, Close -->
+        <div class="replay-top-row">
+          <div class="replay-kicker-group">
+            <span class="replay-kicker">7-DAY FLOW REPLAY</span>
+            <span class="replay-time-display" id="replay-time-display">--</span>
+            <span class="replay-rel-time" id="replay-rel-time">--</span>
+          </div>
+
+          <!-- Hydrologic Storytelling / Pulse Tracking Strip -->
+          <div class="replay-sentinel-strip" id="replay-sentinel-strip">
+            <span class="sentinel-pill" title="San Juan River entering Lake Powell (Mexican Hat, UT)">
+              San Juan: <strong id="replay-sanjuan-flow">--</strong> cfs
+            </span>
+            <span class="sentinel-divider">→ Powell →</span>
+            <span class="sentinel-pill" title="Controlled release from Glen Canyon Dam below Lake Powell (Lees Ferry, AZ)">
+              Lees Ferry: <strong id="replay-lees-flow">--</strong> cfs
+            </span>
+            <span class="sentinel-pill" title="Gila River confluence near Yuma, AZ (far downstream of Powell & Mead)">
+              Gila: <strong id="replay-gila-flow">--</strong> cfs
+            </span>
+          </div>
+
+          <button class="replay-close-btn" onclick="FlowReplayEngine.close()" title="Exit Flow Replay" aria-label="Close Flow Replay">✕</button>
+        </div>
+
+        <!-- Bottom Row: Transport Controls & Scrubber Slider -->
+        <div class="replay-transport-row">
+          <div class="replay-btn-group">
+            <button class="replay-ctrl-btn" onclick="FlowReplayEngine.step(-1)" title="Step back 1 hour">⏮ -1h</button>
+            <button class="replay-ctrl-btn play-btn" id="replay-play-btn" onclick="FlowReplayEngine.togglePlay()" title="Play / Pause Replay">▶ Play</button>
+            <button class="replay-ctrl-btn" onclick="FlowReplayEngine.step(1)" title="Step forward 1 hour">+1h ⏭</button>
+          </div>
+
+          <div class="replay-slider-wrap">
+            <input type="range" id="replay-scrubber-slider" class="replay-slider" min="0" max="169" value="0">
+            <div class="replay-slider-ticks">
+              <span>T - 7 Days</span>
+              <span>T - 5 Days</span>
+              <span>T - 3 Days</span>
+              <span>T - 1 Day</span>
+              <span>Live</span>
+            </div>
+          </div>
+
+          <div class="replay-speed-group">
+            <button class="speed-pill active" id="speed-pill-1" onclick="FlowReplayEngine.setSpeed(1)" title="1 hour per second">1h/s</button>
+            <button class="speed-pill" id="speed-pill-4" onclick="FlowReplayEngine.setSpeed(4)" title="4 hours per second">4h/s</button>
+            <button class="speed-pill" id="speed-pill-12" onclick="FlowReplayEngine.setSpeed(12)" title="12 hours per second">12h/s</button>
+            <button class="replay-live-btn" onclick="FlowReplayEngine.jumpToLive()" title="Jump to current live conditions">LIVE</button>
+          </div>
         </div>
       </div>
     </div>
@@ -973,12 +1037,15 @@ print("Hydrologic telemetry pipeline synced successfully.")</code></pre>
   <!-- MapLibre GL JS & 3D Flight Camera Engine -->
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
   <script src="cameraFlight.js"></script>
+  <script src="flowReplay.js"></script>
   <script src="app.js?t=1730967000"></script>
   <script>
     // URL parameter support for direct testing & deep-linking
     window.addEventListener('load', () => {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('station')) {
+      if (urlParams.get('replay') === '1' || urlParams.get('replay') === 'true') {
+        setTimeout(() => { if (window.FlowReplayEngine) window.FlowReplayEngine.open(); }, 600);
+      } else if (urlParams.get('station')) {
         setTimeout(() => { if (typeof window.focusMapStation === 'function') window.focusMapStation(urlParams.get('station')); }, 500);
       } else if (urlParams.get('drawer') === 'layers') {
         setTimeout(() => { if (typeof toggleMapMenu === 'function') toggleMapMenu(); }, 400);

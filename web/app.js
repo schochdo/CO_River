@@ -2063,6 +2063,9 @@ async function loadData(forceLive = false) {
       renderFlowHealthLayer(cachedRiverNetwork, metrics);
       updateBadgePlacements();
       ensurePointLayersOnTop();
+      if (window.FlowReplayEngine && typeof window.FlowReplayEngine.init === 'function') {
+        window.FlowReplayEngine.init(map, metrics);
+      }
     };
 
     if (map && map.isStyleLoaded && map.isStyleLoaded()) {
@@ -4902,11 +4905,15 @@ print(f"${cleanTName}: {flow_cfs:,.0f} cfs")`;
       paint: {
         'circle-color': '#ffffff',
         'circle-radius': [
-          'interpolate', ['linear'], ['zoom'],
-          4, ['match', ['get', 'station_type'], 'reservoir', 5.5, 4.5],
-          7, ['match', ['get', 'station_type'], 'reservoir', 7.2, 6.0],
-          10, ['match', ['get', 'station_type'], 'reservoir', 9.0, 7.5],
-          13, ['match', ['get', 'station_type'], 'reservoir', 11.2, 9.5]
+          'coalesce',
+          ['get', 'casing_radius'],
+          [
+            'interpolate', ['linear'], ['zoom'],
+            4, ['match', ['get', 'station_type'], 'reservoir', 5.5, 4.5],
+            7, ['match', ['get', 'station_type'], 'reservoir', 7.2, 6.0],
+            10, ['match', ['get', 'station_type'], 'reservoir', 9.0, 7.5],
+            13, ['match', ['get', 'station_type'], 'reservoir', 11.2, 9.5]
+          ]
         ],
         'circle-stroke-color': '#0f172a',
         'circle-stroke-width': 1.0,
@@ -4924,19 +4931,27 @@ print(f"${cleanTName}: {flow_cfs:,.0f} cfs")`;
       },
       paint: {
         'circle-color': [
-          'match', ['get', 'station_type'],
-          'streamflow', '#0284c7',
-          'diversion_tunnel', '#0891b2',
-          'diversion_canal', '#059669',
-          'reservoir', '#dc2626',
-          '#0284c7'
+          'coalesce',
+          ['get', 'circle_color'],
+          [
+            'match', ['get', 'station_type'],
+            'streamflow', '#0284c7',
+            'diversion_tunnel', '#0891b2',
+            'diversion_canal', '#059669',
+            'reservoir', '#dc2626',
+            '#0284c7'
+          ]
         ],
         'circle-radius': [
-          'interpolate', ['linear'], ['zoom'],
-          4, ['match', ['get', 'station_type'], 'reservoir', 3.8, 3.0],
-          7, ['match', ['get', 'station_type'], 'reservoir', 5.2, 4.2],
-          10, ['match', ['get', 'station_type'], 'reservoir', 6.8, 5.5],
-          13, ['match', ['get', 'station_type'], 'reservoir', 8.8, 7.5]
+          'coalesce',
+          ['get', 'circle_radius'],
+          [
+            'interpolate', ['linear'], ['zoom'],
+            4, ['match', ['get', 'station_type'], 'reservoir', 3.8, 3.0],
+            7, ['match', ['get', 'station_type'], 'reservoir', 5.2, 4.2],
+            10, ['match', ['get', 'station_type'], 'reservoir', 6.8, 5.5],
+            13, ['match', ['get', 'station_type'], 'reservoir', 8.8, 7.5]
+          ]
         ],
         'circle-opacity': 1.0
       }
