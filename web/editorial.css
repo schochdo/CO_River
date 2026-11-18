@@ -29,7 +29,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* 2. Tabular Numbers for Metrics, Years, and Hydrologic Accounting */
-.tabular-nums, .mono, [data-metric], .stat-val, .metric-val, .law-stat-val, td, th {
+.tabular-nums, [data-metric], .stat-val, .metric-val, .law-stat-val, td, th {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }

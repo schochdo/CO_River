@@ -1,0 +1,84 @@
+spine_order,reach_id,river_name,upstream_node,downstream_node,length_miles,reach_type,python_source_id_or_formula,js_source_id_or_formula,live_cfs,median_50yr_cfs,pct_of_median,qa_flags
+1,headwaters,Colorado River,Baker Gulch Headwaters (RMNP),Granby Dam Face,32.9,free_flowing,09010500,09010500,12.6,16.0,78.8,
+2,colorado_granby_windygap,Colorado River,Granby Dam Face,Windy Gap Dam & Fraser River Confluence,8.3,dam_regulated,09034250,res.flow_cfs != null ? Math.round(res.flow_cfs * 0.9) : null,67.4,105.0,64.2,PARITY_MISMATCH; DAM_INFLOW_EQ_OUTFLOW
+3,colorado_windygap_kremmling,Colorado River,Windy Gap Dam & Fraser River Confluence,Williams Fork & Muddy Creek Confluence (Kremmling),31.9,free_flowing,09034250,"Math.max(0, Math.round(rK.flow_cfs - rB.flow_cfs))",67.4,105.0,64.2,PARITY_MISMATCH
+4,gore_canyon,Colorado River,Williams Fork & Muddy Creek Confluence (Kremmling),Eagle River Confluence (Dotsero),65.9,free_flowing,09058000,09058000,209.0,611.0,34.2,
+5,colorado_glenwood_canyon,Colorado River,Eagle River Confluence (Dotsero),Roaring Fork River Confluence (Glenwood Springs),18.8,free_flowing,09070500,09070500,462.0,1050.0,44.0,
+6,glenwood_cameo,Colorado River,Roaring Fork River Confluence (Glenwood Springs),Gunnison River Confluence (Grand Junction / Cameo),96.1,free_flowing,09095500,09095500,1300.0,1910.0,68.1,
+7,colorado_stateline_cisco,Colorado River,Gunnison River Confluence (Grand Junction),Dolores River Confluence (State Line),72.9,free_flowing,09163500,09163500,2840.0,3840.0,74.0,
+8,grand_valley_cisco,Colorado River,Dolores River Confluence,Green River Confluence (Cisco / Moab),96.3,free_flowing,09180500,09180500,3270.0,3770.0,86.7,
+9,cataract_canyon,Colorado River,Green River Confluence,Lake Powell Full Pool Boundary,113.5,free_flowing,09180500,Math.round(rC.flow_cfs + rG.flow_cfs),7150.0,3770.0,189.7,PARITY_MISMATCH
+10,powell_submerged_path,Colorado River,Lake Powell Full Pool Boundary,Glen Canyon Dam Face,65.4,submerged_path,submerged (flow=0),submerged (flow=0),0.0,,,
+11,green_headwaters_daniel,Green River,Wind River Range Headwaters,Warren Bridge / Horse Creek Confluence,66.8,free_flowing,09188500,09188500,229.0,,,
+12,green_daniel_fontenelle,Green River,Warren Bridge / Horse Creek Confluence,Fontenelle Reservoir Full Pool Boundary,110.6,free_flowing,09209400,09209400,845.0,,,
+13,green_fontenelle_greenriverwy,Green River,Fontenelle Dam Face,"Blacks Fork Confluence (Green River, WY)",67.3,free_flowing,09211200,09211200,862.0,924.0,93.3,DAM_INFLOW_EQ_OUTFLOW
+14,green_greenriverwy_flaminggorge,Green River,"Blacks Fork Confluence (Green River, WY)",Flaming Gorge Reservoir Full Pool Boundary,6.2,free_flowing,09217000,09217000,884.0,895.0,98.8,
+15,flaming_gorge_submerged_path,Green River,Flaming Gorge Reservoir Full Pool Boundary,Flaming Gorge Dam Face,73.5,submerged_path,submerged (flow=0),submerged (flow=0),0.0,,,
+16,green_upper,Green River,Flaming Gorge Dam Face,Yampa River Confluence (Echo Park),64.9,dam_regulated,09234500,09234500,2210.0,1770.0,124.9,
+17,green_middle,Green River,Yampa River Confluence (Echo Park),White & Duchesne River Confluences (Ouray),97.8,free_flowing,09261000,09261000,2980.0,2190.0,136.1,
+18,green_ouray_desolation,Green River,White & Duchesne River Confluences (Ouray),"Price & San Rafael River Confluences (Green River, UT)",107.1,free_flowing,09272400,09272400,2500.0,,,
+19,green_river,Green River,"Price & San Rafael River Confluences (Green River, UT)",Colorado River Confluence (Cataract Canyon),137.2,free_flowing,09315000,Math.round(rGr.flow_cfs + (rSr.flow_cfs || 0)),3880.0,2870.0,135.2,PARITY_MISMATCH
+20,gunnison_headwaters,Gunnison River,Taylor & East River Confluence (Almont),Blue Mesa Reservoir Full Pool Boundary,58.9,free_flowing,09114500,09114500,308.0,295.0,104.4,
+21,blue_mesa_submerged_path,Gunnison River,Blue Mesa Reservoir Full Pool Boundary,Blue Mesa Dam Face,21.9,submerged_path,submerged (flow=0),submerged (flow=0),0.0,,,
+22,gunnison_aspinall_cascade,Gunnison River,Blue Mesa Dam Face,Crystal Dam Face & Gunnison Tunnel Intake,18.2,dam_regulated,09128000,09128000,205.0,700.0,29.3,
+23,gunnison_upper,Gunnison River,Crystal Dam Face & Gunnison Tunnel Intake,Uncompahgre River Confluence (Delta),47.3,dam_regulated,09128000,09128000,205.0,700.0,29.3,
+24,gunnison_river,Gunnison River,Uncompahgre River Confluence (Delta),Colorado River Confluence (Grand Junction),55.0,free_flowing,09152500,09152500,1330.0,1420.0,93.7,
+25,sanjuan_headwaters,San Juan River,Continental Divide Headwaters (Pagosa Springs),Navajo Reservoir Full Pool Boundary,72.2,free_flowing,09342500,09342500,329.0,96.0,342.7,
+26,navajo_submerged_path,San Juan River,Navajo Reservoir Full Pool Boundary,Navajo Dam Face,21.6,submerged_path,submerged (flow=0),submerged (flow=0),0.0,,,
+27,sanjuan_upper,San Juan River,Navajo Dam Face,Animas River Confluence (Farmington),43.8,dam_regulated,09355500,09355500,83.1,698.0,11.9,
+28,sanjuan_farmington_shiprock,San Juan River,Animas River Confluence (Farmington),Chaco River Confluence (Shiprock),32.5,free_flowing,09365000,09365000,2140.0,949.0,225.5,
+29,sanjuan_shiprock_bluff,San Juan River,Chaco River Confluence (Shiprock),Chinle Creek Confluence (Bluff),107.6,free_flowing,09368000,09368000,2580.0,990.0,260.6,
+30,sanjuan_bluff_powell,San Juan River,Chinle Creek Confluence (Bluff),Lake Powell San Juan Arm Full Pool Boundary,54.0,free_flowing,09379500,09379500,1460.0,1130.0,129.2,
+31,sanjuan_submerged_path,San Juan River,Lake Powell San Juan Arm Full Pool Boundary,Lake Powell Main Thalweg Confluence,55.0,submerged_path,submerged (flow=0),submerged (flow=0),0.0,,,
+32,lees_ferry,Colorado River,Glen Canyon Dam Face,Paria River Confluence (Lees Ferry),16.6,dam_regulated,09380000,09380000,6680.0,10300.0,64.9,
+33,marble_canyon,Colorado River,Paria River Confluence (Lees Ferry),Little Colorado River Confluence,60.3,free_flowing,09380000,Math.round(rLf.flow_cfs + (rP.flow_cfs || 0)),6680.0,10300.0,64.9,PARITY_MISMATCH
+34,grand_canyon_upper,Colorado River,Little Colorado River Confluence,Phantom Ranch (Bright Angel Creek Confluence),25.8,free_flowing,09402500,09402500,7130.0,10900.0,65.4,
+35,grand_canyon,Colorado River,Phantom Ranch (Bright Angel Creek Confluence),Diamond Creek Confluence,136.7,free_flowing,09402500,09402500,7130.0,10900.0,65.4,LONG_REACH
+36,grand_canyon_lower,Colorado River,Diamond Creek Confluence,Lake Mead Full Pool Boundary (Grand Wash Cliffs),62.4,free_flowing,09404200,09404200,8920.0,12900.0,69.1,
+37,mead_submerged_path,Colorado River,Lake Mead Full Pool Boundary (Grand Wash Cliffs),Hoover Dam Face,64.0,submerged_path,submerged (flow=0),submerged (flow=0),0.0,,,
+38,lower_basin_hoover_davis,Colorado River,Hoover Dam Face,Davis Dam Face (Lake Mohave),65.3,dam_regulated,USBR_HOOVER,USBR-HOOVER,7502.0,10500.0,71.4,
+39,lower_basin_davis_parker,Colorado River,Davis Dam Face,Parker Dam Face (Lake Havasu / CAP & CRA Intakes),83.8,dam_regulated,USBR_DAVIS,USBR-DAVIS,4392.0,5200.0,84.5,DAM_INFLOW_EQ_OUTFLOW
+40,lower_basin_parker_paloverde,Colorado River,Parker Dam Face,Palo Verde Diversion Dam Face,58.4,dam_regulated,USBR_PARKER,USBR-PARKER,9305.0,8800.0,105.7,DAM_INFLOW_EQ_OUTFLOW; MASS_BALANCE_WARN
+41,lower_basin_paloverde_imperial,Colorado River,Palo Verde Diversion Dam Face,Imperial Dam Face & All-American Canal Intake,87.0,dam_regulated,09429100,09429100,3820.0,5440.0,70.2,
+42,lower_basin_imperial_tailrace,Colorado River,Imperial Dam Face & All-American Canal Intake,Desilting Works / Gila Confluence Boundary,1.3,free_flowing,09429500,09429500,186.0,345.0,53.9,MASS_BALANCE_WARN
+43,lower_basin_taper,Colorado River,Desilting Works / Gila Confluence Boundary,Morelos Dam (Mexico International Boundary),46.3,free_flowing,09429500,09429500,186.0,345.0,53.9,
+44,fraser_river,Fraser River,Berthoud Pass Headwaters,Colorado River Confluence (Windy Gap),30.5,free_flowing,09033300,09033300,17.8,,,
+45,williams_fork,Williams Fork,Jones Pass Headwaters,Colorado River Confluence (Parshall),35.5,dam_regulated,09037500,09037500,14.2,51.0,27.8,
+46,muddy_creek_co,Muddy Creek (CO),Rabbit Ears Pass Headwaters,Colorado River Confluence (Kremmling),53.7,dam_regulated,09041400,09041400,15.7,22.0,71.4,
+47,blue_river_headwaters,Blue River,Breckenridge Headwaters,Dillon Reservoir Full Pool Boundary,19.1,free_flowing,09046600,09046600,29.2,39.0,74.9,
+48,dillon_submerged_path,Blue River,Dillon Reservoir Full Pool Boundary,Dillon Dam Face & Roberts Tunnel Intake,3.7,submerged_path,submerged (flow=0),submerged (flow=0),0.0,,,
+49,blue_river_middle,Blue River,Dillon Dam Face & Roberts Tunnel Intake,Green Mountain Reservoir Full Pool Boundary,28.1,dam_regulated,09050700,09050700,63.0,98.0,64.3,
+50,blue_river,Blue River,Green Mountain Dam Face,Colorado River Confluence (Kremmling),16.2,dam_regulated,09057500,09057500,66.4,276.0,24.1,DAM_INFLOW_EQ_OUTFLOW
+51,eagle_river,Eagle River,Red Cliff Headwaters,Colorado River Confluence (Dotsero),66.9,free_flowing,09070000,09070000,130.0,236.0,55.1,
+52,fryingpan_headwaters,Fryingpan River,Continental Divide Headwaters,Ruedi Reservoir Full Pool Boundary,26.3,free_flowing,09080400,09080400,39.3,,,
+53,fryingpan_river,Fryingpan River,Ruedi Dam Face,Roaring Fork River Confluence (Basalt),13.4,dam_regulated,09080400,09080400,39.3,,,DAM_INFLOW_EQ_OUTFLOW
+54,roaring_fork_river,Roaring Fork River,Aspen Headwaters,Colorado River Confluence (Glenwood Springs),63.9,free_flowing,09085000,09085000,512.0,622.0,82.3,
+55,uncompahgre_river,Uncompahgre River,Ouray Headwaters,Gunnison River Confluence (Delta),74.5,free_flowing,09149500,09149500,522.0,,,
+56,dolores_headwaters,Dolores River,San Juan Mountains Headwaters,McPhee Dam Face & Dolores Tunnel Intake,64.8,free_flowing,09166500,09166500,609.0,81.0,751.9,
+57,dolores_mcphee_bedrock,Dolores River,McPhee Dam Face,San Miguel River Confluence (Bedrock),105.2,dam_regulated,09169500,09169500,86.9,49.0,177.3,DAM_INFLOW_EQ_OUTFLOW
+58,dolores_bedrock_cisco,Dolores River,San Miguel River Confluence (Bedrock),Gateway / Utah State Line,74.1,dam_regulated,09180000,09180000,434.0,181.0,239.8,
+59,little_snake_river,Little Snake River,Park Range Headwaters,Yampa River Confluence (Lily Park),165.5,free_flowing,09260000,09260000,113.0,,,
+60,yampa_river,Yampa River,Flat Tops Headwaters,Green River Confluence (Echo Park),236.4,free_flowing,09260050,09260050,354.0,545.0,65.0,
+61,white_river,White River,Flat Tops Headwaters,Green River Confluence (Ouray),216.5,free_flowing,09306500,09306500,290.0,424.0,68.4,
+62,duchesne_river,Duchesne River,Uinta Mountains Headwaters,Green River Confluence (Ouray),135.0,free_flowing,09302000,09302000,641.0,314.0,204.1,
+63,price_river,Price River,Wasatch Plateau Headwaters,Green River Confluence,146.6,free_flowing,09314500,09314500,47.4,49.0,96.7,
+64,san_rafael_river,San Rafael River,San Rafael Swell Headwaters,Green River Confluence,162.7,free_flowing,09328500,09328500,37.6,53.0,70.9,
+65,dirty_devil_river,Dirty Devil River,Fremont & Muddy Creek Confluence (Hanksville),Lake Powell Confluence,181.5,free_flowing,09333500,09333500,132.0,108.0,122.2,
+66,escalante_river,Escalante River,Aquarius Plateau Headwaters,Lake Powell Confluence,118.7,free_flowing,09337500,09337500,7.4,6.0,123.3,
+67,animas_river,Animas River,Silverton Headwaters,San Juan River Confluence (Farmington),122.9,free_flowing,09364500,09364500,1350.0,346.0,390.2,
+68,paria_river,Paria River,Bryce Canyon Headwaters,Colorado River Confluence (Lees Ferry),87.4,free_flowing,09382000,09382000,14.0,20.0,70.0,
+69,little_colorado_river,Little Colorado River,White Mountains Headwaters,Colorado River Confluence (Grand Canyon),356.9,free_flowing,09402000,09402000,326.0,28.0,1164.3,
+70,kanab_creek,Kanab Creek,Paunsaugunt Plateau Headwaters,Colorado River Confluence (Grand Canyon),113.2,free_flowing,09403850,09403850,12.4,,,
+71,havasu_creek,Havasu Creek,Supai Headwaters,Colorado River Confluence (Grand Canyon),124.0,free_flowing,09404115,09404115,70.3,,,
+72,virgin_river,Virgin River,Zion Headwaters,Lake Mead Confluence,184.6,free_flowing,09415000,09415000,353.0,188.0,187.8,
+73,muddy_river,Muddy River,Moapa Valley Springs,Lake Mead Confluence,77.2,free_flowing,09419000,09419000,44.3,,,
+74,bill_williams_river,Bill Williams River,Alamo Dam Face,Lake Havasu Confluence (Parker Dam Pool),152.2,free_flowing,09426000,09426000,13.9,41.0,33.9,
+75,gila_river,Gila River,New Mexico Headwaters through Kelvin,Painted Rock Flood Pool Boundary,549.3,free_flowing,09474000,09474000,88.1,131.0,67.3,
+76,san_pedro_river,San Pedro River,Huachuca Mountains / Border Headwaters,Gila River Confluence (Winkelman),155.6,free_flowing,09471000,09471000,7.2,,,
+77,salt_headwaters,Salt River,White Mountains Headwaters,Theodore Roosevelt Dam Face,251.5,free_flowing,09498500,09498500,940.0,357.0,263.3,
+78,salt_cascade,Salt River,Theodore Roosevelt Dam Face,Stewart Mountain Dam Face,30.6,dam_regulated,09502000,09502000,5.2,,,DAM_INFLOW_EQ_OUTFLOW
+79,salt_river,Salt River,Stewart Mountain Dam Face,Gila River Confluence (Phoenix),41.6,dam_regulated,09502000,09502000,5.2,,,DAM_INFLOW_EQ_OUTFLOW
+80,verde_headwaters,Verde River,Paulden Springs Headwaters,Bartlett Dam Face,251.0,free_flowing,09506000,09506000,595.0,,,
+81,verde_river,Verde River,Bartlett Dam Face,Salt River Confluence (Fountain Hills),24.6,dam_regulated,09510000,09510000,1220.0,,,DAM_INFLOW_EQ_OUTFLOW
+82,gila_lower,Gila River,Painted Rock Dam Face,"Colorado River Confluence (Dome, AZ)",120.9,free_flowing,09520500,09520500,10.7,101.0,10.6,
+83,div_canal_alimentador_central,Canal Alimentador Central,Morelos Dam Headgates,Mexicali Valley Agriculture (District 014),36.6,canal,09522000,09522000,1530.0,,,

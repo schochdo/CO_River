@@ -82,8 +82,16 @@ GAUGE_SITES = [
     "09471000",  # San Pedro River at Charleston
     "09474000",  # Gila River at Kelvin
     "09498500",  # Salt River near Roosevelt
+    "09502000",  # Salt River below Stewart Mtn Dam
+    "09506000",  # Verde River near Camp Verde
+    "09510000",  # Verde River below Bartlett Dam
     "09511300",  # Verde River near Scottsdale
     "09520500",  # Gila River near Dome
+    "09080400",  # Fryingpan River near Ruedi, CO
+    "09188500",  # Green River at Warren Bridge near Daniel, WY
+    "09209400",  # Green River near La Barge, WY
+    "09251000",  # Yampa River near Maybell, CO
+    "09272400",  # Green River at Ouray, UT
     
     # Major Conveyance / Diversion Canal
     "09527700",  # All-American Canal

@@ -1,18 +1,30 @@
 /**
- * 60 FPS Game-Engine Style 3D Flight & Pan Camera Controller
- * for MapLibre GL JS / Mapbox GL JS (Vanilla JS Production Engine)
+ * 60 FPS Game-Engine Style 3D Flight & Pan Camera Subsystem
+ * for MapLibre GL JS / Mapbox GL JS (Production Engine)
  *
- * Stabilization Features:
- * - Fixed Altitude Panning: Camera altitude (MSL) remains rock-solid when panning
- *   across mountain ridges, valleys, and canyons, eliminating vertical bouncing.
- * - Automatic Terrain Clearance: Camera elevation only climbs if necessary to clear
- *   physical terrain obstacles ahead, with user-configured safety clearance floor.
- * - Independent Degrees of Freedom:
- *   - WASD: Pitch tilt & bearing yaw rotation without altitude changes
- *   - Arrow Keys: Ground vector flight with locked camera elevation
- *   - Q / E or PageDown / PageUp: True vertical helicopter altitude elevator (no ground drift)
- *   - + / - or Z / X: Line-of-sight zoom with terrain collision safety floor
- *   - Mouse Drag Pan: Seamlessly stabilized when tilted in 3D terrain mode
+ * Implements:
+ * 1. Camera Finite State Machine (FSM): 'idle', 'flight', 'flyto', 'inspect'
+ *    with immediate manual preemption on keydown, pointer/touch, or zoom button click.
+ * 2. Safe Navigation Wrappers: safeFlyTo & safeEaseTo with coordinate guards,
+ *    ground-clamping enforcement, and progressive pitch ceiling enforcement.
+ * 3. 60 FPS requestAnimationFrame Keyboard Cruising:
+ *    - Arrows: Horizontal ground plane flight along bearing vector
+ *    - WASD: Pitch tilt & Azimuth heading rotation
+ *    - Q/E or PageUp/PageDown: True vertical helicopter altitude elevator (no lateral drift)
+ *    - +/- or Z/X: Line-of-sight zoom
+ *    - Shift: 2.5x Sprint Multiplier
+ *    - 0.6s Predictive Lookahead obstacle clearance floor (MIN_CAMERA_CLEARANCE = 25m)
+ *    - Smooth terrain settlement on key release without calling private elevation APIs.
+ * 4. Trackpad & Mouse Wheel Controller:
+ *    - Ctrl+wheel: Chromium pinch guard
+ *    - Shift+wheel: Direct 3D pitch tilt
+ *    - Alt+wheel: Direct azimuth rotation
+ *    - Safari gesture double-zoom prevention watchdog
+ * 5. Tablet & Mobile Two-Finger Touch Arbiter:
+ *    - 12px deadzone separating pitch vs zoom-rotate
+ *    - 120ms single-finger pan suppression on touch exit
+ *    - Accurate MacBook trackpad vs iOS touchscreen disambiguation
+ * 6. Continuous Progressive Pitch Ceiling: maxAllowedPitch = (zoom - 3.5) * 18
  */
 
 (function (root, factory) {
@@ -21,10 +33,21 @@
   } else if (typeof module === 'object' && module.exports) {
     module.exports = factory();
   } else {
-    root.initKeyboardFlight = factory();
+    var exports = factory();
+    root.CameraStateMachine = exports.CameraStateMachine;
+    root.safeFlyTo = exports.safeFlyTo;
+    root.safeEaseTo = exports.safeEaseTo;
+    root.initKeyboardFlight = exports.initKeyboardFlight;
+    root.useKeyboardFlight = exports.useKeyboardFlight;
   }
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
+
+  // Disambiguate iOS touchscreen devices from MacBooks with trackpads (Pitfall 3)
+  var isIosDevice = typeof navigator !== 'undefined' && (
+    /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1 && typeof document !== 'undefined' && 'ontouchend' in document)
+  );
 
   var NAVIGATION_KEY_SET = new Set([
     'KeyW', 'KeyA', 'KeyS', 'KeyD',
@@ -56,16 +79,16 @@
   }
 
   var CAMERA_CONSTANTS = {
-    MIN_CAMERA_CLEARANCE_METERS: 40.0,
+    MIN_CAMERA_CLEARANCE_METERS: 25.0, // Ground collision floor (Pitfall 5)
     MIN_ZOOM_CLEARANCE_METERS: 25.0,
-    LOOKAHEAD_SECONDS: 0.8,
+    LOOKAHEAD_SECONDS: 0.6, // 0.6-second predictive lookahead
     MIN_PITCH_DEG: 0,
-    MAX_PITCH_DEG: 85,
+    MAX_PITCH_DEG: 82,
     BASE_SPEED_MPS: 720, // Cruising speed at zoom 14
-    PITCH_SPEED_DEG_PER_SEC: 36,
-    BEARING_SPEED_DEG_PER_SEC: 42,
+    PITCH_SPEED_DEG_PER_SEC: 36, // 72 deg/s with Shift
+    BEARING_SPEED_DEG_PER_SEC: 42, // 84 deg/s with Shift
     ZOOM_SPEED_PER_SEC: 1.5,
-    ALTITUDE_SPEED_PER_SEC: 1.2,
+    ALTITUDE_SPEED_PER_SEC: 0.75,
     METERS_PER_DEG_LAT: 111320
   };
 
@@ -74,10 +97,14 @@
     return mod < 0 ? mod + 360 : mod;
   }
 
+  // Section 6: Continuous Progressive Pitch Ceiling
+  function getMaxAllowedPitch(zoom) {
+    if (zoom === undefined || zoom === null || !isFinite(zoom)) return 82;
+    return Math.max(0, Math.min(82, (zoom - 3.5) * 18));
+  }
+
   function clampPitch(pitch, zoom) {
-    var maxPitch = zoom !== undefined
-      ? Math.max(0, Math.min(82, (zoom - 3.5) * 18))
-      : CAMERA_CONSTANTS.MAX_PITCH_DEG;
+    var maxPitch = getMaxAllowedPitch(zoom);
     return Math.max(CAMERA_CONSTANTS.MIN_PITCH_DEG, Math.min(maxPitch, pitch));
   }
 
@@ -90,8 +117,134 @@
   }
 
   /**
+   * SECTION 1: CAMERA FINITE STATE MACHINE (FSM)
+   * Coordinates modes: 'idle', 'flight', 'flyto', 'inspect'
+   */
+  var CameraStateMachine = (function () {
+    var currentMode = 'idle';
+    var listeners = new Set();
+
+    return {
+      getMode: function () {
+        return currentMode;
+      },
+      setMode: function (nextMode) {
+        if (currentMode === nextMode) return;
+        var prevMode = currentMode;
+        currentMode = nextMode;
+        listeners.forEach(function (fn) {
+          try { fn(currentMode, prevMode); } catch (_) {}
+        });
+      },
+      onModeChange: function (listener) {
+        listeners.add(listener);
+        return function () { listeners.delete(listener); };
+      },
+      cancelProgrammaticFlight: function (mapInstance) {
+        if (mapInstance && typeof mapInstance.stop === 'function') {
+          try { mapInstance.stop(); } catch (_) {}
+        }
+        if (currentMode === 'flyto') {
+          var prev = currentMode;
+          currentMode = 'idle';
+          listeners.forEach(function (fn) {
+            try { fn('idle', prev); } catch (_) {}
+          });
+        }
+      }
+    };
+  })();
+
+  function validateCenterCoords(center) {
+    if (!center) return true;
+    var lng, lat;
+    if (Array.isArray(center)) {
+      lng = center[0];
+      lat = center[1];
+    } else if (typeof center === 'object') {
+      lng = center.lng !== undefined ? center.lng : center.lon;
+      lat = center.lat;
+    }
+    if (lng === undefined || lat === undefined) return false;
+    return isFinite(lng) && isFinite(lat) && !isNaN(lng) && !isNaN(lat);
+  }
+
+  /**
+   * SECTION 1.2: SAFE NAVIGATION WRAPPERS
+   * safeFlyTo & safeEaseTo with coordinate validation, ground clamping,
+   * FSM state tracking, and progressive pitch ceiling enforcement.
+   */
+  function safeFlyTo(mapInstance, options) {
+    if (!mapInstance) return;
+    options = options ? Object.assign({}, options) : {};
+
+    if (options.center && !validateCenterCoords(options.center)) {
+      console.warn('[safeFlyTo] Aborting: target coordinates are invalid or non-finite:', options.center);
+      return mapInstance;
+    }
+
+    CameraStateMachine.cancelProgrammaticFlight(mapInstance);
+
+    var targetZoom = options.zoom !== undefined ? options.zoom : mapInstance.getZoom();
+    var maxPitch = getMaxAllowedPitch(targetZoom);
+    if (options.pitch !== undefined && options.pitch > maxPitch) {
+      options.pitch = maxPitch;
+    }
+
+    if (typeof mapInstance.setCenterClampedToGround === 'function') {
+      try { mapInstance.setCenterClampedToGround(true); } catch (_) {}
+    }
+
+    CameraStateMachine.setMode('flyto');
+    var onEnd = function () {
+      if (CameraStateMachine.getMode() === 'flyto') {
+        CameraStateMachine.setMode('idle');
+      }
+    };
+    mapInstance.once('moveend', onEnd);
+
+    var rawFly = mapInstance._rawFlyTo || mapInstance.flyTo;
+    return rawFly.call(mapInstance, options);
+  }
+
+  function safeEaseTo(mapInstance, options) {
+    if (!mapInstance) return;
+    options = options ? Object.assign({}, options) : {};
+
+    if (options.center && !validateCenterCoords(options.center)) {
+      console.warn('[safeEaseTo] Aborting: target coordinates are invalid or non-finite:', options.center);
+      return mapInstance;
+    }
+
+    CameraStateMachine.cancelProgrammaticFlight(mapInstance);
+
+    var targetZoom = options.zoom !== undefined ? options.zoom : mapInstance.getZoom();
+    var maxPitch = getMaxAllowedPitch(targetZoom);
+    if (options.pitch !== undefined && options.pitch > maxPitch) {
+      options.pitch = maxPitch;
+    }
+
+    if (typeof mapInstance.setCenterClampedToGround === 'function') {
+      try { mapInstance.setCenterClampedToGround(true); } catch (_) {}
+    }
+
+    if (CameraStateMachine.getMode() !== 'inspect') {
+      CameraStateMachine.setMode('flyto');
+    }
+
+    var onEnd = function () {
+      if (CameraStateMachine.getMode() === 'flyto') {
+        CameraStateMachine.setMode('idle');
+      }
+    };
+    mapInstance.once('moveend', onEnd);
+
+    var rawEase = mapInstance._rawEaseTo || mapInstance.easeTo;
+    return rawEase.call(mapInstance, options);
+  }
+
+  /**
    * Universal camera state extractor compatible with MapLibre GL JS v2–v4 & Mapbox GL JS.
-   * Extracts physical world altitude in meters above sea level and ground camera coordinates.
    */
   function getCameraInfo(map) {
     if (!map) return null;
@@ -162,12 +315,6 @@
     };
   }
 
-  /**
-   * Mathematically stabilizes camera altitude against terrain fluctuations.
-   * Adjusts zoom dynamically to maintain target altitude above sea level:
-   * deltaZ_cur = altitude - groundElev; deltaZ_target = targetAltitude - groundElev
-   * zoomOffset = log2(deltaZ_cur / deltaZ_target)
-   */
   function adjustZoomForTargetAltitude(map, targetAltitude) {
     if (!map || targetAltitude === null || targetAltitude === undefined || !isFinite(targetAltitude)) return;
     var info = getCameraInfo(map);
@@ -207,7 +354,14 @@
     var deltaLng = deltaEastMeters / metersPerDegLng;
     var nextLat = Math.max(-85, Math.min(85, center.lat + deltaLat));
     var nextLng = center.lng + deltaLng;
-    return { deltaLat: deltaLat, deltaLng: deltaLng, nextLat: nextLat, nextLng: nextLng };
+    return {
+      deltaLat: deltaLat,
+      deltaLng: deltaLng,
+      nextLat: nextLat,
+      nextLng: nextLng,
+      normForward: normForward,
+      normStrafe: normStrafe
+    };
   }
 
   function sampleTerrainObstacle(map, camLng, camLat, lookaheadLng, lookaheadLat) {
@@ -220,17 +374,46 @@
     if (groundAheadCam !== null && groundAheadCam !== undefined && isFinite(groundAheadCam)) {
       maxGround = Math.max(maxGround, groundAheadCam);
     }
-    return maxGround;
+    return maxGround === -Infinity ? 0 : maxGround;
   }
 
+  /**
+   * SECTION 2: THE 60 FPS KEYBOARD FLIGHT ENGINE
+   */
   function initKeyboardFlight(map, options) {
     if (!map) return function () {};
     options = options || {};
 
-    // Disable default 2D stepping controls
+    // Safeguard native flyTo and easeTo methods with our safe wrappers
+    if (!map._cameraFlightPatched) {
+      map._rawFlyTo = map.flyTo;
+      map._rawEaseTo = map.easeTo;
+      map.flyTo = function (opts) {
+        return safeFlyTo(map, opts);
+      };
+      map.easeTo = function (opts) {
+        return safeEaseTo(map, opts);
+      };
+      map.safeFlyTo = function (opts) {
+        return safeFlyTo(map, opts);
+      };
+      map.safeEaseTo = function (opts) {
+        return safeEaseTo(map, opts);
+      };
+      map._cameraFlightPatched = true;
+    }
+
+    // Disable MapLibre default 2D stepping controls
     try {
       if (map.keyboard && map.keyboard.disable) {
         map.keyboard.disable();
+      }
+    } catch (_) {}
+
+    // Disable built-in touchPitch to prevent accidental tilt during pinch-zoom
+    try {
+      if (map.touchPitch && map.touchPitch.disable) {
+        map.touchPitch.disable();
       }
     } catch (_) {}
 
@@ -241,6 +424,8 @@
     var mouseDragTargetAltitude = null;
     var isAdjustingZoom = false;
 
+    // Pitfall 1: On flight stop, simply clear held altitude.
+    // NEVER invoke private MapLibre methods like releaseElevation() or putCenterBackOnTerrain().
     function stopFlight(_immediate) {
       activeKeys.clear();
       if (animationFrameId !== null) {
@@ -249,6 +434,9 @@
       }
       lastTimestamp = null;
       heldFlightAltitude = null;
+      if (CameraStateMachine.getMode() === 'flight') {
+        CameraStateMachine.setMode('idle');
+      }
       if (options.onModeChange) options.onModeChange('idle');
     }
 
@@ -278,7 +466,6 @@
         return;
       }
 
-      // Initialize held altitude on flight start
       if (heldFlightAltitude === null) {
         heldFlightAltitude = info.altitude;
       }
@@ -311,22 +498,22 @@
       if (activeKeys.has('Equal') || activeKeys.has('NumpadAdd') || activeKeys.has('KeyZ')) zoomDelta += 1;
       if (activeKeys.has('Minus') || activeKeys.has('NumpadSubtract') || activeKeys.has('KeyX')) zoomDelta -= 1;
 
-      // 1. Pitch Tilt (W / S) - Maintain fixed camera altitude while tilting gaze
+      // 1. Pitch Tilt (W / S): PITCH_SPEED = 36 deg/s (72 deg/s with Shift)
       if (pitchDelta !== 0) {
         var curPitch = map.getPitch();
         var curZoom = map.getZoom();
-        var pitchSpeed = (isShift ? 2.5 : 1.0) * CAMERA_CONSTANTS.PITCH_SPEED_DEG_PER_SEC;
+        var pitchSpeed = isShift ? 72 : CAMERA_CONSTANTS.PITCH_SPEED_DEG_PER_SEC;
         var nextPitch = clampPitch(curPitch + pitchDelta * pitchSpeed * dt, curZoom);
         map.setPitch(nextPitch);
         if (options.onPitchChange) options.onPitchChange(Math.round(nextPitch));
         adjustZoomForTargetAltitude(map, heldFlightAltitude);
       }
 
-      // 2. Bearing Yaw (A / D)
+      // 2. Bearing Yaw (A / D): BEARING_SPEED = 42 deg/s (84 deg/s with Shift)
       if (rotateBearing !== 0) {
         var curBearing = map.getBearing();
-        var bearingSpeed = (isShift ? 2.5 : 1.0) * CAMERA_CONSTANTS.BEARING_SPEED_DEG_PER_SEC;
-        var nextBearing = normalizeBearing(curBearing + rotateBearing * bearingSpeed * dt);
+        var bearingSpeed = isShift ? 84 : CAMERA_CONSTANTS.BEARING_SPEED_DEG_PER_SEC;
+        var nextBearing = (curBearing + rotateBearing * bearingSpeed * dt + 360) % 360;
         map.setBearing(nextBearing);
         if (options.onBearingChange) options.onBearingChange(Math.round(nextBearing));
       }
@@ -346,7 +533,6 @@
           }
         }
         map.setZoom(nextZ);
-        // After explicit zoom, update held altitude to new position
         var updatedInfo = getCameraInfo(map);
         if (updatedInfo) heldFlightAltitude = updatedInfo.altitude;
       }
@@ -355,7 +541,7 @@
       var speedMps = CAMERA_CONSTANTS.BASE_SPEED_MPS * Math.pow(2, 14 - liveZoom) * (isShift ? 2.5 : 1.0);
 
       // 4. Vertical Altitude Elevator (Q / E or PageDown / PageUp)
-      // True vertical elevator: changes altitude without ground drift
+      // True vertical elevator: changes altitude straight up/down without lateral drift
       if (altitudeDelta !== 0) {
         var curCenter2 = map.getCenter();
         var curBearing2 = map.getBearing();
@@ -363,8 +549,7 @@
         var curCamLngLat2 = info.camLngLat;
         var groundUnderCam2 = map.queryTerrainElevation ? (map.queryTerrainElevation(curCamLngLat2) || 0) : 0;
         var groundUnderCenter2 = info.groundElevation;
-        var vertSpeedMps = CAMERA_CONSTANTS.BASE_SPEED_MPS * 0.75 * Math.pow(2, 14 - liveZoom) * (isShift ? 2.5 : 1.0);
-        var deltaAltMeters = altitudeDelta * vertSpeedMps * dt;
+        var deltaAltMeters = altitudeDelta * (speedMps * 0.75) * dt;
 
         var targetCamAlt = heldFlightAltitude + deltaAltMeters;
         var minAllowedCamAlt = groundUnderCam2 + CAMERA_CONSTANTS.MIN_CAMERA_CLEARANCE_METERS;
@@ -380,27 +565,27 @@
           var zoomAdjust = -Math.log2(nextHeightAboveGround / prevHeightAboveGround);
           var nextZoomElev = Math.max(1.0, Math.min(20.5, map.getZoom() + zoomAdjust));
 
-          // Counteract horizontal drift to keep gaze locked
+          // Offset center horizontally so ground focal intersection stays fixed along bearing vector
           var deltaGroundDist = (nextHeightAboveGround - prevHeightAboveGround) * Math.tan(pitchRad);
-          var deltaEast = deltaGroundDist * Math.sin(bearingRad);
-          var deltaNorth = deltaGroundDist * Math.cos(bearingRad);
+          var deltaEastElev = deltaGroundDist * Math.sin(bearingRad);
+          var deltaNorthElev = deltaGroundDist * Math.cos(bearingRad);
 
-          var metersPerDegLat = CAMERA_CONSTANTS.METERS_PER_DEG_LAT;
-          var latRad = (curCenter2.lat * Math.PI) / 180;
-          var metersPerDegLng = metersPerDegLat * Math.max(0.1, Math.cos(latRad));
+          var metersPerDegLatElev = CAMERA_CONSTANTS.METERS_PER_DEG_LAT;
+          var latRadElev = (curCenter2.lat * Math.PI) / 180;
+          var metersPerDegLngElev = metersPerDegLatElev * Math.max(0.1, Math.cos(latRadElev));
 
-          var nextCenterLat = Math.max(-85, Math.min(85, curCenter2.lat + deltaNorth / metersPerDegLat));
-          var nextCenterLng = curCenter2.lng + deltaEast / metersPerDegLng;
+          var nextCenterLatElev = Math.max(-85, Math.min(85, curCenter2.lat + deltaNorthElev / metersPerDegLatElev));
+          var nextCenterLngElev = curCenter2.lng + deltaEastElev / metersPerDegLngElev;
 
           heldFlightAltitude = nextCamAlt;
           map.jumpTo({
-            center: [nextCenterLng, nextCenterLat],
+            center: [nextCenterLngElev, nextCenterLatElev],
             zoom: nextZoomElev
           });
         }
       }
 
-      // 5. Horizontal Ground Flight (Arrow Keys) - Rock-solid Fixed Altitude Panning
+      // 5. Horizontal Ground Flight (Arrow Keys) - Fixed Altitude Cruising with 0.6s Lookahead (Pitfall 5)
       var hasHorizontalMove = moveForward !== 0 || moveStrafe !== 0;
       if (hasHorizontalMove) {
         var curCenterH = map.getCenter();
@@ -414,13 +599,22 @@
           dt
         );
 
-        // Predictive obstacle climb: ONLY climb when necessary to clear terrain
-        var lookaheadMultiplier = dt > 0 ? CAMERA_CONSTANTS.LOOKAHEAD_SECONDS / dt : 1;
+        // 0.6-second predictive lookahead for terrain collision safety floor
+        var lookaheadDistMeters = speedMps * CAMERA_CONSTANTS.LOOKAHEAD_SECONDS;
+        var bearingRadH = (curBearingH * Math.PI) / 180;
+        var sinBH = Math.sin(bearingRadH);
+        var cosBH = Math.cos(bearingRadH);
+        var lookEastMeters = (sinBH * disp.normForward + cosBH * disp.normStrafe) * lookaheadDistMeters;
+        var lookNorthMeters = (cosBH * disp.normForward - sinBH * disp.normStrafe) * lookaheadDistMeters;
+        var latRadH = (curCenterH.lat * Math.PI) / 180;
+        var mPerDegLatH = CAMERA_CONSTANTS.METERS_PER_DEG_LAT;
+        var mPerDegLngH = mPerDegLatH * Math.max(0.1, Math.cos(latRadH));
+
         var camLngLatH = info.camLngLat;
         var nextCamLat = Math.max(-85, Math.min(85, camLngLatH.lat + disp.deltaLat));
         var nextCamLng = camLngLatH.lng + disp.deltaLng;
-        var lookCamLat = Math.max(-85, Math.min(85, nextCamLat + disp.deltaLat * lookaheadMultiplier));
-        var lookCamLng = nextCamLng + disp.deltaLng * lookaheadMultiplier;
+        var lookCamLat = Math.max(-85, Math.min(85, camLngLatH.lat + lookNorthMeters / mPerDegLatH));
+        var lookCamLng = camLngLatH.lng + lookEastMeters / mPerDegLngH;
 
         var maxGroundCam = sampleTerrainObstacle(map, nextCamLng, nextCamLat, lookCamLng, lookCamLat);
         var groundCenter = map.queryTerrainElevation ? (map.queryTerrainElevation([disp.nextLng, disp.nextLat]) || 0) : 0;
@@ -428,18 +622,13 @@
 
         var minAllowedAltH = highestObstacle + CAMERA_CONSTANTS.MIN_CAMERA_CLEARANCE_METERS;
         if (minAllowedAltH > heldFlightAltitude) {
-          // Smooth climb to clear terrain
           heldFlightAltitude = minAllowedAltH;
         }
 
-        // Move horizontal center
         map.jumpTo({ center: [disp.nextLng, disp.nextLat] });
-
-        // Maintain fixed target altitude without vertical bouncing
         adjustZoomForTargetAltitude(map, heldFlightAltitude);
       }
 
-      // Live Telemetry notification
       try {
         var currentCam = getCameraInfo(map);
         if (currentCam && isFinite(currentCam.altitude) && options.onAltitudeChange) {
@@ -457,9 +646,14 @@
       var navCode = getNavigationCode(e);
       if (navCode) {
         e.preventDefault();
+
+        // Critical Rule 1: Manual Preemption aborts any running flyTo / easeTo
+        CameraStateMachine.cancelProgrammaticFlight(map);
+
         activeKeys.add(navCode);
         if (e.shiftKey) activeKeys.add('ShiftLeft');
 
+        CameraStateMachine.setMode('flight');
         if (options.onModeChange) options.onModeChange('flight');
 
         if (animationFrameId === null) {
@@ -494,8 +688,7 @@
       stopFlight(true);
     }
 
-    // Mouse Drag Panning Altitude Stabilizer
-    // Keeps camera elevation fixed while mouse-dragging across 3D terrain
+    // Stabilize altitude during mouse drag across 3D terrain
     function onMapMoveDuringDrag() {
       if (isAdjustingZoom) return;
       if (!map.isDragging || !map.isDragging()) return;
@@ -511,7 +704,6 @@
 
       isAdjustingZoom = true;
       try {
-        // Automatic terrain clearance during mouse pan
         var groundCam = map.queryTerrainElevation ? (map.queryTerrainElevation(info.camLngLat) || 0) : 0;
         var groundCenter = map.queryTerrainElevation ? (map.queryTerrainElevation(info.center) || 0) : 0;
         var maxGround = Math.max(groundCam, groundCenter, info.groundElevation);
@@ -535,6 +727,10 @@
     }
 
     function onDragStart() {
+      CameraStateMachine.cancelProgrammaticFlight(map);
+      if (animationFrameId !== null || activeKeys.size > 0) {
+        stopFlight(true);
+      }
       if (map.getTerrain && map.getTerrain() && map.getPitch() >= 5) {
         var info = getCameraInfo(map);
         if (info) mouseDragTargetAltitude = info.altitude;
@@ -545,10 +741,19 @@
       mouseDragTargetAltitude = null;
     }
 
-    // Explicitly verify touch, trackpad, and mouse gesture handlers are enabled
+    // SECTION 6 & PITFALL 4: Guard synchronous pitch corrections inside moveend and zoom
+    function enforceProgressivePitch() {
+      if (CameraStateMachine.getMode() === 'flight') return;
+      var curZoom = map.getZoom();
+      var maxAllowedPitch = getMaxAllowedPitch(curZoom);
+      if (map.getPitch() > maxAllowedPitch) {
+        map.setPitch(maxAllowedPitch);
+      }
+    }
+
+    // Enable standard gesture handlers
     try {
       if (map.touchZoomRotate && !map.touchZoomRotate.isEnabled()) map.touchZoomRotate.enable();
-      if (map.touchPitch && !map.touchPitch.isEnabled()) map.touchPitch.enable();
       if (map.dragRotate && !map.dragRotate.isEnabled()) map.dragRotate.enable();
       if (map.scrollZoom && !map.scrollZoom.isEnabled()) map.scrollZoom.enable();
       if (map.dragPan && !map.dragPan.isEnabled()) map.dragPan.enable();
@@ -564,46 +769,275 @@
     map.on('move', onMapMoveDuringDrag);
     map.on('dragend', onDragEnd);
     map.on('moveend', onDragEnd);
+    map.on('moveend', enforceProgressivePitch);
+    map.on('zoom', enforceProgressivePitch);
 
     var canvasContainer = map.getCanvasContainer ? map.getCanvasContainer() : map.getContainer();
-    
-    // Trackpad: Shift+scroll to tilt handler
+    var mapContainer = map.getContainer ? map.getContainer() : null;
+
+    /**
+     * SECTION 4: TRACKPAD & MOUSE WHEEL CONTROLLER
+     */
     function handleCanvasWheel(e) {
-      if (e.shiftKey) {
-        e.preventDefault();
-        e.stopPropagation();
-        var pitchDelta = -e.deltaY * 0.08;
-        var curPitch = map.getPitch();
-        var curZoom = map.getZoom();
-        var nextPitch = clampPitch(curPitch + pitchDelta, curZoom);
-        map.setPitch(nextPitch);
-        if (options.onPitchChange) options.onPitchChange(Math.round(nextPitch));
-        var info = getCameraInfo(map);
-        if (info) {
-          if (heldFlightAltitude === null) heldFlightAltitude = info.altitude;
-          adjustZoomForTargetAltitude(map, heldFlightAltitude);
-        }
+      CameraStateMachine.cancelProgrammaticFlight(map);
+
+      // 1. Chromium Trackpad Pinch (dispatched as wheel with ctrlKey = true)
+      if (e.ctrlKey) {
+        e.preventDefault(); // Prevents browser tab zoom, lets MapLibre scrollZoom handle smooth map zoom
         return;
       }
+
+      // 2. Shift + Two-Finger Scroll: Direct 3D Pitch Tilt
+      if (e.shiftKey) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var curPitch = map.getPitch();
+        var curZoom = map.getZoom();
+        var rawPitch = Math.round(curPitch - e.deltaY * 0.15);
+        var newPitch = clampPitch(rawPitch, curZoom);
+        map.setPitch(newPitch);
+        if (options.onPitchChange) options.onPitchChange(newPitch);
+        return;
+      }
+
+      // 3. Option (⌥) / Alt + Two-Finger Scroll: Direct Azimuth Rotation
+      if (e.altKey) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var curBearing = map.getBearing();
+        var rotDelta = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * 0.25;
+        var newBearing = normalizeBearing(curBearing + rotDelta);
+        map.setBearing(Math.round(newBearing));
+        if (options.onBearingChange) options.onBearingChange(Math.round(newBearing));
+        return;
+      }
+
       if (animationFrameId !== null || activeKeys.size > 0) {
         stopFlight(true);
       }
     }
 
-    function onCanvasPointerInteraction() {
+    function onPointerDownInteraction() {
+      CameraStateMachine.cancelProgrammaticFlight(map);
       if (animationFrameId !== null || activeKeys.size > 0) {
         stopFlight(true);
+      }
+    }
+
+    /**
+     * PITFALL 2: SAFARI TRACKPAD DOUBLE-ZOOM PREVENTION
+     */
+    var gestureWatchdog = null;
+    function restoreScrollZoom() {
+      if (gestureWatchdog) {
+        clearTimeout(gestureWatchdog);
+        gestureWatchdog = null;
+      }
+      try {
+        if (map.scrollZoom && !map.scrollZoom.isEnabled()) {
+          map.scrollZoom.enable({ around: 'center' });
+        }
+      } catch (_) {}
+    }
+
+    function onGestureStart(e) {
+      if (gestureWatchdog) {
+        clearTimeout(gestureWatchdog);
+        gestureWatchdog = null;
+      }
+      try {
+        if (map.scrollZoom && map.scrollZoom.isEnabled()) {
+          map.scrollZoom.disable();
+        }
+      } catch (_) {}
+    }
+
+    function onGestureChange(e) {
+      if (gestureWatchdog) clearTimeout(gestureWatchdog);
+      gestureWatchdog = setTimeout(restoreScrollZoom, 400);
+    }
+
+    function onGestureEnd(e) {
+      restoreScrollZoom();
+      gestureWatchdog = setTimeout(restoreScrollZoom, 400);
+    }
+
+    /**
+     * SECTION 5: TABLET & MOBILE TWO-FINGER TOUCH ARBITER
+     */
+    var touchStartData = null;
+    var gestureLock = null; // null | 'pitch' | 'zoom-rotate'
+    var suppressPanUntil = 0;
+
+    function handleTouchStart(e) {
+      onPointerDownInteraction();
+
+      if (e.touches.length === 2) {
+        var p1 = e.touches[0];
+        var p2 = e.touches[1];
+        var t0_dist = Math.hypot(p2.clientX - p1.clientX, p2.clientY - p1.clientY);
+        var t0_angle = (Math.atan2(p2.clientY - p1.clientY, p2.clientX - p1.clientX) * 180) / Math.PI;
+        var t0_midX = (p1.clientX + p2.clientX) / 2;
+        var t0_midY = (p1.clientY + p2.clientY) / 2;
+        var t0_pitch = map.getPitch();
+        var t0_zoom = map.getZoom();
+        var t0_bearing = map.getBearing();
+
+        gestureLock = null;
+        touchStartData = {
+          t0_dist: t0_dist,
+          t0_angle: t0_angle,
+          t0_midX: t0_midX,
+          t0_midY: t0_midY,
+          t0_pitch: t0_pitch,
+          t0_zoom: t0_zoom,
+          t0_bearing: t0_bearing
+        };
+      } else {
+        touchStartData = null;
+        gestureLock = null;
+      }
+    }
+
+    function handleTouchMove(e) {
+      if (e.touches.length === 1) {
+        if (performance.now() < suppressPanUntil) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+        }
+        return;
+      }
+
+      if (e.touches.length !== 2 || !touchStartData) return;
+
+      var p1 = e.touches[0];
+      var p2 = e.touches[1];
+      var curDist = Math.hypot(p2.clientX - p1.clientX, p2.clientY - p1.clientY);
+      var curAngle = (Math.atan2(p2.clientY - p1.clientY, p2.clientX - p1.clientX) * 180) / Math.PI;
+      var curMidX = (p1.clientX + p2.clientX) / 2;
+      var curMidY = (p1.clientY + p2.clientY) / 2;
+
+      var dd = curDist - touchStartData.t0_dist;
+      var midDx = curMidX - touchStartData.t0_midX;
+      var midDy = curMidY - touchStartData.t0_midY;
+      var angleDiff = Math.abs(curAngle - touchStartData.t0_angle) % 360;
+      if (angleDiff > 180) angleDiff = 360 - angleDiff;
+
+      var totalMovement = Math.hypot(midDx, midDy) + Math.abs(dd);
+
+      if (gestureLock === null && totalMovement > 12) {
+        if (Math.abs(midDy) > 1.5 * Math.abs(dd) && angleDiff < 8) {
+          gestureLock = 'pitch';
+          try {
+            if (map.touchZoomRotate) map.touchZoomRotate.disable();
+          } catch (_) {}
+        } else {
+          gestureLock = 'zoom-rotate';
+        }
+      }
+
+      if (gestureLock === 'pitch') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var nextPitch = clampPitch(touchStartData.t0_pitch - midDy * 0.4, map.getZoom());
+        map.setPitch(nextPitch);
+        if (options.onPitchChange) options.onPitchChange(Math.round(nextPitch));
+      } else if (gestureLock === 'zoom-rotate') {
+        if (curDist > 0 && touchStartData.t0_dist > 0) {
+          var nextZoom = Math.max(1.0, Math.min(20.5, touchStartData.t0_zoom + Math.log2(curDist / touchStartData.t0_dist)));
+          map.setZoom(nextZoom);
+        }
+        if (angleDiff > 6) {
+          var rotDelta = curAngle - touchStartData.t0_angle;
+          var nextBearing = normalizeBearing(touchStartData.t0_bearing - rotDelta);
+          map.setBearing(Math.round(nextBearing));
+          if (options.onBearingChange) options.onBearingChange(Math.round(nextBearing));
+        }
+      }
+    }
+
+    function handleTouchEnd(e) {
+      if (touchStartData && e.touches.length < 2) {
+        suppressPanUntil = performance.now() + 120;
+        try {
+          if (map.dragPan) {
+            map.dragPan.disable();
+            setTimeout(function () {
+              try {
+                if (map.dragPan && !map.dragPan.isEnabled()) map.dragPan.enable();
+              } catch (_) {}
+            }, 120);
+          }
+        } catch (_) {}
+
+        if (gestureLock === 'pitch') {
+          try {
+            if (map.touchZoomRotate) {
+              map.touchZoomRotate.enable();
+              if (map.touchZoomRotate.disableRotation) map.touchZoomRotate.disableRotation();
+            }
+          } catch (_) {}
+        }
+        gestureLock = null;
+        touchStartData = null;
+      }
+    }
+
+    /**
+     * SECTION 1.3: UI ZOOM BUTTON INTERCEPTOR
+     * Intercepts '+' and '-' buttons to cancel flight and use safeEaseTo
+     */
+    function handleZoomButtonDelegation(e) {
+      var inBtn = e.target.closest && e.target.closest('.maplibregl-ctrl-zoom-in');
+      var outBtn = e.target.closest && e.target.closest('.maplibregl-ctrl-zoom-out');
+      if (inBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        CameraStateMachine.cancelProgrammaticFlight(map);
+        var curZ = map.getZoom();
+        safeEaseTo(map, {
+          zoom: curZ + 1,
+          duration: 250,
+          freezeElevation: true
+        });
+      } else if (outBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        CameraStateMachine.cancelProgrammaticFlight(map);
+        var curZ2 = map.getZoom();
+        safeEaseTo(map, {
+          zoom: curZ2 - 1,
+          duration: 250,
+          freezeElevation: true
+        });
       }
     }
 
     if (canvasContainer) {
-      canvasContainer.addEventListener('mousedown', onCanvasPointerInteraction, { capture: true });
-      canvasContainer.addEventListener('pointerdown', onCanvasPointerInteraction, { capture: true });
-      canvasContainer.addEventListener('touchstart', onCanvasPointerInteraction, { capture: true, passive: true });
+      canvasContainer.addEventListener('mousedown', onPointerDownInteraction, { capture: true });
+      canvasContainer.addEventListener('pointerdown', onPointerDownInteraction, { capture: true });
+      canvasContainer.addEventListener('touchstart', handleTouchStart, { capture: true, passive: false });
+      canvasContainer.addEventListener('touchmove', handleTouchMove, { capture: true, passive: false });
+      canvasContainer.addEventListener('touchend', handleTouchEnd, { capture: true, passive: true });
+      canvasContainer.addEventListener('touchcancel', handleTouchEnd, { capture: true, passive: true });
       canvasContainer.addEventListener('wheel', handleCanvasWheel, { capture: true, passive: false });
+
+      // Safari Trackpad gestures
+      canvasContainer.addEventListener('gesturestart', onGestureStart, { capture: true, passive: false });
+      canvasContainer.addEventListener('gesturechange', onGestureChange, { capture: true, passive: false });
+      canvasContainer.addEventListener('gestureend', onGestureEnd, { capture: true, passive: false });
     }
 
-    return function cleanup() {
+    if (mapContainer) {
+      mapContainer.addEventListener('click', handleZoomButtonDelegation, { capture: true });
+      mapContainer.addEventListener('gesturestart', onGestureStart, { capture: true, passive: false });
+      mapContainer.addEventListener('gesturechange', onGestureChange, { capture: true, passive: false });
+      mapContainer.addEventListener('gestureend', onGestureEnd, { capture: true, passive: false });
+    }
+
+    var cleanup = function () {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       window.removeEventListener('blur', stopFlightOnBlur);
@@ -614,17 +1048,53 @@
       map.off('move', onMapMoveDuringDrag);
       map.off('dragend', onDragEnd);
       map.off('moveend', onDragEnd);
+      map.off('moveend', enforceProgressivePitch);
+      map.off('zoom', enforceProgressivePitch);
 
       if (canvasContainer) {
-        canvasContainer.removeEventListener('mousedown', onCanvasPointerInteraction, { capture: true });
-        canvasContainer.removeEventListener('pointerdown', onCanvasPointerInteraction, { capture: true });
-        canvasContainer.removeEventListener('touchstart', onCanvasPointerInteraction, { capture: true });
+        canvasContainer.removeEventListener('mousedown', onPointerDownInteraction, { capture: true });
+        canvasContainer.removeEventListener('pointerdown', onPointerDownInteraction, { capture: true });
+        canvasContainer.removeEventListener('touchstart', handleTouchStart, { capture: true });
+        canvasContainer.removeEventListener('touchmove', handleTouchMove, { capture: true });
+        canvasContainer.removeEventListener('touchend', handleTouchEnd, { capture: true });
+        canvasContainer.removeEventListener('touchcancel', handleTouchEnd, { capture: true });
         canvasContainer.removeEventListener('wheel', handleCanvasWheel, { capture: true });
+        canvasContainer.removeEventListener('gesturestart', onGestureStart, { capture: true });
+        canvasContainer.removeEventListener('gesturechange', onGestureChange, { capture: true });
+        canvasContainer.removeEventListener('gestureend', onGestureEnd, { capture: true });
+      }
+
+      if (mapContainer) {
+        mapContainer.removeEventListener('click', handleZoomButtonDelegation, { capture: true });
+        mapContainer.removeEventListener('gesturestart', onGestureStart, { capture: true });
+        mapContainer.removeEventListener('gesturechange', onGestureChange, { capture: true });
+        mapContainer.removeEventListener('gestureend', onGestureEnd, { capture: true });
+      }
+
+      if (gestureWatchdog) {
+        clearTimeout(gestureWatchdog);
+        gestureWatchdog = null;
       }
 
       stopFlight(true);
     };
+
+    cleanup.CameraStateMachine = CameraStateMachine;
+    cleanup.safeFlyTo = safeFlyTo;
+    cleanup.safeEaseTo = safeEaseTo;
+    return cleanup;
   }
 
-  return initKeyboardFlight;
+  // Hook properties on function exports
+  initKeyboardFlight.CameraStateMachine = CameraStateMachine;
+  initKeyboardFlight.safeFlyTo = safeFlyTo;
+  initKeyboardFlight.safeEaseTo = safeEaseTo;
+
+  return {
+    CameraStateMachine: CameraStateMachine,
+    safeFlyTo: safeFlyTo,
+    safeEaseTo: safeEaseTo,
+    initKeyboardFlight: initKeyboardFlight,
+    useKeyboardFlight: initKeyboardFlight
+  };
 });

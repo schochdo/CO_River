@@ -26,3 +26,10 @@ These rules are permanent constraints to prevent generic AI UI patterns, unneces
 - **Reject "More is More":** More charts, more pages, and more complex models are often worse. Defend simplicity, precision, and demonstrable truth over feature bloat. If an idea adds unnecessary complexity or premature analysis, push back with clear reasoning.
 - **Honest Data Provenance & Verification:** Never invent placeholder formulas, extrapolate missing numbers, or declare something "completely fixed" unless every underlying data point and visual line has been physically verified against reality. If data does not exist or has not been downloaded yet, say so plainly rather than improvising.
 - **No Sycophantic Cheerleading:** Ban empty praise and artificial cheerleading ("Great idea!", "Absolutely!", "100% solved!"). Maintain an objective, disciplined engineering partnership: identify edge cases, highlight data limitations, and ensure every concept and metric can be clearly and simply explained by the user in plain English.
+
+## 5. Mandatory Changelog & Documentation Hygiene
+- **Continuous Session Logging:** Every completed task or meaningful set of changes (features, bug fixes, refactors, domain calibrations) MUST be appended to both:
+  1. `CHANGELOG.md` under the appropriate version header ([Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standard: Added, Changed, Fixed, Documented).
+  2. `AI_LOG.md` under the `## Session Log` table (`| Date | Model Used | Task / Prompt Scope | Outcome & Human Verification |`).
+- **No Silent Completes:** Never conclude a work session or feature milestone without updating the changelog and documenting the verification steps performed.
+

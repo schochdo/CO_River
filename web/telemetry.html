@@ -20,7 +20,7 @@
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum";
     }
-    .font-mono, code, pre {
+    code, pre {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     }
     .data-table th {
@@ -64,7 +64,7 @@
     <div class="w-full flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <a id="btn-back-workspace" href="./" onclick="backToWorkspace(event)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition border border-slate-300">
-          <span>← Back to Research Workspace</span>
+          <span>← Back to Colorado River Basin</span>
         </a>
         <div id="divider-workspace" class="h-4 w-px bg-slate-300"></div>
         <div>
@@ -152,6 +152,9 @@
           <button onclick="setCategoryFilter('compact')" id="pill-compact" class="px-3 py-1 text-xs font-semibold rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
             1922 Compact Divide (<span id="count-compact">1</span>)
           </button>
+          <button onclick="setCategoryFilter('sentinels')" id="pill-sentinels" class="px-3 py-1 text-xs font-semibold rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+            Basin Sentinels (<span id="count-sentinels">0</span>)
+          </button>
           <button onclick="setCategoryFilter('upper_mainstem')" id="pill-upper_mainstem" class="px-3 py-1 text-xs font-semibold rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
             Upper Basin Mainstem &amp; Tributaries (<span id="count-upper">0</span>)
           </button>
@@ -202,6 +205,24 @@
             <option value="reservoir">Storage Reservoir (USBR/CDSS)</option>
           </select>
 
+          <select id="hierarchy-filter" onchange="applyFilters()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium">
+            <option value="all">All Sentinel Tiers</option>
+            <option value="compact_sentinel">Compact Sentinel (Lee Ferry)</option>
+            <option value="basin_sentinel">Basin Sentinels (Accounting Nodes)</option>
+            <option value="tributary_gage">Tributary Gages</option>
+            <option value="export_tunnel">Trans-Divide Tunnels</option>
+            <option value="conveyance_canal">Conveyance Canals</option>
+            <option value="storage_reservoir">Storage Reservoirs</option>
+          </select>
+
+          <select id="flashiness-filter" onchange="applyFilters()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium">
+            <option value="all">All Flashiness Regimes</option>
+            <option value="Regulated">Regulated / Attenuated (RBI &lt; 0.020)</option>
+            <option value="Snowmelt">Snowmelt Baseflow (0.020–0.060)</option>
+            <option value="Flashy">Flash-Prone / Monsoon (≥ 0.060)</option>
+            <option value="Storage Buffer">Storage Buffers (Dams)</option>
+          </select>
+
           <select id="health-filter" onchange="applyFilters()" class="text-xs bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium">
             <option value="all">All Flow Health Statuses</option>
             <option value="abundant">Abundant (≥150% of Normal)</option>
@@ -226,10 +247,12 @@
             <tr class="border-b border-slate-200 text-slate-600 font-bold text-[10.5px] uppercase tracking-wider">
               <th class="px-2.5 py-2 cursor-pointer hover:text-slate-900" onclick="sortTable('name')">Station / Facility ↕</th>
               <th class="px-2 py-2 cursor-pointer hover:text-slate-900" onclick="sortTable('id')">Station ID ↕</th>
+              <th class="px-2 py-2 cursor-pointer hover:text-slate-900" onclick="sortTable('tier_rank')">Hierarchy / Status ↕</th>
               <th class="px-2 py-2 cursor-pointer hover:text-slate-900" onclick="sortTable('type')">Type ↕</th>
               <th class="px-2 py-2 cursor-pointer hover:text-slate-900" onclick="sortTable('groupName')">Reach ↕</th>
               <th class="px-2.5 py-2 text-right cursor-pointer hover:text-slate-900" onclick="sortTable('reading_num')">Live Flow / Vol ↕</th>
               <th class="px-2 py-2">Flow Health</th>
+              <th class="px-2 py-2 cursor-pointer hover:text-slate-900" onclick="sortTable('rbi_sort')">Flashiness (RBI) ↕</th>
               <th class="px-2.5 py-2">Purpose / Notes</th>
               <th class="px-2 py-2 cursor-pointer hover:text-slate-900" onclick="sortTable('timestamp')">Timestamp ↕</th>
               <th class="px-2 py-2 text-center">Map</th>
@@ -237,7 +260,7 @@
           </thead>
           <tbody id="telemetry-rows" class="divide-y divide-slate-100">
             <tr>
-              <td colspan="9" class="text-center py-12 text-slate-400">Loading hydrologic telemetry network...</td>
+              <td colspan="11" class="text-center py-12 text-slate-400">Loading hydrologic telemetry network...</td>
             </tr>
           </tbody>
         </table>
@@ -248,12 +271,13 @@
 
   <!-- Sticky Footer Domain Note -->
   <footer class="bg-white border-t border-slate-200 px-6 py-3 text-xs text-slate-500 text-center">
-    Data Sources: <a href="https://waterdata.usgs.gov/nwis" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-800">USGS National Water Information System (NWIS) ↗</a>, <a href="https://dwr.state.co.us/Tools/Stations" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-800">Colorado Division of Water Resources (CDSS) ↗</a>, and <a href="https://www.usbr.gov/lc/riverops.html" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-800">US Bureau of Reclamation (USBR) ↗</a>. Instantaneous rate $Q = dV/dt$ (cfs); Cumulative storage $V$ (Acre-Feet).
+    Data Sources: <a href="https://waterdata.usgs.gov/nwis" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-800">USGS National Water Information System (NWIS) ↗</a>, <a href="https://dwr.state.co.us/Tools/Stations" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-800">Colorado Division of Water Resources (CDSS) ↗</a>, and <a href="https://www.usbr.gov/lc/region/g4000/hourly/hourly.html" target="_blank" rel="noopener noreferrer" class="underline hover:text-slate-800">USBR River Operations Teletype ↗</a>. Streamflow reported in cubic feet per second (cfs); reservoir storage reported in acre-feet (AF).
   </footer>
 
   <script>
     let allNodes = [];
     let cachedNormals = null;
+    let cachedHierarchy = null;
     let viewMode = 'grouped'; // 'grouped' or 'flat'
     let activeCategory = 'all'; // 'all', 'compact', 'upper_mainstem', 'lower_mainstem', 'diversions', 'reservoirs'
     let sortColumn = 'order';
@@ -447,19 +471,124 @@
       return null;
     }
 
+    function getStationHierarchy(nodeId, defaultType) {
+      if (cachedHierarchy?.stations?.[nodeId]) {
+        return cachedHierarchy.stations[nodeId];
+      }
+      // Dynamic fallback calculation from historical normals
+      let rbi = null;
+      if (cachedNormals?.sites?.[nodeId]) {
+        const days = cachedNormals.sites[nodeId];
+        const sortedDays = Object.keys(days).sort();
+        const vals = sortedDays.map(k => days[k]);
+        const totalQ = vals.reduce((a, b) => a + b, 0);
+        if (totalQ > 0) {
+          let diffSum = 0;
+          for (let i = 1; i < vals.length; i++) {
+            diffSum += Math.abs(vals[i] - vals[i - 1]);
+          }
+          rbi = Math.round((diffSum / totalQ) * 10000) / 10000;
+        }
+      }
+
+      let regime = 'Storage Buffer';
+      let badge_class = 'bg-slate-100 text-slate-600 border-slate-300';
+      if (rbi !== null) {
+        if (rbi < 0.020) {
+          regime = 'Regulated';
+          badge_class = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+        } else if (rbi < 0.060) {
+          regime = 'Snowmelt';
+          badge_class = 'bg-sky-100 text-sky-800 border-sky-300';
+        } else {
+          regime = 'Flashy';
+          badge_class = 'bg-amber-100 text-amber-900 border-amber-300';
+        }
+      }
+
+      let tier_code = 'tributary_gage';
+      let tier_label = 'Tributary Gage';
+      let tier_rank = 3;
+      if (nodeId === '09380000') {
+        tier_code = 'compact_sentinel';
+        tier_label = 'Compact Sentinel';
+        tier_rank = 1;
+      } else if (['09095500', '09070500', '09163500', '09180500', '09234500', '09260050', '09261000', '09315000', '09152500', '09180000', '09379500', '09421500', 'USBR_HOOVER', 'USBR-HOOVER', '09423000', 'USBR_DAVIS', 'USBR-DAVIS', '09427520', 'USBR_PARKER', 'USBR-PARKER', '09429100', '09429500'].includes(nodeId)) {
+        tier_code = 'basin_sentinel';
+        tier_label = 'Basin Sentinel';
+        tier_rank = 2;
+      } else if (defaultType === 'diversion_tunnel') {
+        tier_code = 'export_tunnel';
+        tier_label = 'Trans-Divide Tunnel';
+        tier_rank = 4;
+      } else if (defaultType === 'diversion_canal') {
+        tier_code = 'conveyance_canal';
+        tier_label = 'Conveyance Canal';
+        tier_rank = 5;
+      } else if (defaultType === 'reservoir') {
+        tier_code = 'storage_reservoir';
+        tier_label = 'Storage Reservoir';
+        tier_rank = 6;
+      }
+
+      return {
+        tier_code,
+        tier_label,
+        tier_rank,
+        rbi,
+        regime,
+        badge_class
+      };
+    }
+
+    function getTierBadgeClass(tierCode) {
+      switch (tierCode) {
+        case 'compact_sentinel':
+          return 'bg-indigo-100 text-indigo-900 border-indigo-300 font-black';
+        case 'basin_sentinel':
+          return 'bg-sky-100 text-sky-900 border-sky-300 font-bold';
+        case 'tributary_gage':
+          return 'bg-slate-100 text-slate-700 border-slate-200 font-medium';
+        case 'export_tunnel':
+          return 'bg-emerald-100 text-emerald-900 border-emerald-300 font-bold';
+        case 'conveyance_canal':
+          return 'bg-teal-100 text-teal-900 border-teal-300 font-bold';
+        case 'storage_reservoir':
+          return 'bg-purple-100 text-purple-900 border-purple-300 font-bold';
+        default:
+          return 'bg-slate-100 text-slate-700 border-slate-200 font-medium';
+      }
+    }
+
+    function renderFlashinessCell(node) {
+      if (node.rbi !== null && node.rbi !== undefined) {
+        return `
+          <div class="inline-flex items-center gap-1.5 whitespace-nowrap">
+            <span class="font-bold tabular-nums text-slate-800 text-[11px]">${node.rbi.toFixed(4)}</span>
+            <span class="text-[9.5px] px-1.5 py-0.5 rounded font-bold border ${node.badge_class}">${node.regime}</span>
+          </div>
+        `;
+      }
+      return `<span class="text-[10.5px] text-slate-400 font-medium whitespace-nowrap">Storage Buffer</span>`;
+    }
+
     async function fetchData() {
       const syncLabel = document.getElementById('sync-label');
       syncLabel.textContent = 'Syncing...';
       try {
-        const [metricsRes, normalsRes] = await Promise.all([
+        const [metricsRes, normalsRes, hierarchyRes] = await Promise.all([
           fetch('./data/latest_metrics.json?t=' + Date.now()),
-          fetch('./data/historical_normals.json?t=' + Date.now()).catch(() => null)
+          fetch('./data/historical_normals.json?t=' + Date.now()).catch(() => null),
+          fetch('./data/station_hierarchy.json?t=' + Date.now()).catch(() => null)
         ]);
 
         if (!metricsRes.ok) throw new Error('Failed to load latest_metrics.json');
         const metrics = await metricsRes.json();
         if (normalsRes && normalsRes.ok) {
           cachedNormals = await normalsRes.json();
+        }
+        if (hierarchyRes && hierarchyRes.ok) {
+          cachedHierarchy = await hierarchyRes.json();
         }
 
         buildNodeList(metrics);
@@ -516,10 +645,19 @@
           noteText = `Telemetry Offline (Last reported: ${formatTimestamp(s.timestamp)})`;
         }
 
+        const hier = getStationHierarchy(s.id, 'streamflow');
+
         allNodes.push({
           id: s.id,
           name: s.name,
           type: "streamflow",
+          tier_code: hier.tier_code,
+          tier_label: hier.tier_label,
+          tier_rank: hier.tier_rank,
+          rbi: hier.rbi,
+          rbi_sort: (hier.rbi !== null && hier.rbi !== undefined) ? hier.rbi : -999,
+          regime: hier.regime,
+          badge_class: hier.badge_class,
           groupId: groupId,
           groupName: groupName,
           order: order,
@@ -537,10 +675,18 @@
 
       // 2. Trans-Mountain Diversion Tunnels
       (metrics.tunnels || []).forEach((t, idx) => {
+        const hier = getStationHierarchy(t.id, 'diversion_tunnel');
         allNodes.push({
           id: t.id,
           name: t.name,
           type: "diversion_tunnel",
+          tier_code: hier.tier_code,
+          tier_label: hier.tier_label,
+          tier_rank: hier.tier_rank,
+          rbi: hier.rbi,
+          rbi_sort: (hier.rbi !== null && hier.rbi !== undefined) ? hier.rbi : -999,
+          regime: hier.regime,
+          badge_class: hier.badge_class,
           groupId: "diversions",
           groupName: "Trans-Mountain Tunnels",
           order: 300 + idx,
@@ -571,10 +717,19 @@
           noteText = `Monthly USGS AZ DV Compilation (Last: ${formatTimestamp(c.timestamp)})`;
         }
 
+        const hier = getStationHierarchy(c.id, 'diversion_canal');
+
         allNodes.push({
           id: c.id,
           name: c.name,
           type: "diversion_canal",
+          tier_code: hier.tier_code,
+          tier_label: hier.tier_label,
+          tier_rank: hier.tier_rank,
+          rbi: hier.rbi,
+          rbi_sort: (hier.rbi !== null && hier.rbi !== undefined) ? hier.rbi : -999,
+          regime: hier.regime,
+          badge_class: hier.badge_class,
           groupId: "diversions",
           groupName: "Conveyance Canals",
           order: 350 + idx,
@@ -601,10 +756,19 @@
         const pct = (r.capacity_pct !== undefined && r.capacity_pct !== null) 
           ? r.capacity_pct 
           : ((r.storage_af / r.capacity_af) * 100);
+        const hier = getStationHierarchy(r.id, 'reservoir');
+
         allNodes.push({
           id: r.id,
           name: r.name,
           type: "reservoir",
+          tier_code: hier.tier_code,
+          tier_label: hier.tier_label,
+          tier_rank: hier.tier_rank,
+          rbi: hier.rbi,
+          rbi_sort: -1000,
+          regime: hier.regime,
+          badge_class: hier.badge_class,
           groupId: "reservoirs",
           groupName: "Storage Reservoirs",
           order: 400 + idx,
@@ -628,12 +792,15 @@
       document.getElementById('stat-reservoir-count').textContent = metrics.reservoirs?.length || 0;
 
       // Update category pill counts
+      let sentinelsCount = 0;
       const counts = { compact: 0, upper_mainstem: 0, lower_mainstem: 0, diversions: 0, reservoirs: 0 };
       allNodes.forEach(n => {
         if (counts[n.groupId] !== undefined) counts[n.groupId]++;
+        if (n.tier_rank <= 2) sentinelsCount++;
       });
       const elAll = document.getElementById('count-all'); if (elAll) elAll.textContent = allNodes.length;
       const elCompact = document.getElementById('count-compact'); if (elCompact) elCompact.textContent = counts.compact;
+      const elSentinels = document.getElementById('count-sentinels'); if (elSentinels) elSentinels.textContent = sentinelsCount;
       const elUpper = document.getElementById('count-upper'); if (elUpper) elUpper.textContent = counts.upper_mainstem;
       const elLower = document.getElementById('count-lower'); if (elLower) elLower.textContent = counts.lower_mainstem;
       const elDiv = document.getElementById('count-div'); if (elDiv) elDiv.textContent = counts.diversions;
@@ -658,7 +825,7 @@
 
     function setCategoryFilter(cat) {
       activeCategory = cat;
-      const pillKeys = ['all', 'compact', 'upper_mainstem', 'lower_mainstem', 'diversions', 'reservoirs'];
+      const pillKeys = ['all', 'compact', 'sentinels', 'upper_mainstem', 'lower_mainstem', 'diversions', 'reservoirs'];
       pillKeys.forEach(k => {
         const btn = document.getElementById('pill-' + k);
         if (!btn) return;
@@ -678,16 +845,26 @@
     function applyFilters() {
       const q = document.getElementById('search-input').value.toLowerCase().trim();
       const typeFilter = document.getElementById('type-filter').value;
+      const hierarchyFilter = document.getElementById('hierarchy-filter')?.value || 'all';
+      const flashinessFilter = document.getElementById('flashiness-filter')?.value || 'all';
       const healthFilter = document.getElementById('health-filter').value;
 
       let filtered = allNodes.filter(node => {
-        if (activeCategory !== 'all' && node.groupId !== activeCategory) return false;
+        if (activeCategory === 'sentinels') {
+          if (node.tier_rank > 2) return false;
+        } else if (activeCategory !== 'all' && node.groupId !== activeCategory) {
+          return false;
+        }
         if (typeFilter !== 'all' && node.type !== typeFilter) return false;
+        if (hierarchyFilter !== 'all' && node.tier_code !== hierarchyFilter) return false;
+        if (flashinessFilter !== 'all' && node.regime !== flashinessFilter) return false;
         if (healthFilter !== 'all' && node.health_status !== healthFilter) return false;
         if (q) {
           const match = node.name.toLowerCase().includes(q) ||
                         node.id.toLowerCase().includes(q) ||
                         node.groupName.toLowerCase().includes(q) ||
+                        (node.tier_label && node.tier_label.toLowerCase().includes(q)) ||
+                        (node.regime && node.regime.toLowerCase().includes(q)) ||
                         node.notes.toLowerCase().includes(q);
           if (!match) return false;
         }
@@ -754,6 +931,11 @@
             ${node.id}
           </td>
           <td class="px-2 py-2 whitespace-nowrap">
+            <span class="inline-flex items-center text-[10px] px-2 py-0.5 rounded border ${getTierBadgeClass(node.tier_code)}">
+              ${node.tier_label}
+            </span>
+          </td>
+          <td class="px-2 py-2 whitespace-nowrap">
             <span class="type-pill ${node.type}">${node.type.replace('_', ' ')}</span>
           </td>
           <td class="px-2 py-2 text-slate-600 whitespace-nowrap text-[11px]">
@@ -764,6 +946,9 @@
           </td>
           <td class="px-2 py-2 whitespace-nowrap">
             ${healthHtml}
+          </td>
+          <td class="px-2 py-2 whitespace-nowrap">
+            ${renderFlashinessCell(node)}
           </td>
           <td class="px-2.5 py-2 text-slate-500 text-[11px] leading-snug max-w-[200px] truncate hover:whitespace-normal" title="${node.notes}">
             ${node.notes}
@@ -786,7 +971,7 @@
       document.getElementById('total-count').textContent = allNodes.length;
 
       if (nodes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400">No telemetry stations match the current filter criteria.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="text-center py-8 text-slate-400">No telemetry stations match the current filter criteria.</td></tr>`;
         return;
       }
 
@@ -813,7 +998,7 @@
 
         html += `
           <tr class="${group.bgColor} border-y border-slate-200">
-            <td colspan="9" class="px-2.5 py-1.5">
+            <td colspan="11" class="px-2.5 py-1.5">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                   <span class="w-2.5 h-2.5 rounded-full ${group.dotColor}"></span>
@@ -873,7 +1058,14 @@
     }
 
     // Initialize on page load
-    fetchData();
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialCat = urlParams.get('category');
+    if (initialCat) {
+      activeCategory = initialCat;
+    }
+    fetchData().then(() => {
+      if (initialCat) setCategory(initialCat);
+    });
   </script>
 </body>
 </html>

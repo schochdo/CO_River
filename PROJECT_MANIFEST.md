@@ -3,7 +3,7 @@
 **Project Title:** Colorado River Basin Hydrologic Intelligence & Infrastructure Topology Platform  
 **Academic & Systems Scope:** Intro to Data Science (DAT1001) • Research Pipeline Decoupling  
 **Primary Architecture:** Offline/Batch Python Geoprocessing + Real-Time NWIS/HydroBase Ingestion + Decoupled Static GeoJSON/JSON Web Dashboard (MapLibre GL & Interactive SVG Water Budget Diagram)  
-**Constraints Followed:** Zero Code Modifications • Strict Anti-SaaS Metric Hygiene ($Q = \frac{dV}{dt}$ vs. $V = \int Q dt$) • Hydrologic Mass-Balance Laws Enforced  
+**Constraints Followed:** Zero Code Modifications • Strict Anti-SaaS Metric Hygiene (Separation of Instantaneous Discharge Rates from Cumulative Storage Volumes) • Hydrologic Mass-Balance Laws Enforced  
 
 ---
 
@@ -12,8 +12,10 @@
 ```text
 .
 ├── PROJECT_MANIFEST.md                 # Master documentation of architecture, APIs, data contracts, and notebooks (this file)
+├── SYSTEM_GUIDE.md                     # Master human-readable system architecture, domain physics & basin math guide
 ├── PROJECT_STATE.md                    # Core project context, academic deliverables, and verified sentinel stations
-├── AI_LOG.md                           # Historical devlog of sessions, bug fixes, and feature additions
+├── CHANGELOG.md                        # Master semantic changelog (Keep a Changelog standard)
+├── AI_LOG.md                           # Historical devlog of AI collaboration sessions, bug fixes, and feature additions
 ├── README.md                           # Public repository overview and installation guide
 ├── GEMINI.md                           # Workspace domain rules (metric hygiene, confluence laws, anti-SaaS constraints)
 ├── package.json                        # Development tooling dependencies (e.g., Puppeteer for headless visual regression)
@@ -124,33 +126,33 @@ The application utilizes three primary telemetry providers alongside USGS hydrog
 
 | Station ID | Official Station Name | Parameter Measured | Dimension / Unit | River Network Location |
 | :--- | :--- | :--- | :--- | :--- |
-| **`09058000`** | Colorado River near Kremmling, CO | Discharge (`00060`) | Rate: $Q$ (cfs) | Upper Mainstem below Fraser & Williams Fork confluences |
-| **`09070500`** | Colorado River near Dotsero, CO | Discharge (`00060`), Stage (`00065`) | Rate: $Q$ (cfs), $L$ (ft) | Upper Mainstem in Glenwood Canyon below Eagle River |
-| **`09095500`** | Colorado River near Cameo, CO | Discharge (`00060`), Stage (`00065`) | Rate: $Q$ (cfs), $L$ (ft) | Upper Mainstem in De Beque Canyon above Grand Valley diversions |
-| **`09163500`** | Colorado River near CO-UT State Line | Discharge (`00060`) | Rate: $Q$ (cfs) | Upper Mainstem below Gunnison River confluence & Grand Valley |
-| **`09180500`** | Colorado River near Cisco, UT | Discharge (`00060`), Stage (`00065`) | Rate: $Q$ (cfs), $L$ (ft) | Outflow gauge of Upper Mainstem before Green River confluence |
-| **`09380000`** | Colorado River at Lees Ferry, AZ | Discharge (`00060`), Stage (`00065`) | Rate: $Q$ (cfs), $L$ (ft) | 1922 Compact Divide (1 mi downstream of Paria River; Glen Canyon outflow) |
-| **`09429100`** | Colorado River below Palo Verde Dam, AZ-CA | Discharge (`00060`) | Rate: $Q$ (cfs) | Lower Basin Mainstem below Parker Dam, CAP, and CRA diversions |
-| **`09234500`** | Green River near Greendale, UT | Discharge (`00060`) | Rate: $Q$ (cfs) | Green River headwaters directly below Flaming Gorge Dam |
-| **`09260050`** | Yampa River at Deerlodge Park, CO | Discharge (`00060`), Stage (`00065`) | Rate: $Q$ (cfs), $L$ (ft) | Yampa River mouth immediately before Echo Park confluence |
-| **`09261000`** | Green River near Jensen, UT | Discharge (`00060`) | Rate: $Q$ (cfs) | Middle Green River below Yampa River confluence |
-| **`09306500`** | White River near Watson, UT | Discharge (`00060`), Stage (`00065`) | Rate: $Q$ (cfs), $L$ (ft) | White River tributary near Utah-Colorado border |
-| **`09302000`** | Duchesne River near Randlett, UT | Discharge (`00060`) | Rate: $Q$ (cfs) | Uinta Basin tributary mouth before Green River confluence |
-| **`09315000`** | Green River at Green River, UT | Discharge (`00060`), Stage (`00065`) | Rate: $Q$ (cfs), $L$ (ft) | Lower Green River sentinel station before Cataract Canyon |
-| **`09128000`** | Gunnison River below Gunnison Tunnel, CO | Discharge (`00060`) | Rate: $Q$ (cfs) | Gunnison River inside Black Canyon below diversion tunnel |
-| **`09152500`** | Gunnison River near Grand Junction, CO | Discharge (`00060`), Stage (`00065`) | Rate: $Q$ (cfs), $L$ (ft) | Gunnison River mouth before confluence with Colorado Mainstem |
-| **`09180000`** | Dolores River near Cisco, UT | Discharge (`00060`) | Rate: $Q$ (cfs) | Dolores River mouth entering Colorado River near Dewey Bridge |
-| **`09355500`** | San Juan River near Archuleta, NM | Discharge (`00060`) | Rate: $Q$ (cfs) | Upper San Juan River tailrace below Navajo Dam |
-| **`09364500`** | Animas River at Farmington, NM | Discharge (`00060`) | Rate: $Q$ (cfs) | Animas River mouth immediately above San Juan confluence |
-| **`09379500`** | San Juan River near Bluff, UT | Discharge (`00060`), Stage (`00065`) | Rate: $Q$ (cfs), $L$ (ft) | Lower San Juan River inflow terminal entering Lake Powell |
-| **`09085000`** | Roaring Fork River at Glenwood Springs, CO | Discharge (`00060`) | Rate: $Q$ (cfs) | Roaring Fork mouth entering Colorado River at Glenwood Springs |
-| **`09070000`** | Eagle River below Gypsum, CO | Discharge (`00060`) | Rate: $Q$ (cfs) | Eagle River mouth entering Colorado River at Dotsero |
-| **`09057500`** | Blue River below Green Mtn Reservoir, CO | Discharge (`00060`) | Rate: $Q$ (cfs) | Blue River tailrace entering Colorado River at Kremmling |
-| **`09402000`** | Little Colorado River near Cameron, AZ | Discharge (`00060`) | Rate: $Q$ (cfs) | Desert tributary entering Grand Canyon reach of Colorado River |
-| **`09415000`** | Virgin River at Littlefield, AZ | Discharge (`00060`) | Rate: $Q$ (cfs) | Lower Basin desert tributary entering Lake Mead (Overton Arm) |
-| **`09426000`** | Bill Williams River below Alamo Dam, AZ | Discharge (`00060`) | Rate: $Q$ (cfs) | Desert tributary entering Lake Havasu above Parker Dam |
-| **`09474000`** | Gila River at Kelvin, AZ | Discharge (`00060`) | Rate: $Q$ (cfs) | Lower Gila River basin monitoring point |
-| **`09520500`** | Gila River near Dome, AZ | Discharge (`00060`) | Rate: $Q$ (cfs) | Historic Gila River confluence near Yuma, AZ |
+| **`09058000`** | Colorado River near Kremmling, CO | Discharge (`00060`) | Discharge (cfs) | Upper Mainstem below Fraser & Williams Fork confluences |
+| **`09070500`** | Colorado River near Dotsero, CO | Discharge (`00060`), Stage (`00065`) | Discharge (cfs), Stage (ft) | Upper Mainstem in Glenwood Canyon below Eagle River |
+| **`09095500`** | Colorado River near Cameo, CO | Discharge (`00060`), Stage (`00065`) | Discharge (cfs), Stage (ft) | Upper Mainstem in De Beque Canyon above Grand Valley diversions |
+| **`09163500`** | Colorado River near CO-UT State Line | Discharge (`00060`) | Discharge (cfs) | Upper Mainstem below Gunnison River confluence & Grand Valley |
+| **`09180500`** | Colorado River near Cisco, UT | Discharge (`00060`), Stage (`00065`) | Discharge (cfs), Stage (ft) | Outflow gauge of Upper Mainstem before Green River confluence |
+| **`09380000`** | Colorado River at Lees Ferry, AZ | Discharge (`00060`), Stage (`00065`) | Discharge (cfs), Stage (ft) | 1922 Compact Divide (1 mi downstream of Paria River; Glen Canyon outflow) |
+| **`09429100`** | Colorado River below Palo Verde Dam, AZ-CA | Discharge (`00060`) | Discharge (cfs) | Lower Basin Mainstem below Parker Dam, CAP, and CRA diversions |
+| **`09234500`** | Green River near Greendale, UT | Discharge (`00060`) | Discharge (cfs) | Green River headwaters directly below Flaming Gorge Dam |
+| **`09260050`** | Yampa River at Deerlodge Park, CO | Discharge (`00060`), Stage (`00065`) | Discharge (cfs), Stage (ft) | Yampa River mouth immediately before Echo Park confluence |
+| **`09261000`** | Green River near Jensen, UT | Discharge (`00060`) | Discharge (cfs) | Middle Green River below Yampa River confluence |
+| **`09306500`** | White River near Watson, UT | Discharge (`00060`), Stage (`00065`) | Discharge (cfs), Stage (ft) | White River tributary near Utah-Colorado border |
+| **`09302000`** | Duchesne River near Randlett, UT | Discharge (`00060`) | Discharge (cfs) | Uinta Basin tributary mouth before Green River confluence |
+| **`09315000`** | Green River at Green River, UT | Discharge (`00060`), Stage (`00065`) | Discharge (cfs), Stage (ft) | Lower Green River sentinel station before Cataract Canyon |
+| **`09128000`** | Gunnison River below Gunnison Tunnel, CO | Discharge (`00060`) | Discharge (cfs) | Gunnison River inside Black Canyon below diversion tunnel |
+| **`09152500`** | Gunnison River near Grand Junction, CO | Discharge (`00060`), Stage (`00065`) | Discharge (cfs), Stage (ft) | Gunnison River mouth before confluence with Colorado Mainstem |
+| **`09180000`** | Dolores River near Cisco, UT | Discharge (`00060`) | Discharge (cfs) | Dolores River mouth entering Colorado River near Dewey Bridge |
+| **`09355500`** | San Juan River near Archuleta, NM | Discharge (`00060`) | Discharge (cfs) | Upper San Juan River tailrace below Navajo Dam |
+| **`09364500`** | Animas River at Farmington, NM | Discharge (`00060`) | Discharge (cfs) | Animas River mouth immediately above San Juan confluence |
+| **`09379500`** | San Juan River near Bluff, UT | Discharge (`00060`), Stage (`00065`) | Discharge (cfs), Stage (ft) | Lower San Juan River inflow terminal entering Lake Powell |
+| **`09085000`** | Roaring Fork River at Glenwood Springs, CO | Discharge (`00060`) | Discharge (cfs) | Roaring Fork mouth entering Colorado River at Glenwood Springs |
+| **`09070000`** | Eagle River below Gypsum, CO | Discharge (`00060`) | Discharge (cfs) | Eagle River mouth entering Colorado River at Dotsero |
+| **`09057500`** | Blue River below Green Mtn Reservoir, CO | Discharge (`00060`) | Discharge (cfs) | Blue River tailrace entering Colorado River at Kremmling |
+| **`09402000`** | Little Colorado River near Cameron, AZ | Discharge (`00060`) | Discharge (cfs) | Desert tributary entering Grand Canyon reach of Colorado River |
+| **`09415000`** | Virgin River at Littlefield, AZ | Discharge (`00060`) | Discharge (cfs) | Lower Basin desert tributary entering Lake Mead (Overton Arm) |
+| **`09426000`** | Bill Williams River below Alamo Dam, AZ | Discharge (`00060`) | Discharge (cfs) | Desert tributary entering Lake Havasu above Parker Dam |
+| **`09474000`** | Gila River at Kelvin, AZ | Discharge (`00060`) | Discharge (cfs) | Lower Gila River basin monitoring point |
+| **`09520500`** | Gila River near Dome, AZ | Discharge (`00060`) | Discharge (cfs) | Historic Gila River confluence near Yuma, AZ |
 | **`09498500`** | Salt River near Roosevelt, AZ | Discharge (`00060`) | Rate: $Q$ (cfs) | Salt River tributary to Gila River / Central Arizona |
 | **`09511300`** | Verde River near Scottsdale, AZ | Discharge (`00060`) | Rate: $Q$ (cfs) | Verde River tributary to Salt River / Central Arizona |
 
@@ -232,9 +234,9 @@ The application utilizes three primary telemetry providers alongside USGS hydrog
 | **Cell 3** | Code | Station metadata dictionary | Defines `SENTINEL_GAUGES` (16 stations) and `RESERVOIR_GAUGES` (Powell & Mead) with metadata, legal order, and storage capacities. | In-memory dictionaries `SENTINEL_GAUGES`, `RESERVOIR_GAUGES` |
 | **Cell 4** | Markdown | None | Step 2 explanation: querying real-time instantaneous discharge (`00060`) and stage (`00065`). | Documentation |
 | **Cell 5** | Code | USGS NWIS Web Services via `dataretrieval.nwis.get_iv` | Queries live instantaneous values for all 16 stations simultaneously. Extracts the latest valid numeric discharge and stage values per station. | In-memory dictionary `latest_readings` |
-| **Cell 6** | Markdown | None | Step 3 explanation: Flow Health formula ($\text{pct\_of\_median} = \frac{Q_{\text{current}}}{Q_{\text{median}}} \times 100$) and color tiers. | Mathematical documentation |
-| **Cell 7** | Code | `latest_readings`, `dataretrieval.nwis.get_stats` | Queries 50-year daily statistics (`statReportType="daily"`) for current month/day. Computes percent of median; assigns health tiers: Critically Low ($<25\%$), Low ($25-50\%$), Below Normal ($50-90\%$), Normal ($90-115\%$), Above Normal ($>115\%$). | Enriched `latest_readings` |
-| **Cell 8** | Markdown | None | Step 4 explanation: Sequential Reach Delta Analysis ($\Delta Q = Q_{\text{downstream}} - Q_{\text{upstream}}$) along the Colorado mainstem. | Mathematical documentation |
+| **Cell 6** | Markdown | None | Step 3 explanation: Flow Health calculation (Percent of Historical Daily Median) and color tiers. | Documentation |
+| **Cell 7** | Code | `latest_readings`, `dataretrieval.nwis.get_stats` | Queries 50-year daily statistics (`statReportType="daily"`) for current month/day. Computes percent of median; assigns health tiers: Critically Low (<25%), Low (25-50%), Below Normal (50-90%), Normal (90-115%), Above Normal (>115%). | Enriched `latest_readings` |
+| **Cell 8** | Markdown | None | Step 4 explanation: Sequential Reach Inflow Analysis (Downstream Reach Flow minus Upstream Reach Flow) along the Colorado mainstem. | Documentation |
 | **Cell 9** | Code | `latest_readings` | Computes sequential mass balances:<br>1. Gore Canyon $\rightarrow$ Cameo<br>2. Cameo $\rightarrow$ Cisco (adjusting for Gunnison)<br>3. Cisco (+ Green River) $\rightarrow$ Lees Ferry (measuring Lake Powell retention)<br>4. Navajo Outflow + Animas $\rightarrow$ Bluff, UT (San Juan accretion). | In-memory list `reach_deltas` |
 | **Cell 10** | Markdown | None | Step 5 explanation: Lake Powell and Lake Mead live elevation and active capacity calculations. | Documentation |
 | **Cell 11** | Code | USGS NWIS parameter `62614` | Queries water surface elevation for Powell (`09379900`) and Mead (`09421000`). Applies USBR elevation-to-storage polynomial approximations. Determines active capacity percentage and feet below full pool. | In-memory dictionary `reservoir_metrics` |
@@ -247,7 +249,7 @@ The application utilizes three primary telemetry providers alongside USGS hydrog
 
 ### A. Map Interface: Line Width & Visual Weight Calculation (`web/app.js`)
 
-In the geospatial interface (`web/index.html` & `web/app.js`), river, canal, and tunnel geometries dynamically scale their visual line widths to represent physical conveyance and instantaneous discharge ($Q = \text{cfs}$).
+In the geospatial interface (`web/index.html` & `web/app.js`), river, canal, and tunnel geometries dynamically scale their visual line widths to represent physical conveyance and instantaneous streamflow rate (cfs).
 
 #### 1. Mathematical Scaling Functions
 
@@ -295,9 +297,9 @@ The project maintains a strict Anti-SaaS separation between the **spatial river 
 #### 1. River Network Schematic (`web/pipeline.html`)
 The River Network Schematic is a **topological flow schematic** (combining diagrammatic transit geometry with variable-width flowline cartography) tracing the physical Colorado River trunk line and major diversions down the basin corridor:
 * **Topology:** Traces physical downstream flow from Rocky Mountain snowpack headwaters through Cataract Canyon, Lake Powell / Lee's Ferry, the Grand Canyon, Lake Mead, Parker Dam, Imperial Dam, Morelos Dam, and the Delta.
-* **Proportional Line Weighting:** The visual width (`stroke-width`) represents annualized volumetric discharge ($MAF/yr$):
+* **Proportional Line Weighting:** The visual width (`stroke-width`) represents annualized volumetric discharge (MAF/yr):
 
-| Diagram Path ID | Element Name | Visual `stroke-width` | Budget Allocation ($V$) | Continuous Equivalent ($Q$) |
+| Diagram Path ID | Element Name | Visual `stroke-width` | Budget Allocation (MAF/yr) | Continuous Equivalent (cfs) |
 | :--- | :--- | :---: | :---: | :---: |
 | `river-powell-reach` | Lake Powell Thalweg Conduit | **36 px** | ~14.80 MAF/yr | ~20,443 cfs |
 | `river-cataract` | Cataract Canyon (Upper Confluence) | **30 px** | 14.80 MAF/yr | 20,443 cfs |

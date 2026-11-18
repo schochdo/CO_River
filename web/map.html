@@ -85,16 +85,17 @@
     <div id="map-container">
       <div id="map"></div>
 
-      <!-- Floating Map Menu (Layers & Basemap Selector) -->
-      <div class="map-menu-container" id="map-menu-container">
-        <button class="map-menu-btn" id="map-menu-btn" onclick="toggleMapMenu(event)" title="Choose Layers and Basemap">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-            <polyline points="2 17 12 22 22 17"></polyline>
-            <polyline points="2 12 12 17 22 12"></polyline>
-          </svg>
-          <span id="map-menu-label">Layers &amp; Basemap</span>
-        </button>
+      <!-- Floating Map Top Actions (Layers Menu) -->
+      <div class="map-top-actions" id="map-top-actions" style="position: absolute; top: 14px; right: 14px; z-index: 400; display: flex; align-items: flex-start; gap: 8px;">
+        <div class="map-menu-container" id="map-menu-container" style="position: relative; top: auto; right: auto;">
+          <button class="map-menu-btn" id="map-menu-btn" onclick="toggleMapMenu(event)" title="Choose Layers and Basemap">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+              <polyline points="2 17 12 22 22 17"></polyline>
+              <polyline points="2 12 12 17 22 12"></polyline>
+            </svg>
+            <span id="map-menu-label">Map Layers</span>
+          </button>
 
         <div class="map-menu-dropdown" id="map-menu-dropdown">
           <!-- Navigation Tabs: Layers | Basemap -->
@@ -158,8 +159,8 @@
               <label class="toggle-label" style="padding-left: 14px; font-size: 11px; color: var(--text-muted);">
                 <span>↳ % of Daily Average</span>
               </label>
-              <label class="toggle-label">
-                <span>Streamflow Gauges (USGS)</span>
+              <label class="toggle-label" title="Show all 98 telemetry monitoring points: 79 streamflows, 4 tunnels, 4 canals, 11 reservoirs">
+                <span>Telemetry Stations (98 Gages &amp; Points)</span>
                 <input type="checkbox" id="toggle-streamflow-gauges" checked onchange="toggleLayer('streamflow-gauges')">
                 <span class="slider"></span>
               </label>
@@ -178,6 +179,28 @@
                 <input type="checkbox" id="toggle-canals" checked onchange="toggleLayer('canals')">
                 <span class="slider"></span>
               </label>
+
+              <!-- Topology Diagnostics -->
+              <div class="topology-diagnostics-group" style="margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-subtle, #e2e8f0); display: flex; flex-direction: column; gap: 8px;">
+                <div style="font-size: 10px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">
+                  Topology Diagnostics
+                </div>
+                <label class="toggle-label" title="Show downstream flow direction along river reaches">
+                  <span>Flow Direction (▶ Downstream)</span>
+                  <input type="checkbox" id="toggle-flow-arrows" onchange="toggleLayer('flowArrows')">
+                  <span class="slider"></span>
+                </label>
+                <label class="toggle-label" title="Show river confluence junction nodes where rivers meet">
+                  <span>Confluence Junctions (■ Squares)</span>
+                  <input type="checkbox" id="toggle-topology-junctions" checked onchange="toggleLayer('topologyJunctions')">
+                  <span class="slider"></span>
+                </label>
+                <label class="toggle-label" title="Show reach section start and end boundary nodes">
+                  <span>Reach Section Nodes (● Dots)</span>
+                  <input type="checkbox" id="toggle-topology-sections" onchange="toggleLayer('topologySections')">
+                  <span class="slider"></span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -216,6 +239,7 @@
 
         </div>
       </div>
+      </div>
 
       <!-- Map Legend (Collapsible) -->
       <div class="map-legend" id="map-legend">
@@ -235,8 +259,17 @@
           <div class="legend-item"><span class="legend-line divide"></span> Continental Divide</div>
           <div class="legend-item"><span style="display:inline-flex; align-items:center; width:22px; height:8px; margin-right:6px; vertical-align:middle;"><span style="width:6px; height:6px; border-radius:50%; background:#0284c7; border:1.5px solid #0f172a; flex-shrink:0;"></span><span style="flex:1; height:3px; background:#0284c7; border-top:0.5px solid #0f172a; border-bottom:0.5px solid #0f172a;"></span><span style="width:6px; height:6px; border-radius:50%; background:#0284c7; border:1.5px solid #0f172a; flex-shrink:0;"></span></span> Trans-Mountain Tunnels (Front Range)</div>
           <div class="legend-item"><span class="legend-line" style="display:inline-block; width:22px; height:3.5px; background:repeating-linear-gradient(90deg, #0284c7, #0284c7 3px, transparent 3px, transparent 6px); margin-right:6px; vertical-align:middle;"></span> Conveyance Canals (AAC / CAP / CRA)</div>
-          <div class="legend-item"><span class="legend-dot gauge"></span> USGS Streamflow Gauge</div>
+          <div class="legend-item"><span class="legend-dot gauge" style="background:#0284c7;"></span> Streamflow Gages (USGS, 79)</div>
+          <div class="legend-item"><span class="legend-dot gauge" style="background:#0891b2;"></span> Diversion Tunnels (CDSS, 4)</div>
+          <div class="legend-item"><span class="legend-dot gauge" style="background:#059669;"></span> Conveyance Canals (USGS, 4)</div>
+          <div class="legend-item"><span class="legend-dot gauge" style="background:#dc2626;"></span> Reservoir Stations (USBR/CDSS, 11)</div>
           <div class="legend-item"><span class="legend-cfs-badge">7,800 cfs</span> Live Flow Badge</div>
+
+          <div class="legend-section-title" style="margin-top: 8px;">TOPOLOGY DIAGNOSTICS</div>
+          <div class="legend-item"><span style="color:#0284c7; font-weight:800; font-size:12px; margin-right:6px;">▶</span> Downstream Flow Direction</div>
+          <div class="legend-item"><span style="display:inline-block; width:9px; height:9px; background:#d97706; border:1.5px solid #0f172a; margin-right:6px; vertical-align:middle; border-radius:1px;"></span> Confluence Junctions (■ Rivers Join)</div>
+          <div class="legend-item"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; border:1.5px solid #0f172a; margin-right:6px; vertical-align:middle;"></span> Reach Start (● Headwaters Origin)</div>
+          <div class="legend-item"><span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#0284c7; border:1.5px solid #0f172a; margin-right:6px; vertical-align:middle;"></span> Reach Section Boundary (● Transition)</div>
 
           <div id="flow-health-legend" style="display:block;">
             <div class="legend-section-title" style="margin-top: 8px;">FLOW HEALTH (% OF DAILY AVERAGE)</div>
@@ -296,6 +329,61 @@
               <circle id="trackball-center-pivot" cx="0" cy="0" r="3" fill="#0284c7" stroke="#ffffff" stroke-width="1.2" />
             </g>
           </svg>
+        </div>
+      </div>
+
+      <!-- Docked Bottom Collapsible Telemetry Gage Tray -->
+      <div class="map-gage-tray collapsed" id="map-gage-tray">
+        <div class="map-tray-header-bar" id="map-tray-header" onclick="toggleMapGageTray()">
+          <div class="tray-header-left">
+            <span class="tray-indicator-dot"></span>
+            <span class="tray-title-text">Telemetry Gages &amp; Facilities</span>
+            <span class="tray-badge" id="tray-node-count">98</span>
+            <span class="tray-sub-hint hidden sm:inline">&bull; Click row to fly</span>
+          </div>
+
+          <div class="tray-header-middle" onclick="event.stopPropagation()">
+            <div class="tray-search-wrap">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="tray-search-input" placeholder="Search name, ID, type..." oninput="handleTraySearch(this.value)">
+            </div>
+            <div class="tray-filter-pills">
+              <button class="tray-pill active" id="tpill-all" onclick="filterTrayCategory('all')">All</button>
+              <button class="tray-pill" id="tpill-sentinel" onclick="filterTrayCategory('sentinel')">Sentinels</button>
+              <button class="tray-pill" id="tpill-streamflow" onclick="filterTrayCategory('streamflow')">Tributaries</button>
+              <button class="tray-pill" id="tpill-diversion" onclick="filterTrayCategory('diversion')">Exports</button>
+              <button class="tray-pill" id="tpill-reservoir" onclick="filterTrayCategory('reservoir')">Reservoirs</button>
+            </div>
+          </div>
+
+          <div class="tray-header-right" onclick="event.stopPropagation()">
+            <button class="tray-action-btn" onclick="openDedicatedLedger()" title="Open Full-Screen Telemetry Ledger in New Tab">
+              <span>Full Ledger ↗</span>
+            </button>
+            <button class="tray-toggle-btn" id="tray-toggle-btn" onclick="toggleMapGageTray()" title="Expand or collapse bottom telemetry tray">
+              <span id="tray-toggle-icon">▲ Gages</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="tray-body-wrap" id="tray-body">
+          <table class="tray-table">
+            <thead>
+              <tr>
+                <th>Station / Facility</th>
+                <th>Station ID</th>
+                <th>Hierarchy / Status</th>
+                <th>Type</th>
+                <th style="text-align: right;">Current Flow / Volume</th>
+                <th style="text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody id="tray-table-rows">
+              <tr>
+                <td colspan="6" style="text-align: center; padding: 24px; color: #94a3b8;">Loading telemetry nodes...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -782,10 +870,10 @@ for line in txt.splitlines():
             <span class="api-tag pipeline">Data Architecture</span>
           </div>
           <p class="law-text">
-            All data sources are synthesized by an automated Python pipeline (<code>src/fetch_water_data.py</code> and <code>src/generate_river_network.py</code>). To ensure physical realism across unmonitored river segments, the pipeline applies a <strong>topological mass-balance network algorithm</strong>:
+            All data sources are synthesized by an automated Python pipeline (<code>src/fetch_water_data.py</code> and <code>src/generate_river_network.py</code>). To ensure physical realism across unmonitored river segments, the pipeline enforces reach mass balance:
           </p>
-          <p class="law-text" style="margin-top: 6px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11.5px; background: #f8fafc; padding: 6px 10px; border-radius: 5px; border: 1px solid #e2e8f0;">
-            Q_downstream = Q_mainstem_upstream + &Sigma;(Q_tributaries) - &Sigma;(Q_transmountain_tunnels) - &Sigma;(Q_canals) &plusmn; &Delta;Storage
+          <p class="law-text" style="margin-top: 6px; font-size: 11.5px; background: #f8fafc; padding: 7px 11px; border-radius: 6px; border: 1px solid #e2e8f0; color: #334155; line-height: 1.5;">
+            <strong>Reach Mass Balance:</strong> Downstream Flow = Upstream Inflow + Tributary Inflows &minus; Trans-Mountain Exports &minus; Canal Diversions &plusmn; Reservoir Storage Change
           </p>
           <div class="code-snippet-box">
             <div class="code-snippet-header">
@@ -886,5 +974,20 @@ print("Hydrologic telemetry pipeline synced successfully.")</code></pre>
   <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
   <script src="cameraFlight.js"></script>
   <script src="app.js?t=1730967000"></script>
+  <script>
+    // URL parameter support for direct testing & deep-linking
+    window.addEventListener('load', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('station')) {
+        setTimeout(() => { if (typeof window.focusMapStation === 'function') window.focusMapStation(urlParams.get('station')); }, 500);
+      } else if (urlParams.get('drawer') === 'layers') {
+        setTimeout(() => { if (typeof toggleMapMenu === 'function') toggleMapMenu(); }, 400);
+      } else if (urlParams.get('drawer') === 'metrics') {
+        setTimeout(() => { if (typeof window.toggleSidebar === 'function') window.toggleSidebar(); }, 400);
+      } else if (urlParams.get('tray') === 'expanded') {
+        setTimeout(() => { if (typeof window.toggleMapGageTray === 'function') window.toggleMapGageTray(true); }, 400);
+      }
+    });
+  </script>
 </body>
 </html>

@@ -1,6 +1,46 @@
 // Colorado River Basin Water Infrastructure & Hydrology Dashboard
 // Powered by MapLibre GL JS with 3D DEM Terrain Option & Top-Down 2D Default
 
+// ============================================================================
+// Global Chart.js Visual Defaults (Edward Tufte / Editorial Standard)
+// ============================================================================
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.font.family = "'Inter', -apple-system, sans-serif";
+  Chart.defaults.color = '#334155';
+  Chart.defaults.borderColor = '#cbd5e1';
+  Chart.defaults.animation = false;
+  Chart.defaults.animations = false;
+  Chart.defaults.transitions = false;
+
+  if (Chart.defaults.scale && Chart.defaults.scale.grid) {
+    Chart.defaults.scale.grid.color = '#e2e8f0';
+  }
+  if (Chart.defaults.scales) {
+    if (Chart.defaults.scales.linear && Chart.defaults.scales.linear.grid) {
+      Chart.defaults.scales.linear.grid.color = '#e2e8f0';
+    }
+    if (Chart.defaults.scales.category && Chart.defaults.scales.category.grid) {
+      Chart.defaults.scales.category.grid.color = '#e2e8f0';
+    }
+  }
+
+  if (Chart.defaults.plugins && Chart.defaults.plugins.tooltip) {
+    const tt = Chart.defaults.plugins.tooltip;
+    tt.backgroundColor = 'rgba(255, 255, 255, 0.98)';
+    tt.titleColor = '#0f172a';
+    tt.bodyColor = '#334155';
+    tt.footerColor = '#64748b';
+    tt.borderColor = '#cbd5e1';
+    tt.borderWidth = 1;
+    tt.cornerRadius = 3;
+    tt.padding = 10;
+    tt.usePointStyle = true;
+    tt.boxWidth = 8;
+    tt.boxHeight = 8;
+    tt.boxPadding = 6;
+  }
+}
+
 let map;
 let isTilted = false; // Default to clean, readable 2D top-down mode
 
@@ -226,7 +266,25 @@ function hasHigherPriorityFeature(point, layerIds) {
   }
 }
 
-function switchPopupTab() {}
+function switchPopupTab(tabName, btn) {
+  const container = btn?.closest('.custom-popup-body');
+  if (!container) return;
+  container.querySelectorAll('.popup-tab-btn').forEach(b => {
+    b.classList.remove('active');
+    b.style.fontWeight = '500';
+    b.style.borderBottom = '2px solid transparent';
+    b.style.color = '#64748b';
+  });
+  btn.classList.add('active');
+  btn.style.fontWeight = '700';
+  btn.style.borderBottom = '2px solid #0284c7';
+  btn.style.color = '#0284c7';
+  const dataPane = container.querySelector('.popup-pane-data');
+  const codePane = container.querySelector('.popup-pane-code');
+  if (dataPane) dataPane.style.display = tabName === 'data' ? 'block' : 'none';
+  if (codePane) codePane.style.display = tabName === 'code' ? 'block' : 'none';
+}
+window.switchPopupTab = switchPopupTab;
 
 function copyPopupCode(btn, ev) {
   if (ev) ev.stopPropagation();
@@ -247,10 +305,33 @@ function copyPopupCode(btn, ev) {
 const copySnippetCode = copyPopupCode;
 
 function formatTabbedPopup({ dataHtml, codeTitle, endpointUrl, pythonCode, notes }) {
+  if (!pythonCode) {
+    return `
+      <div class="custom-popup-body popup-single-card" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" style="font-family:'Inter',sans-serif; min-width:240px; max-width:320px; border-radius:3px;">
+        <div class="popup-pane-data">
+          ${dataHtml}
+        </div>
+      </div>
+    `;
+  }
+  const cleanCode = pythonCode.replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return `
-    <div class="custom-popup-body popup-single-card" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" style="font-family:'Inter',sans-serif; min-width:240px; max-width:320px;">
+    <div class="custom-popup-body" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" style="font-family:'Inter',sans-serif; min-width:250px; max-width:320px; border-radius:3px;">
+      <div style="display:flex; border-bottom:1px solid #e2e8f0; margin-bottom:8px;">
+        <button class="popup-tab-btn active" onclick="switchPopupTab('data', this)" style="background:none; border:none; border-bottom:2px solid #0284c7; padding:4px 10px; font-size:11px; font-weight:700; color:#0284c7; cursor:pointer;">Data</button>
+        <button class="popup-tab-btn" onclick="switchPopupTab('code', this)" style="background:none; border:none; border-bottom:2px solid transparent; padding:4px 10px; font-size:11px; font-weight:500; color:#64748b; cursor:pointer;">API / Python</button>
+      </div>
       <div class="popup-pane-data">
         ${dataHtml}
+      </div>
+      <div class="popup-pane-code" style="display:none;">
+        <div style="font-size:11px; font-weight:700; color:#0f172a; margin-bottom:4px;">${codeTitle || 'Python Query'}</div>
+        ${notes ? `<div style="font-size:10.5px; color:#64748b; margin-bottom:6px; line-height:1.35;">${notes}</div>` : ''}
+        <div class="popup-code-box" style="position:relative; background:#0f172a; border-radius:3px; padding:8px; overflow:hidden;">
+          <button onclick="copyPopupCode(this, event)" style="position:absolute; top:4px; right:4px; background:#1e293b; border:1px solid #334155; color:#94a3b8; font-size:9.5px; border-radius:2px; padding:2px 6px; cursor:pointer;">Copy</button>
+          <pre style="margin:0; font-family:ui-monospace,Menlo,monospace; font-size:10px; color:#e2e8f0; line-height:1.35; max-height:160px; overflow-y:auto; white-space:pre-wrap;"><code>${cleanCode}</code></pre>
+        </div>
+        ${endpointUrl ? `<div style="margin-top:6px; font-size:10px; color:#64748b; word-break:break-all;"><strong style="color:#475569;">Endpoint:</strong> <a href="${endpointUrl}" target="_blank" rel="noopener" style="color:#0284c7; text-decoration:none;">REST API URL ↗</a></div>` : ''}
       </div>
     </div>
   `;
@@ -511,6 +592,33 @@ function initMap() {
     if (window.location.search.includes('zoom_to=lees_ferry')) {
       map.jumpTo({ center: [-111.588, 36.864], zoom: 7.8 });
     }
+    if (window.location.search.includes('zoom_to=confluence')) {
+      map.jumpTo({ center: [-109.878, 38.19], zoom: 10.5 });
+    }
+    if (window.location.search.includes('zoom_to=lake_powell')) {
+      map.jumpTo({ center: [-111.48, 36.94], zoom: 10 });
+    }
+    if (window.location.search.includes('flow_direction=1') || window.location.search.includes('flow_arrows=1')) {
+      const toggle = document.getElementById("toggle-flow-arrows") || document.getElementById("toggle-gis-flow-arrows");
+      if (toggle) {
+        toggle.checked = true;
+        toggleLayer("flowArrows");
+      }
+    }
+    if (window.location.search.includes('topology_junctions=0')) {
+      const toggle = document.getElementById("toggle-topology-junctions");
+      if (toggle) {
+        toggle.checked = false;
+        toggleLayer("topologyJunctions");
+      }
+    }
+    if (window.location.search.includes('topology_sections=1') || window.location.search.includes('gis_nodes=1')) {
+      const toggle = document.getElementById("toggle-topology-sections");
+      if (toggle) {
+        toggle.checked = true;
+        toggleLayer("topologySections");
+      }
+    }
   });
 
   map.on('move', queueBadgePlacements);
@@ -633,14 +741,14 @@ function setPitchDegrees(deg) {
       map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
     }
     isTilted = true;
-    map.easeTo({
+    safeEaseTo(map, {
       pitch: deg,
       bearing: map.getBearing() !== 0 ? map.getBearing() : -8,
       duration: 600
     });
   } else {
     // Return to flat 2D
-    map.easeTo({
+    safeEaseTo(map, {
       pitch: 0,
       bearing: 0,
       duration: 600
@@ -1205,7 +1313,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Fraser River Confluence above Windy Gap",
           mainstem_upstream: { name: "Granby Dam Release", cfs: headwatersBaker.flow_cfs },
-          tributary: { name: "Fraser River", cfs: Math.max(0, Math.round(flow - headwatersBaker.flow_cfs)) }
+          tributary: { name: "Fraser River", cfs: Math.max(0, Math.round(flow - headwatersBaker.flow_cfs)) },
+          downstream_gage: "Windy Gap Dam"
         };
       }
     } else if (r === "colorado_windygap_kremmling") {
@@ -1225,7 +1334,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Windy Gap Tailwater & Williams Fork Accretion",
           mainstem_upstream: { name: "Windy Gap Dam Release", cfs: rW.flow_cfs },
-          tributary: { name: "Williams Fork River", cfs: williamsForkGage.flow_cfs }
+          tributary: { name: "Williams Fork River", cfs: williamsForkGage.flow_cfs },
+          downstream_gage: "Kremmling"
         };
       }
     } else if (r === "williams_fork") {
@@ -1247,7 +1357,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Blue River & Muddy Creek Confluences at Kremmling",
           mainstem_upstream: { name: "Granby to Kremmling", cfs: Math.round(windyGap.flow_cfs + (williamsForkGage?.flow_cfs || 0)) },
-          tributary: { name: "Blue River + Muddy Creek", cfs: Math.round(blue.flow_cfs + (muddyCreekGage?.flow_cfs || 0)) }
+          tributary: { name: "Blue River + Muddy Creek", cfs: Math.round(blue.flow_cfs + (muddyCreekGage?.flow_cfs || 0)) },
+          downstream_gage: "Gore Canyon"
         };
       }
     } else if (r === "colorado_glenwood_canyon") {
@@ -1259,7 +1370,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Eagle River Confluence at Dotsero",
           mainstem_upstream: { name: "Gore Canyon", cfs: kremmling.flow_cfs },
-          tributary: { name: "Eagle River", cfs: eagle.flow_cfs }
+          tributary: { name: "Eagle River", cfs: eagle.flow_cfs },
+          downstream_gage: "Dotsero"
         };
       }
     } else if (r === "glenwood_cameo" || r === "cameo_grand_junction" || r === "colorado_glenwood_springs") {
@@ -1271,7 +1383,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Roaring Fork Confluence at Glenwood Springs",
           mainstem_upstream: { name: "Glenwood Canyon (Dotsero)", cfs: dotsero.flow_cfs },
-          tributary: { name: "Roaring Fork River", cfs: roaringFork.flow_cfs }
+          tributary: { name: "Roaring Fork River", cfs: roaringFork.flow_cfs },
+          downstream_gage: "Cameo"
         };
       }
     } else if (r === "colorado_stateline_cisco") {
@@ -1283,7 +1396,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Gunnison River Confluence at Grand Junction",
           mainstem_upstream: { name: "Colorado River (Cameo)", cfs: cameo.flow_cfs },
-          tributary: { name: "Gunnison River", cfs: gunnison.flow_cfs }
+          tributary: { name: "Gunnison River", cfs: gunnison.flow_cfs },
+          downstream_gage: "State Line"
         };
       }
     } else if (r === "grand_valley_cisco") {
@@ -1295,7 +1409,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Dolores River Confluence near Dewey",
           mainstem_upstream: { name: "Colorado River at State Line", cfs: stateLine.flow_cfs },
-          tributary: { name: "Dolores River", cfs: dolores.flow_cfs }
+          tributary: { name: "Dolores River", cfs: dolores.flow_cfs },
+          downstream_gage: "Cisco, UT"
         };
       }
     } else if (r === "cataract_canyon") {
@@ -1315,7 +1430,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Green River Confluence (Canyonlands The Maze)",
           mainstem_upstream: { name: "Colorado River above Confluence", cfs: rC.flow_cfs },
-          tributary: { name: "Green River", cfs: rG.flow_cfs }
+          tributary: { name: "Green River", cfs: rG.flow_cfs },
+          downstream_gage: "Cataract Canyon"
         };
       }
     } else if (r === "lees_ferry") {
@@ -1339,7 +1455,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Paria River Confluence at Lees Ferry (Mile 0.7)",
           mainstem_upstream: { name: "Colorado River at Lees Ferry (Glen Canyon Release)", cfs: rLf.flow_cfs },
-          tributary: { name: "Paria River", cfs: rP.flow_cfs || 0 }
+          tributary: { name: "Paria River", cfs: rP.flow_cfs || 0 },
+          downstream_gage: "Marble Canyon"
         };
       }
     } else if (r === "grand_canyon_upper") {
@@ -1351,7 +1468,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Little Colorado River Confluence in Marble Canyon (Mile 61.5)",
           mainstem_upstream: { name: "Marble Canyon (Lees Ferry + Paria)", cfs: Math.round(leesFerry.flow_cfs + (paria?.flow_cfs || 0)) },
-          tributary: { name: "Little Colorado River", cfs: littleColorado.flow_cfs }
+          tributary: { name: "Little Colorado River", cfs: littleColorado.flow_cfs },
+          downstream_gage: "Phantom Ranch"
         };
       }
     } else if (r === "grand_canyon") {
@@ -1370,7 +1488,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Diamond Creek Compliance & Canyon Wave Propagation",
           mainstem_upstream: { name: "Upstream Crest (Phantom Ranch, Mile 88)", cfs: Math.round(phantomRanch.flow_cfs) },
-          tributary: { name: "Wave Transit Lag (137-Mile Canyon Travel Delay)", cfs: Math.round(flow - phantomRanch.flow_cfs) }
+          tributary: { name: "Wave Transit Lag (137-Mile Canyon Travel Delay)", cfs: Math.round(flow - phantomRanch.flow_cfs) },
+          downstream_gage: "Diamond Creek"
         };
       }
     } else if (r === "lower_basin_hoover_davis" || r === "lower_basin_upper") {
@@ -1395,7 +1514,9 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Lake Havasu Mass Balance & Parker Dam Release",
           mainstem_upstream: { name: "Davis Dam Inflow", cfs: Math.round(davisDam.flow_cfs) },
-          tributary: { name: "CAP & CRA Diversions (Net Outflow)", cfs: Math.round((byId["09426650"]?.flow_cfs || 0) + (byId["09424150"]?.flow_cfs || 0)) }
+          tributary: { name: "CAP & CRA Diversions (Net Outflow)", cfs: Math.round((byId["09426650"]?.flow_cfs || 0) + (byId["09424150"]?.flow_cfs || 0)) },
+          is_diversion: true,
+          downstream_gage: "Parker Dam"
         };
       }
     } else if (r === "lower_basin_paloverde_imperial") {
@@ -1412,7 +1533,9 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Imperial Dam Diversion & Residual Channel Flow",
           mainstem_upstream: { name: "Palo Verde Tailwater", cfs: Math.round(paloVerde.flow_cfs) },
-          tributary: { name: "All-American Canal Diversion", cfs: Math.round(byId["09527700"].flow_cfs) }
+          tributary: { name: "All-American Canal Diversion", cfs: Math.round(byId["09527700"].flow_cfs) },
+          is_diversion: true,
+          downstream_gage: "Imperial Tailrace"
         };
       }
     } else if (r === "lower_basin_taper") {
@@ -1471,7 +1594,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Yampa River Confluence at Echo Park",
           mainstem_upstream: { name: "Upper Green River (Flaming Gorge)", cfs: greenUpper.flow_cfs },
-          tributary: { name: "Yampa River", cfs: yampa.flow_cfs }
+          tributary: { name: "Yampa River", cfs: yampa.flow_cfs },
+          downstream_gage: "Jensen, UT"
         };
       }
     } else if (r === "green_ouray_desolation") {
@@ -1483,7 +1607,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "White & Duchesne Confluences at Ouray",
           mainstem_upstream: { name: "Middle Green River (Jensen)", cfs: greenJensen.flow_cfs },
-          tributary: { name: "White & Duchesne Rivers", cfs: (white?.flow_cfs || 0) + (duchesne?.flow_cfs || 0) }
+          tributary: { name: "White & Duchesne Rivers", cfs: (white?.flow_cfs || 0) + (duchesne?.flow_cfs || 0) },
+          downstream_gage: "Ouray, UT"
         };
       }
     } else if (r === "green_river") {
@@ -1502,7 +1627,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Price River Confluence (Gray Canyon) & San Rafael Inflow",
           mainstem_upstream: { name: "Green River (Desolation Canyon)", cfs: greenOurayGage.flow_cfs },
-          tributary: { name: "Price River & San Rafael + Valley Accretion", cfs: flow - greenOurayGage.flow_cfs }
+          tributary: { name: "Price River & San Rafael + Valley Accretion", cfs: flow - greenOurayGage.flow_cfs },
+          downstream_gage: "Green River, UT"
         };
       }
     } else if (r === "gunnison_headwaters") {
@@ -1524,7 +1650,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Uncompahgre River Confluence at Delta",
           mainstem_upstream: { name: "Upper Gunnison (Black Canyon)", cfs: gunnisonUpper.flow_cfs },
-          tributary: { name: "Uncompahgre River", cfs: uncompahgreGage.flow_cfs }
+          tributary: { name: "Uncompahgre River", cfs: uncompahgreGage.flow_cfs },
+          downstream_gage: "Grand Junction"
         };
       }
     } else if (r === "yampa_river") {
@@ -1596,7 +1723,8 @@ function applyLiveHydrology(riverNetwork, metrics) {
         confluenceInfo = {
           confluence_name: "Animas River Confluence at Farmington",
           mainstem_upstream: { name: "Upper San Juan (Navajo Dam)", cfs: sanjuanUpper.flow_cfs },
-          tributary: { name: "Animas River", cfs: animas.flow_cfs }
+          tributary: { name: "Animas River", cfs: animas.flow_cfs },
+          downstream_gage: "Farmington, NM"
         };
       }
     } else if (r === "sanjuan_shiprock_bluff") {
@@ -2133,42 +2261,50 @@ function getPortalInfo(item) {
     };
   }
 
-  // Specific Canal Names & Stations
+  // Specific Canal Names & Stations (Direct to Discharge cfs)
   if (id === '09527700' || name.includes('all-american')) {
     return {
       name: 'USGS National Water Information System',
-      url: 'https://waterdata.usgs.gov/monitoring-location/09527700/',
+      url: 'https://waterdata.usgs.gov/monitoring-location/09527700/#parameterCode=00060',
       label: 'USGS NWIS #09527700'
     };
   }
   if (id === '09424150' || name.includes('colorado river aqueduct')) {
     return {
       name: 'USGS National Water Information System',
-      url: 'https://waterdata.usgs.gov/monitoring-location/09424150/',
+      url: 'https://waterdata.usgs.gov/monitoring-location/09424150/#parameterCode=00060',
       label: 'USGS NWIS #09424150'
     };
   }
   if (id === '09426650' || name.includes('central arizona project') || name.includes('cap')) {
     return {
       name: 'USGS National Water Information System',
-      url: 'https://waterdata.usgs.gov/monitoring-location/09426650/',
+      url: 'https://waterdata.usgs.gov/monitoring-location/09426650/#parameterCode=00060',
       label: 'USGS NWIS #09426650'
     };
   }
   if (id === '09522000' || name.includes('alimentador') || name.includes('canal central') || name.includes('morelos')) {
     return {
       name: 'USGS / CILA Water Data',
-      url: 'https://waterdata.usgs.gov/monitoring-location/09522000/',
+      url: 'https://waterdata.usgs.gov/monitoring-location/09522000/#parameterCode=00060',
       label: 'USGS NWIS #09522000 at Northerly International Boundary'
     };
   }
 
   // 1. USGS Real-Time Streamflow & Canal Gauges (8-digit USGS station number)
-  if (/^\d{8}$/.test(id)) {
+  const cleanSiteId = id.replace(/^USGS-/, '');
+  if (/^\d{8}$/.test(cleanSiteId)) {
+    const isReservoir = item.type === 'reservoir' || 
+                        (item.category && item.category.toLowerCase().includes('reservoir')) ||
+                        ['09379900', '09421000'].includes(cleanSiteId) ||
+                        name.includes('reservoir') || name.includes('lake ');
+    const url = isReservoir
+      ? `https://waterdata.usgs.gov/monitoring-location/${cleanSiteId}/`
+      : `https://waterdata.usgs.gov/monitoring-location/${cleanSiteId}/#parameterCode=00060`;
     return {
       name: 'USGS National Water Information System',
-      url: `https://waterdata.usgs.gov/monitoring-location/${id}/`,
-      label: `USGS NWIS #${id}`
+      url: url,
+      label: `USGS NWIS #${cleanSiteId}`
     };
   }
 
@@ -2497,15 +2633,15 @@ function renderGeography(geo, riverNetwork, lakes, powellContours) {
       }
     });
 
-    // Selected Lake / Reservoir Highlight (Luminous Cyan Glow & White Boundary)
+    // Selected Lake / Reservoir Highlight (Editorial Cartographic Fill & Crisp Boundary)
     map.addLayer({
       id: 'lakes-selected-highlight-fill',
       type: 'fill',
       source: 'lakes',
       filter: ['==', ['get', 'GNIS_NAME'], ''],
       paint: {
-        'fill-color': '#00f0ff',
-        'fill-opacity': 0.85
+        'fill-color': '#0072B2',
+        'fill-opacity': 0.35
       }
     });
     map.addLayer({
@@ -2514,8 +2650,8 @@ function renderGeography(geo, riverNetwork, lakes, powellContours) {
       source: 'lakes',
       filter: ['==', ['get', 'GNIS_NAME'], ''],
       paint: {
-        'line-color': '#ffffff',
-        'line-width': 4.5,
+        'line-color': '#0f172a',
+        'line-width': 3.0,
         'line-opacity': 1.0
       }
     });
@@ -2882,7 +3018,7 @@ print("NHD Features found:", len(res.get("features", [])))`;
       }
     });
 
-    // 4d. Selected River Reach Highlight (Luminous Casing & Vibrant Core)
+    // 4d. Selected River Reach Highlight (Editorial Cartographic Casing & Core)
     map.addLayer({
       id: 'rivers-selected-highlight-casing',
       type: 'line',
@@ -2890,9 +3026,8 @@ print("NHD Features found:", len(res.get("features", [])))`;
       filter: ['==', ['get', 'reach'], ''],
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
-        'line-color': '#00f0ff',
-        'line-width': ['+', ['get', 'weight'], 8.0],
-        'line-blur': 2.0,
+        'line-color': '#0f172a',
+        'line-width': ['+', ['get', 'weight'], 5.0],
         'line-opacity': 0.90
       }
     });
@@ -2903,8 +3038,8 @@ print("NHD Features found:", len(res.get("features", [])))`;
       filter: ['==', ['get', 'reach'], ''],
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
-        'line-color': '#ffffff',
-        'line-width': ['+', ['get', 'weight'], 2.5],
+        'line-color': '#38bdf8',
+        'line-width': ['+', ['get', 'weight'], 1.5],
         'line-opacity': 1.0
       }
     });
@@ -2925,41 +3060,28 @@ print("NHD Features found:", len(res.get("features", [])))`;
         if (hasHigherPriorityFeature(e.point, [
           'dams-hit-buffer', 'dams-layer',
           'streamflow-gauges-hit-buffer',
+          'topology-junctions-hit-buffer',
+          'topology-sections-hit-buffer',
           'tunnels-portals-layer', 'tunnels-hit-buffer',
           'canals-hit-buffer'
         ])) return;
         map.getCanvas().style.cursor = 'pointer';
         const p = e.features[0].properties;
         const isCanalAlimentador = p.reach === 'div_canal_alimentador_central' || p.reach === 'canal_alimentador_central' || p.id === '09522000';
-        const catBadge = isCanalAlimentador
-          ? '<span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;">Major Conveyance Canal (1944 Treaty)</span>'
-          : (p.category === 'mainstem'
-              ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:2px 6px;border-radius:4px;">Mainstem Reach</span>'
-              : (p.category === 'major_tributary'
-                  ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:2px 6px;border-radius:4px;">Major Tributary</span>'
-                  : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:2px 6px;border-radius:4px;">Secondary Stream</span>'));
+        const kicker = isCanalAlimentador
+          ? 'CONVEYANCE CANAL'
+          : (p.category === 'mainstem' ? 'MAINSTEM REACH' : (p.category === 'major_tributary' ? 'MAJOR TRIBUTARY' : 'TRIBUTARY STREAM'));
 
-        // Clean deduplicated station/control info (suppress redundant portal links if already listed in gauge_info)
-        const stationHtml = p.gauge_info ? `<div style="font-size:11px;color:#475569;margin-top:4px;line-height:1.35;"><strong>Control / Station:</strong> ${p.gauge_info}</div>` : '';
-        const timeHtml = p.timestamp ? `<div style="font-size:10px;color:#64748b;margin-top:2px;"><strong>Measured:</strong> ${formatTimestamp(p.timestamp)}</div>` : '';
-        const notesHtml = p.notes && p.notes !== p.gauge_info ? `<div style="font-size:11px;color:#64748b;margin-top:4px;line-height:1.35;">${p.notes}</div>` : '';
-
-        // Flow health vs historical normal
         const gaugeId = p.gauge_id;
         const norm = p.hist_normal_cfs ? Number(p.hist_normal_cfs) : (gaugeId ? getHistoricalNormal(gaugeId) : null);
-        let healthHtml = '';
+        let healthText = '';
         if (norm && norm > 0 && p.flow_cfs != null) {
           const pct = p.health_pct != null ? Number(p.health_pct) : Math.round((Number(p.flow_cfs) / norm) * 100);
           const color = p.health_color || flowHealthColor(pct);
-          const label = p.health_label || flowHealthLabel(pct);
-          healthHtml = `<div style="margin-top:6px;padding:5px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:10px;color:#64748b;font-weight:600;">vs. Hist. Daily Avg</span>
-            <span style="font-size:13px;font-weight:800;color:${color};">${pct}% <span style="font-size:10px;font-weight:600;">(${label})</span></span>
-          </div>
-          <div style="margin-top:3px;font-size:10px;color:#94a3b8;">Avg today: ${Math.round(norm).toLocaleString()} cfs (${new Date().getFullYear()-50}–${new Date().getFullYear()-1} mean)</div>`;
+          healthText = `<span style="font-size:11px; font-weight:700; color:${color}; margin-left:6px;">(${pct}% of Normal)</span>`;
         }
 
-        const sourceBadge = p.source_label ? `<div style="font-size:10px;font-weight:700;color:#0369a1;margin-top:2px;">${p.source_label}</div>` : '';
+        const stationLabel = gaugeId ? `USGS #${gaugeId}` : (p.gauge_info ? p.gauge_info.split(' ')[0] : 'Mass-Balance Reach');
 
         let waveTransitHoverHtml = '';
         if (p.reach === 'grand_canyon' || p.reach === 'grand_canyon_lower') {
@@ -2967,40 +3089,22 @@ print("NHD Features found:", len(res.get("features", [])))`;
           const dc = activeMetrics?.streamflows?.find(s => s.id === '09404200')?.flow_cfs || 8300;
           if (Math.abs(pr - dc) >= 1500) {
             waveTransitHoverHtml = `
-              <div style="margin-top:6px; padding:5px 8px; background:#fef3c7; border:1px solid #fde68a; border-radius:6px;">
-                <div style="font-size:9.5px; font-weight:800; color:#b45309; text-transform:uppercase; letter-spacing:0.03em; margin-bottom:2px; display:flex; align-items:center; gap:4px;">
-                  <span>⚡</span> Active Flood Wave in Transit
-                </div>
-                <div style="font-size:10px; color:#78350f; line-height:1.35;">
-                  137 canyon miles separate Phantom Ranch (${Math.round(pr).toLocaleString()} cfs) and Diamond Creek (${Math.round(dc).toLocaleString()} cfs). Wave travel time lag is ~30–36 hrs.
-                </div>
+              <div style="margin-top:4px; padding:3px 6px; background:#fef3c7; border:1px solid #fde68a; border-radius:3px; font-size:10px; color:#78350f;">
+                Active wave in transit (~32h lag between Phantom Ranch &amp; Diamond Creek)
               </div>
             `;
           }
         }
 
         showHoverTooltip(`
-          <div style="font-family:'Inter',sans-serif; min-width: 190px; max-width: 270px;">
-            <div style="margin-bottom:4px;">${catBadge}</div>
-            <strong style="font-size:13px;color:#0f172a;line-height:1.35;display:block;">${p.name}</strong>
-            <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-              <span style="font-size:11px; color:#64748b; font-weight:600;">Streamflow:</span>
-              <span style="font-size:16px; font-weight:800; color:#0284c7;">${Number(p.flow_cfs).toLocaleString()} <span style="font-size:10px; font-weight:600; color:#64748b;">cfs</span></span>
+          <div style="font-family:'Inter',sans-serif; min-width: 190px; max-width: 270px; line-height:1.4;">
+            <div style="font-size:9.5px; font-weight:700; color:#0369a1; text-transform:uppercase; letter-spacing:0.04em;">${kicker}</div>
+            <strong style="font-size:13px; color:#0f172a; display:block; margin-top:1px;">${p.name}</strong>
+            <div style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums; margin:3px 0;">
+              ${Number(p.flow_cfs).toLocaleString()} <span style="font-size:10.5px; font-weight:600; color:#64748b;">cfs</span> ${healthText}
             </div>
-            ${sourceBadge}
-            ${stationHtml}
-            ${healthHtml}
+            <div style="font-size:10.5px; color:#64748b;">${stationLabel}</div>
             ${waveTransitHoverHtml}
-            ${isCanalAlimentador ? `
-            <div style="font-size:10.5px;color:#334155;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-              <strong>Authority:</strong> CONAGUA / CILA (Mexico — District 014)<br>
-              <strong>Legal Allocation:</strong> 1.50 MAF/yr (~2,072 cfs) under the 1944 Mexican Water Treaty (Era 3, Morelos Dam completed 1950)<br>
-              <strong>Measurement Point:</strong> Verified at the border via USGS #09522000 above Morelos Dam; 0 cfs continues down the dry Colorado River Delta.
-            </div>` : `
-            <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;">
-              <strong>Classification:</strong> ${Number(p.flow_cfs) >= 5000 ? 'High Flow Mainstem (> 5,000 cfs)' : (Number(p.flow_cfs) >= 1000 ? 'Major River / Tributary (1,000 – 5,000 cfs)' : 'Secondary Stream / Headwaters (< 1,000 cfs)')}
-            </div>
-            ${notesHtml}`}
           </div>
         `, e.lngLat, 'rivers');
       });
@@ -3013,129 +3117,516 @@ print("NHD Features found:", len(res.get("features", [])))`;
         if (e.originalEvent && e.originalEvent._handled) return;
         if (!e.features.length) return;
         if (hasHigherPriorityFeature(e.point, [
-          'streamflow-gauges-hit-buffer', 'dams-layer', 'tunnels-portals-layer', 
+          'streamflow-gauges-hit-buffer', 'topology-junctions-hit-buffer', 'topology-sections-hit-buffer', 'dams-layer', 'tunnels-portals-layer', 
           'tunnels-hit-buffer', 'canals-hit-buffer'
         ])) return;
         if (e.originalEvent) e.originalEvent._handled = true;
+        openReachPopup(e.features[0].properties, e.lngLat);
+      });
+    });
+    initGisDebuggingLayers(riverNetwork);
+  }
 
+  function initGisDebuggingLayers(riverNetwork) {
+    if (!map || !riverNetwork) return;
+
+    // 1. Downstream Flow Direction Arrow Icon
+    if (!map.hasImage('flow-arrow')) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 16;
+      canvas.height = 16;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#0284c7';
+      ctx.beginPath();
+      ctx.moveTo(2, 3);
+      ctx.lineTo(14, 8);
+      ctx.lineTo(2, 13);
+      ctx.lineTo(5, 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      map.addImage('flow-arrow', ctx.getImageData(0, 0, 16, 16));
+    }
+
+    // 2. Confluence Square Icon (■ Square symbol for River Junctions)
+    if (!map.hasImage('confluence-square')) {
+      const c = document.createElement('canvas');
+      c.width = 16;
+      c.height = 16;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#d97706'; // Amber / gold
+      ctx.fillRect(2, 2, 12, 12);
+      ctx.strokeStyle = '#0f172a';
+      ctx.lineWidth = 1.6;
+      ctx.strokeRect(2, 2, 12, 12);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 0.9;
+      ctx.strokeRect(3.5, 3.5, 9, 9);
+      map.addImage('confluence-square', ctx.getImageData(0, 0, 16, 16));
+    }
+
+    // 3. Downstream Flow Direction Symbol Layer
+    if (!map.getLayer('flow-direction-arrows')) {
+      const showArrows = (document.getElementById('toggle-flow-arrows') || document.getElementById('toggle-gis-flow-arrows'))?.checked ?? false;
+      map.addLayer({
+        id: 'flow-direction-arrows',
+        type: 'symbol',
+        source: 'rivers',
+        layout: {
+          'symbol-placement': 'line',
+          'symbol-spacing': 110,
+          'icon-image': 'flow-arrow',
+          'icon-size': 0.85,
+          'icon-rotation-alignment': 'map',
+          'icon-pitch-alignment': 'map',
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'visibility': showArrows ? 'visible' : 'none'
+        }
+      });
+    }
+
+    // 4. Confluence Junctions (■ Squares where rivers meet)
+    const confluenceJunctions = [
+      { id: 'conf_green_colorado', name: 'Green River & Colorado River Confluence', trib: 'Green River', main: 'Colorado River', reach_id: 'cataract_canyon', location: 'Canyonlands National Park, UT', coord: [-109.88642, 38.19008] },
+      { id: 'conf_gunnison_colorado', name: 'Gunnison River Confluence', trib: 'Gunnison River', main: 'Colorado River', reach_id: 'gunnison_river', location: 'Grand Junction, CO', coord: [-108.57797, 39.06208] },
+      { id: 'conf_sanjuan_colorado', name: 'San Juan River Confluence', trib: 'San Juan River', main: 'Colorado River', reach_id: 'sanjuan_submerged_path', location: 'Lake Powell, UT', coord: [-110.9094, 37.1776] },
+      { id: 'conf_littleco_colorado', name: 'Little Colorado River Confluence', trib: 'Little Colorado River', main: 'Colorado River', reach_id: 'little_colorado_river', location: 'Grand Canyon, AZ', coord: [-111.80046, 36.19363] },
+      { id: 'conf_virgin_colorado', name: 'Virgin River Confluence', trib: 'Virgin River', main: 'Colorado River', reach_id: 'virgin_river', location: 'Lake Mead (Overton Arm), NV', coord: [-114.4055891, 36.1422271] },
+      { id: 'conf_gila_colorado', name: 'Gila River & Colorado River Confluence', trib: 'Gila River', main: 'Colorado River', reach_id: 'gila_lower', location: 'Dome / Yuma, AZ', coord: [-114.55518, 32.7205588] },
+      { id: 'conf_dolores_colorado', name: 'Dolores River Confluence', trib: 'Dolores River', main: 'Colorado River', reach_id: 'dolores_bedrock_cisco', location: 'Cisco / Dewey Bridge, UT', coord: [-109.28128, 38.82023] },
+      { id: 'conf_roaringfork_colorado', name: 'Roaring Fork River Confluence', trib: 'Roaring Fork River', main: 'Colorado River', reach_id: 'roaring_fork_river', location: 'Glenwood Springs, CO', coord: [-107.3299, 39.54926] },
+      { id: 'conf_eagle_colorado', name: 'Eagle River Confluence', trib: 'Eagle River', main: 'Colorado River', reach_id: 'eagle_river', location: 'Dotsero, CO', coord: [-107.05802, 39.64639] },
+      { id: 'conf_blue_colorado', name: 'Blue River Confluence', trib: 'Blue River', main: 'Colorado River', reach_id: 'blue_river', location: 'Kremmling, CO', coord: [-106.41318, 40.04007] },
+      { id: 'conf_fraser_colorado', name: 'Fraser River Confluence', trib: 'Fraser River', main: 'Colorado River', reach_id: 'fraser_river', location: 'Granby / Windy Gap, CO', coord: [-105.9814, 40.1050] },
+      { id: 'conf_williams_colorado', name: 'Williams Fork Confluence', trib: 'Williams Fork', main: 'Colorado River', reach_id: 'williams_fork', location: 'Parshall, CO', coord: [-106.1805, 40.0562] },
+      { id: 'conf_muddy_colorado', name: 'Muddy Creek Confluence', trib: 'Muddy Creek', main: 'Colorado River', reach_id: 'muddy_creek_co', location: 'Kremmling, CO', coord: [-106.41318, 40.04007] },
+      { id: 'conf_dirtydevil_colorado', name: 'Dirty Devil River Confluence', trib: 'Dirty Devil River', main: 'Colorado River', reach_id: 'dirty_devil_river', location: 'Hite / Lake Powell, UT', coord: [-110.3964036, 37.8830717] },
+      { id: 'conf_escalante_colorado', name: 'Escalante River Confluence', trib: 'Escalante River', main: 'Colorado River', reach_id: 'escalante_river', location: 'Lake Powell, UT', coord: [-110.86985, 37.28648] },
+      { id: 'conf_paria_colorado', name: 'Paria River Confluence', trib: 'Paria River', main: 'Colorado River', reach_id: 'paria_river', location: 'Lees Ferry, AZ', coord: [-111.6008, 36.8584] },
+      { id: 'conf_kanab_colorado', name: 'Kanab Creek Confluence', trib: 'Kanab Creek', main: 'Colorado River', reach_id: 'kanab_creek', location: 'Grand Canyon, AZ', coord: [-112.6294, 36.3914] },
+      { id: 'conf_havasu_colorado', name: 'Havasu Creek Confluence', trib: 'Havasu Creek', main: 'Colorado River', reach_id: 'havasu_creek', location: 'Grand Canyon, AZ', coord: [-112.7636888, 36.3081288] },
+      { id: 'conf_billwilliams_colorado', name: 'Bill Williams River Confluence', trib: 'Bill Williams River', main: 'Colorado River', reach_id: 'bill_williams_river', location: 'Lake Havasu, AZ', coord: [-114.1366, 34.3047] },
+      { id: 'conf_yampa_green', name: 'Yampa River & Green River Confluence', trib: 'Yampa River', main: 'Green River', reach_id: 'yampa_river', location: 'Echo Park, Dinosaur NM, CO', coord: [-108.98454, 40.52638] },
+      { id: 'conf_white_green', name: 'White River & Green River Confluence', trib: 'White River', main: 'Green River', reach_id: 'white_river', location: 'Ouray, UT', coord: [-109.68023, 40.06197] },
+      { id: 'conf_duchesne_green', name: 'Duchesne River & Green River Confluence', trib: 'Duchesne River', main: 'Green River', reach_id: 'duchesne_river', location: 'Ouray, UT', coord: [-109.67989, 40.06228] },
+      { id: 'conf_price_green', name: 'Price River & Green River Confluence', trib: 'Price River', main: 'Green River', reach_id: 'price_river', location: 'Desolation Canyon, UT', coord: [-110.1057, 39.1794] },
+      { id: 'conf_sanrafael_green', name: 'San Rafael River & Green River Confluence', trib: 'San Rafael River', main: 'Green River', reach_id: 'san_rafael_river', location: 'Green River, UT', coord: [-110.10388, 38.7758] },
+      { id: 'conf_animas_sanjuan', name: 'Animas River & San Juan Confluence', trib: 'Animas River', main: 'San Juan River', reach_id: 'animas_river', location: 'Farmington, NM', coord: [-108.22275, 36.71454] },
+      { id: 'conf_uncompahgre_gunnison', name: 'Uncompahgre & Gunnison River Confluence', trib: 'Uncompahgre River', main: 'Gunnison River', reach_id: 'uncompahgre_river', location: 'Delta, CO', coord: [-108.09108, 38.75654] },
+      { id: 'conf_fryingpan_roaringfork', name: 'Fryingpan & Roaring Fork Confluence', trib: 'Fryingpan River', main: 'Roaring Fork River', reach_id: 'fryingpan_river', location: 'Basalt, CO', coord: [-107.03448, 39.36652] },
+      { id: 'conf_salt_gila', name: 'Salt River & Gila River Confluence', trib: 'Salt River', main: 'Gila River', reach_id: 'salt_river', location: 'Avondale / Phoenix, AZ', coord: [-112.30708, 33.38181] },
+      { id: 'conf_verde_salt', name: 'Verde River & Salt River Confluence', trib: 'Verde River', main: 'Salt River', reach_id: 'verde_river', location: 'Fountain Hills, AZ', coord: [-111.66143, 33.54635] },
+      { id: 'conf_sanpedro_gila', name: 'San Pedro & Gila River Confluence', trib: 'San Pedro River', main: 'Gila River', reach_id: 'san_pedro_river', location: 'Winkelman, AZ', coord: [-110.782763, 32.9841771] },
+      { id: 'conf_muddy_virgin', name: 'Muddy River Confluence', trib: 'Muddy River', main: 'Virgin River / Lake Mead', reach_id: 'muddy_river', location: 'Moapa Valley / Overton, NV', coord: [-114.34913, 36.45232] }
+    ];
+
+    const junctionsGeoJSON = {
+      type: 'FeatureCollection',
+      features: confluenceJunctions.map(c => ({
+        type: 'Feature',
+        properties: {
+          id: c.id,
+          name: c.name,
+          tributary: c.trib,
+          mainstem: c.main,
+          reach_id: c.reach_id,
+          location: c.location,
+          coord_str: `[${c.coord[0].toFixed(5)}, ${c.coord[1].toFixed(5)}]`
+        },
+        geometry: { type: 'Point', coordinates: c.coord }
+      }))
+    };
+
+    if (!map.getSource('topology-junctions')) {
+      map.addSource('topology-junctions', { type: 'geojson', data: junctionsGeoJSON });
+      const showJunctions = document.getElementById('toggle-topology-junctions')?.checked ?? true;
+
+      map.addLayer({
+        id: 'topology-junctions',
+        type: 'symbol',
+        source: 'topology-junctions',
+        layout: {
+          'icon-image': 'confluence-square',
+          'icon-size': 1.0,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'visibility': showJunctions ? 'visible' : 'none'
+        }
+      });
+
+      map.addLayer({
+        id: 'topology-junctions-hit-buffer',
+        type: 'circle',
+        source: 'topology-junctions',
+        layout: { 'visibility': showJunctions ? 'visible' : 'none' },
+        paint: {
+          'circle-radius': 18,
+          'circle-opacity': 0.0001
+        }
+      });
+
+      map.on('mousemove', 'topology-junctions-hit-buffer', (e) => {
+        if (!e.features.length) return;
+        map.getCanvas().style.cursor = 'pointer';
         const p = e.features[0].properties;
-        const isCanalAlimentador = p.reach === 'div_canal_alimentador_central' || p.reach === 'canal_alimentador_central' || p.id === '09522000';
-        const gaugeId = p.gauge_id;
-        const portal = getPortalInfo({ id: gaugeId, name: p.name });
-        const catBadge = isCanalAlimentador
-          ? '<span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;">Major Conveyance Canal (1944 Treaty)</span>'
-          : (p.category === 'mainstem'
-              ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:2px 6px;border-radius:4px;">Mainstem Reach</span>'
-              : (p.category === 'major_tributary'
-                  ? '<span style="font-size:10px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:2px 6px;border-radius:4px;">Major Tributary</span>'
-                  : '<span style="font-size:10px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:2px 6px;border-radius:4px;">Secondary Stream</span>'));
-
-        // Clean deduplicated station/control info (suppress redundant portal links if already listed in gauge_info)
-        const stationHtml = p.gauge_info ? `<div style="font-size:11px;color:#475569;margin-top:4px;line-height:1.35;"><strong>Control / Station:</strong> ${p.gauge_info}</div>` : '';
-        const timeHtml = p.timestamp ? `<div style="font-size:10px;color:#64748b;margin-top:2px;"><strong>Measured:</strong> ${formatTimestamp(p.timestamp)}</div>` : '';
-        const notesHtml = p.notes && p.notes !== p.gauge_info ? `<div style="font-size:11px;color:#64748b;margin-top:4px;line-height:1.35;">${p.notes}</div>` : '';
-
-        const norm = p.hist_normal_cfs ? Number(p.hist_normal_cfs) : (gaugeId ? getHistoricalNormal(gaugeId) : null);
-        let healthHtml = '';
-        if (norm && norm > 0 && p.flow_cfs != null) {
-          const pct = p.health_pct != null ? Number(p.health_pct) : Math.round((Number(p.flow_cfs) / norm) * 100);
-          const color = p.health_color || flowHealthColor(pct);
-          const label = p.health_label || flowHealthLabel(pct);
-          healthHtml = `<div style="margin-top:6px;padding:5px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;display:flex;justify-content:space-between;align-items:center;">
-            <span style="font-size:10px;color:#64748b;font-weight:600;">vs. Hist. Daily Avg</span>
-            <span style="font-size:13px;font-weight:800;color:${color};">${pct}% <span style="font-size:10px;font-weight:600;">(${label})</span></span>
+        showHoverTooltip(`
+          <div style="font-family:'Inter',sans-serif; min-width: 220px; line-height:1.4;">
+            <div style="font-size:9.5px; font-weight:700; color:#d97706; text-transform:uppercase; letter-spacing:0.04em;">CONFLUENCE JUNCTION</div>
+            <strong style="font-size:13px; color:#0f172a; display:block; margin-top:1px;">${p.name}</strong>
+            <div style="font-size:11.5px; color:#334155; margin:3px 0;">
+              Tributary <strong>${p.tributary}</strong> joins <strong>${p.mainstem}</strong>
+            </div>
+            <div style="font-size:10.5px; color:#64748b; margin-top:2px;">
+              ${p.location}
+            </div>
+            <div style="font-size:10px; color:#94a3b8; font-family:monospace; margin-top:3px;">
+              WGS84: ${p.coord_str}
+            </div>
           </div>
-          <div style="margin-top:3px;font-size:10px;color:#94a3b8;">Avg today: ${Math.round(norm).toLocaleString()} cfs (${new Date().getFullYear()-50}–${new Date().getFullYear()-1} mean)</div>`;
-        }
+        `, e.lngLat, 'topology-junctions');
+      });
 
-        highlightSelectedReach(p.reach);
+      map.on('mouseleave', 'topology-junctions-hit-buffer', () => {
+        hideHoverTooltip('topology-junctions');
+      });
 
-        let conf = p.confluence_info;
-        if (typeof conf === 'string') {
-          try { conf = JSON.parse(conf); } catch (e) { conf = null; }
-        }
-        let confluenceHtml = '';
-        if (conf && conf.confluence_name) {
-          confluenceHtml = `
-            <div style="margin-top:7px; padding:7px 9px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px;">
-              <div style="font-size:9.5px; font-weight:800; color:#0369a1; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;">
-                Confluence Mass Balance
-              </div>
-              <div style="font-size:11px; font-weight:700; color:#0f172a; margin-bottom:4px;">
-                ${conf.confluence_name}
-              </div>
-              <div style="display:flex; justify-content:space-between; font-size:10.5px; color:#475569; margin-bottom:2px;">
-                <span>↑ Upstream Mainstem:</span>
-                <strong style="color:#0369a1;">${Number(conf.mainstem_upstream.cfs).toLocaleString()} cfs</strong>
-              </div>
-              <div style="display:flex; justify-content:space-between; font-size:10.5px; color:#475569; margin-bottom:4px;">
-                <span>+ Tributary Inflow (${conf.tributary.name}):</span>
-                <strong style="color:#0284c7;">${Number(conf.tributary.cfs).toLocaleString()} cfs</strong>
-              </div>
-              <div style="border-top:1px dashed #93c5fd; padding-top:3px; display:flex; justify-content:space-between; font-size:11px; font-weight:800; color:#0f172a;">
-                <span>= Reach Discharge:</span>
-                <span style="color:#0284c7;">${Number(p.flow_cfs).toLocaleString()} cfs</span>
-              </div>
-            </div>
-          `;
-        }
+      map.on('click', 'topology-junctions-hit-buffer', (e) => {
+        if (!e.features.length) return;
+        if (e.originalEvent) e.originalEvent._handled = true;
+        const p = e.features[0].properties;
+        if (p.reach_id) highlightSelectedReach(p.reach_id);
+      });
+    } else {
+      map.getSource('topology-junctions').setData(junctionsGeoJSON);
+    }
 
-        let waveTransitClickHtml = '';
-        if (p.reach === 'grand_canyon' || p.reach === 'grand_canyon_lower') {
-          const pr = activeMetrics?.streamflows?.find(s => s.id === '09402500')?.flow_cfs || 8300;
-          const dc = activeMetrics?.streamflows?.find(s => s.id === '09404200')?.flow_cfs || 8300;
-          if (Math.abs(pr - dc) >= 1500) {
-            waveTransitClickHtml = `
-              <div style="margin-top:7px; padding:7px 9px; background:#fef3c7; border:1px solid #fde68a; border-radius:6px;">
-                <div style="font-size:9.5px; font-weight:800; color:#b45309; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px; display:flex; align-items:center; gap:4px;">
-                  <span>⚡</span> Active Flood Wave in Transit (~32-Hr Travel Lag)
-                </div>
-                <div style="font-size:10.5px; color:#78350f; line-height:1.4;">
-                  Phantom Ranch (Mile 88: <strong>${Math.round(pr).toLocaleString()} cfs</strong>) and Diamond Creek (Mile 225: <strong>${Math.round(dc).toLocaleString()} cfs</strong>) are separated by <strong>137 canyon miles</strong>. An upstream storm surge (Little Colorado flood wave) takes ~30–36 hours to propagate through the Granite Gorges; Diamond Creek is currently rising as the wave crest approaches.
-                </div>
-              </div>
-            `;
+    // 5. Reach Section Nodes (Start & End Vertices of Reaches)
+    // Distinguishes: Headwaters Origin (● Green), Reach Section Boundary (● Blue), Basin Terminus (● Red)
+    function isNearConfluence(coord) {
+      return confluenceJunctions.some(c => Math.hypot(coord[0] - c.coord[0], coord[1] - c.coord[1]) < 0.007);
+    }
+
+    const sectionNodeFeatures = [];
+    (riverNetwork.features || []).forEach((feat, idx) => {
+      const geom = feat.geometry;
+      if (!geom) return;
+      const p = feat.properties || {};
+      let startCoord, endCoord;
+
+      if (geom.type === 'LineString') {
+        const coords = geom.coordinates;
+        if (coords && coords.length >= 2) {
+          startCoord = coords[0];
+          endCoord = coords[coords.length - 1];
+        }
+      } else if (geom.type === 'MultiLineString') {
+        const lines = geom.coordinates;
+        if (lines && lines.length > 0) {
+          const firstLine = lines[0];
+          const lastLine = lines[lines.length - 1];
+          if (firstLine && firstLine.length > 0) startCoord = firstLine[0];
+          if (lastLine && lastLine.length > 0) endCoord = lastLine[lastLine.length - 1];
+        }
+      }
+
+      if (startCoord) {
+        // Is this coordinate close to an upstream reach's end?
+        const isInternalStart = (riverNetwork.features || []).some(f2 => {
+          if (f2 === feat) return false;
+          const g2 = f2.geometry;
+          if (!g2) return false;
+          let e2;
+          if (g2.type === 'LineString' && g2.coordinates?.length >= 2) e2 = g2.coordinates[g2.coordinates.length - 1];
+          else if (g2.type === 'MultiLineString' && g2.coordinates?.length > 0) {
+            const ll = g2.coordinates[g2.coordinates.length - 1];
+            if (ll?.length > 0) e2 = ll[ll.length - 1];
           }
+          return e2 && Math.hypot(startCoord[0] - e2[0], startCoord[1] - e2[1]) < 0.008;
+        });
+
+        const isConf = isNearConfluence(startCoord);
+        const role = (!isInternalStart && !isConf) ? 'headwater_start' : 'section_boundary';
+        const roleLabel = role === 'headwater_start' ? 'Reach Start (Headwaters Origin)' : 'Reach Section Boundary';
+        const roleColor = role === 'headwater_start' ? '#10b981' : '#0284c7';
+
+        sectionNodeFeatures.push({
+          type: 'Feature',
+          properties: {
+            node_id: `${p.reach || idx}_start`,
+            reach_id: p.reach || p.reach_id || `reach_${idx}`,
+            reach_name: p.name || 'Unnamed Reach',
+            reach_type: p.reach_type || 'free_flowing',
+            node_role: role,
+            role_label: roleLabel,
+            color: roleColor,
+            coord_str: `[${startCoord[0].toFixed(5)}, ${startCoord[1].toFixed(5)}]`
+          },
+          geometry: { type: 'Point', coordinates: [startCoord[0], startCoord[1]] }
+        });
+      }
+
+      if (endCoord) {
+        const isTerminus = Math.hypot(endCoord[0] - (-114.81364), endCoord[1] - 32.49429) < 0.015;
+        const isConf = isNearConfluence(endCoord);
+
+        if (!isConf || isTerminus) {
+          const role = isTerminus ? 'basin_terminus' : 'section_boundary';
+          const roleLabel = isTerminus ? 'Basin Terminus (Mexico Boundary)' : 'Reach Section Boundary';
+          const roleColor = isTerminus ? '#ef4444' : '#0284c7';
+
+          sectionNodeFeatures.push({
+            type: 'Feature',
+            properties: {
+              node_id: `${p.reach || idx}_end`,
+              reach_id: p.reach || p.reach_id || `reach_${idx}`,
+              reach_name: p.name || 'Unnamed Reach',
+              reach_type: p.reach_type || 'free_flowing',
+              node_role: role,
+              role_label: roleLabel,
+              color: roleColor,
+              coord_str: `[${endCoord[0].toFixed(5)}, ${endCoord[1].toFixed(5)}]`
+            },
+            geometry: { type: 'Point', coordinates: [endCoord[0], endCoord[1]] }
+          });
         }
+      }
+    });
 
-        const highlightBadge = `<div style="font-size:9.5px; font-weight:700; color:#0e7490; background:#cffafe; border:1px solid #a5f3fc; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px; margin-top:5px;">
-          <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#06b6d4;"></span>
-          Segment Isolated &amp; Highlighted
-        </div>`;
+    const sectionNodesGeoJSON = {
+      type: 'FeatureCollection',
+      features: sectionNodeFeatures
+    };
 
-        const dataHtml = `
-          <div style="padding:2px;">
-            <div style="margin-bottom:4px;">${catBadge}</div>
-            <strong style="font-size:13.5px;color:#0f172a;line-height:1.35;display:block;">${p.name}</strong>
-            <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-              <span style="font-size:11px; color:#64748b; font-weight:600;">Streamflow:</span>
-              <span style="font-size:16px; font-weight:800; color:#0284c7;">${Number(p.flow_cfs).toLocaleString()} <span style="font-size:10px; font-weight:600; color:#64748b;">cfs</span></span>
+    if (!map.getSource('topology-sections')) {
+      map.addSource('topology-sections', { type: 'geojson', data: sectionNodesGeoJSON });
+      const showSections = document.getElementById('toggle-topology-sections')?.checked ?? false;
+
+      // Outer casing
+      map.addLayer({
+        id: 'topology-sections-casing',
+        type: 'circle',
+        source: 'topology-sections',
+        layout: { 'visibility': showSections ? 'visible' : 'none' },
+        paint: {
+          'circle-color': '#ffffff',
+          'circle-radius': 5.5,
+          'circle-stroke-color': '#0f172a',
+          'circle-stroke-width': 1.2
+        }
+      });
+
+      // Core colored by role
+      map.addLayer({
+        id: 'topology-sections-core',
+        type: 'circle',
+        source: 'topology-sections',
+        layout: { 'visibility': showSections ? 'visible' : 'none' },
+        paint: {
+          'circle-color': ['get', 'color'],
+          'circle-radius': 4.0
+        }
+      });
+
+      // Hit buffer for hover and clicks
+      map.addLayer({
+        id: 'topology-sections-hit-buffer',
+        type: 'circle',
+        source: 'topology-sections',
+        layout: { 'visibility': showSections ? 'visible' : 'none' },
+        paint: {
+          'circle-radius': 18,
+          'circle-opacity': 0.0001
+        }
+      });
+
+      map.on('mousemove', 'topology-sections-hit-buffer', (e) => {
+        if (!e.features.length) return;
+        map.getCanvas().style.cursor = 'pointer';
+        const props = e.features[0].properties;
+        showHoverTooltip(`
+          <div style="font-family:'Inter',sans-serif; min-width: 220px; line-height:1.4;">
+            <div style="font-size:9.5px; font-weight:700; color:${props.color}; text-transform:uppercase; letter-spacing:0.04em;">${props.role_label}</div>
+            <strong style="font-size:13px; color:#0f172a; display:block; margin-top:1px;">${props.reach_name}</strong>
+            <div style="font-size:10.5px; color:#64748b; font-family:monospace; margin-top:3px;">
+              WGS84: ${props.coord_str}
             </div>
-            ${stationHtml}
-            ${healthHtml}
-            ${confluenceHtml}
-            ${waveTransitClickHtml}
-            ${highlightBadge}
-            ${timeHtml}
-            ${notesHtml}
-            ${isCanalAlimentador ? `
-            <div style="font-size:11px;color:#334155;margin-top:6px;line-height:1.45;border-top:1px solid #e2e8f0;padding-top:5px;">
-              <strong>Authority:</strong> CONAGUA / CILA (Mexico — District 014)<br>
-              <strong>Legal Allocation:</strong> 1.50 MAF/yr (~2,072 cfs) under the 1944 Mexican Water Treaty (Era 3, Morelos Dam completed 1950)<br>
-              <strong>Measurement Point:</strong> Verified at the border via USGS #09522000 above Morelos Dam; 0 cfs continues down the dry Colorado River Delta.
-            </div>` : ''}
-            ${(!p.gauge_info || !p.gauge_info.includes(portal?.label)) ? formatPortalHtml(portal, '#0284c7') : ''}
+            <div style="font-size:10px; color:#475569; margin-top:3px;">
+              Reach ID: <code>${props.reach_id}</code> (${props.reach_type})
+            </div>
+          </div>
+        `, e.lngLat, 'topology-sections');
+      });
+
+      map.on('mouseleave', 'topology-sections-hit-buffer', () => {
+        hideHoverTooltip('topology-sections');
+      });
+
+      map.on('click', 'topology-sections-hit-buffer', (e) => {
+        if (!e.features.length) return;
+        if (e.originalEvent) e.originalEvent._handled = true;
+        const props = e.features[0].properties;
+        highlightSelectedReach(props.reach_id);
+      });
+    } else {
+      map.getSource('topology-sections').setData(sectionNodesGeoJSON);
+    }
+  }
+
+  function openReachPopup(p, lngLat) {
+    window.openReachPopup = openReachPopup;
+    const isCanalAlimentador = p.reach === 'div_canal_alimentador_central' || p.reach === 'canal_alimentador_central' || p.id === '09522000';
+    const gaugeId = p.gauge_id;
+    const portal = getPortalInfo({ id: gaugeId, name: p.name });
+    const catBadge = isCanalAlimentador
+      ? '<span style="font-size:9.5px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:1px 5px;border-radius:2px;">Conveyance Canal (1944 Treaty)</span>'
+      : (p.category === 'mainstem'
+          ? '<span style="font-size:9.5px;font-weight:700;color:#0284c7;background:#e0f2fe;padding:1px 5px;border-radius:2px;">Mainstem Reach</span>'
+          : (p.category === 'major_tributary'
+              ? '<span style="font-size:9.5px;font-weight:700;color:#0284c7;background:#f0f9ff;padding:1px 5px;border-radius:2px;">Major Tributary</span>'
+              : '<span style="font-size:9.5px;font-weight:600;color:#0284c7;background:#f1f5f9;padding:1px 5px;border-radius:2px;">Tributary Stream</span>'));
+
+    const timeHtml = p.timestamp ? `<div style="font-size:10px;color:#64748b;margin-top:3px;">Measured: ${formatTimestamp(p.timestamp)}</div>` : '';
+    
+    // Concise descriptive note (at most 1 sentence)
+    let singleSentenceNote = '';
+    if (p.notes && p.notes !== p.gauge_info) {
+      singleSentenceNote = p.notes.split('. ')[0];
+      if (!singleSentenceNote.endsWith('.')) singleSentenceNote += '.';
+    }
+    const notesHtml = singleSentenceNote ? `<div style="font-size:10.5px;color:#64748b;margin-top:4px;line-height:1.35;">${singleSentenceNote}</div>` : '';
+
+    const norm = p.hist_normal_cfs ? Number(p.hist_normal_cfs) : (gaugeId ? getHistoricalNormal(gaugeId) : null);
+    let healthHtml = '';
+    if (norm && norm > 0 && p.flow_cfs != null) {
+      const pct = p.health_pct != null ? Number(p.health_pct) : Math.round((Number(p.flow_cfs) / norm) * 100);
+      const color = p.health_color || flowHealthColor(pct);
+      const label = p.health_label || flowHealthLabel(pct);
+      healthHtml = `
+        <div style="margin-top:5px; padding:4px 8px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:3px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:10px; color:#64748b; font-weight:600;">vs. Hist. Daily Avg</span>
+          <span style="font-size:12px; font-weight:800; color:${color}; font-variant-numeric:tabular-nums;">${pct}% <span style="font-size:10px; font-weight:600;">(${label})</span></span>
+        </div>
+        <div style="margin-top:2px; font-size:9.5px; color:#94a3b8;">Avg today: ${Math.round(norm).toLocaleString()} cfs</div>
+      `;
+    }
+
+    highlightSelectedReach(p.reach);
+
+    let conf = p.confluence_info;
+    if (typeof conf === 'string') {
+      try { conf = JSON.parse(conf); } catch (e) { conf = null; }
+    }
+    let confluenceHtml = '';
+    if (conf && conf.confluence_name) {
+      const qUp = Math.round(Number(conf.mainstem_upstream?.cfs) || 0);
+      const isDiversion = Boolean(
+        conf.is_diversion ||
+        conf.tributary?.is_diversion ||
+        (conf.tributary?.name && conf.tributary.name.toLowerCase().includes('diversion'))
+      );
+      const rawTrib = Math.round(Number(conf.tributary?.cfs) || 0);
+      const qTrib = isDiversion ? -Math.abs(rawTrib) : rawTrib;
+      const qReach = Math.round(Number(p.flow_cfs) || 0);
+
+      // Confluence combined inflow right at the confluence junction
+      const qConfluenceCombined = qUp + qTrib;
+      // Net additional water picked up (or lost) between the confluence and downstream reach gage
+      const delta = qReach - qConfluenceCombined;
+
+      let deltaRow = '';
+      if (delta > 0) {
+        deltaRow = `
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:#475569; margin-bottom:2px;" title="Additional water picked up via unmeasured lateral tributaries, springs, groundwater accretion, or diurnal wave travel lag between the confluence and downstream gage">
+            <span>+ Additional Inflow to Downstream Gage:</span>
+            <strong style="color:#059669; font-variant-numeric:tabular-nums;">+${delta.toLocaleString()} cfs</strong>
           </div>
         `;
+      } else if (delta < 0) {
+        deltaRow = `
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:#475569; margin-bottom:2px;" title="Channel seepage, irrigation/canal diversions, evaporation, or diurnal wave travel lag between the confluence and downstream gage">
+            <span>- Diversions & Losses to Downstream Gage:</span>
+            <strong style="color:#d97706; font-variant-numeric:tabular-nums;">-${Math.abs(delta).toLocaleString()} cfs</strong>
+          </div>
+        `;
+      }
 
-        const cleanReachName = (p.name || 'River Reach').replace(/["\\]/g, '');
-        let pyCode = '';
-        let endpointUrl = '';
-        let notes = '';
+      const downstreamLabel = conf.downstream_gage ? ` (${conf.downstream_gage})` : '';
 
-        if (isCanalAlimentador || gaugeId === "09522000") {
-          endpointUrl = `https://waterservices.usgs.gov/nwis/dv/?sites=09522000&parameterCd=00060&format=json`;
-          pyCode = `import requests
+      confluenceHtml = `
+        <div style="margin-top:6px; padding:6px 8px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:3px;">
+          <div style="font-size:9px; font-weight:800; color:#0369a1; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">
+            Confluence Mass Balance
+          </div>
+          <div style="font-size:10.5px; font-weight:700; color:#0f172a; margin-bottom:3px;">
+            ${conf.confluence_name}
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:#475569; margin-bottom:2px;">
+            <span>↑ Upstream Mainstem:</span>
+            <strong style="color:#0369a1; font-variant-numeric:tabular-nums;">${qUp.toLocaleString()} cfs</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:10px; color:#475569; margin-bottom:3px;">
+            <span>${isDiversion ? '- Diversion' : '+ Inflow'} (${conf.tributary.name}):</span>
+            <strong style="color:${isDiversion ? '#d97706' : '#0284c7'}; font-variant-numeric:tabular-nums;">${isDiversion ? '-' : ''}${Math.abs(rawTrib).toLocaleString()} cfs</strong>
+          </div>
+          ${deltaRow}
+          <div style="border-top:1px dashed #93c5fd; padding-top:2px; margin-top:2px; display:flex; justify-content:space-between; font-size:10.5px; font-weight:800; color:#0f172a;">
+            <span>= Reach Discharge${downstreamLabel}:</span>
+            <span style="color:#0284c7; font-variant-numeric:tabular-nums;">${qReach.toLocaleString()} cfs</span>
+          </div>
+        </div>
+      `;
+    }
+
+    let waveTransitClickHtml = '';
+    if (p.reach === 'grand_canyon' || p.reach === 'grand_canyon_lower') {
+      const pr = activeMetrics?.streamflows?.find(s => s.id === '09402500')?.flow_cfs || 8300;
+      const dc = activeMetrics?.streamflows?.find(s => s.id === '09404200')?.flow_cfs || 8300;
+      if (Math.abs(pr - dc) >= 1500) {
+        waveTransitClickHtml = `
+          <div style="margin-top:6px; padding:6px 8px; background:#fef3c7; border:1px solid #fde68a; border-radius:3px;">
+            <div style="font-size:9.5px; font-weight:800; color:#b45309; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">
+              Active Flood Wave in Transit (~32-Hr Travel Lag)
+            </div>
+            <div style="font-size:10px; color:#78350f; line-height:1.35;">
+              Phantom Ranch (<strong>${Math.round(pr).toLocaleString()} cfs</strong>) to Diamond Creek (<strong>${Math.round(dc).toLocaleString()} cfs</strong>) over 137 canyon miles.
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    const dataHtml = `
+      <div style="padding:2px;">
+        <div style="margin-bottom:3px;">${catBadge}</div>
+        <strong style="font-size:13px; color:#0f172a; line-height:1.3; display:block;">${p.name}</strong>
+        <div style="margin:5px 0; padding:5px 8px; background:#f8fafc; border-radius:3px; border:1px solid #cbd5e1; display:flex; justify-content:space-between; align-items:baseline;">
+          <span style="font-size:11px; color:#64748b; font-weight:600;">Discharge:</span>
+          <span style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums;">${Number(p.flow_cfs).toLocaleString()} <span style="font-size:10px; font-weight:600; color:#64748b;">cfs</span></span>
+        </div>
+        ${healthHtml}
+        ${confluenceHtml}
+        ${waveTransitClickHtml}
+        ${timeHtml}
+        ${notesHtml}
+        ${isCanalAlimentador ? `
+        <div style="font-size:10.5px; color:#334155; margin-top:5px; line-height:1.35; border-top:1px solid #e2e8f0; padding-top:4px;">
+          <strong>Legal Allocation:</strong> 1.50 MAF/yr (~2,072 cfs) under the 1944 Treaty (Morelos Dam). Verified at border via USGS #09522000.
+        </div>` : ''}
+        ${formatPortalHtml(portal, '#0284c7')}
+      </div>
+    `;
+
+    const cleanReachName = (p.name || 'River Reach').replace(/["\\]/g, '');
+    let pyCode = '';
+    let endpointUrl = '';
+    let notes = '';
+
+    if (isCanalAlimentador || gaugeId === "09522000") {
+      endpointUrl = `https://waterservices.usgs.gov/nwis/dv/?sites=09522000&parameterCd=00060&format=json`;
+      pyCode = `import requests
 
 # USGS / CILA Border Station #09522000 (Morelos Dam Delivery)
 url = "https://waterservices.usgs.gov/nwis/dv/"
@@ -3145,16 +3636,13 @@ params = {
     "format": "json"
 }
 res = requests.get(url, params=params, timeout=10).json()
-try:
-    val = res["value"]["timeSeries"][0]["values"][0]["value"][-1]
-    flow_cfs = float(val["value"])
-    print(f"Canal Alimentador Central: {flow_cfs:,.0f} cfs at {val['dateTime']}")
-except Exception as e:
-    print(f"Telemetry delayed / treaty accounting: {e}")`;
-          notes = "Verified at the border via USGS #09522000 above Morelos Dam; 0 cfs continues down the dry Colorado River Delta.";
-        } else if (gaugeId) {
-          endpointUrl = `https://waterservices.usgs.gov/nwis/iv/?sites=${gaugeId}&parameterCd=00060&format=json`;
-          pyCode = `import requests
+val = res["value"]["timeSeries"][0]["values"][0]["value"][-1]
+flow_cfs = float(val["value"])
+print(f"Canal Diversion: {flow_cfs:,.0f} cfs at {val['dateTime']}")`;
+      notes = "Verified at border via USGS #09522000 above Morelos Dam.";
+    } else if (gaugeId) {
+      endpointUrl = `https://waterservices.usgs.gov/nwis/iv/?sites=${gaugeId}&parameterCd=00060&format=json`;
+      pyCode = `import requests
 
 # USGS NWIS Instantaneous Values (IV) API
 url = "https://waterservices.usgs.gov/nwis/iv/"
@@ -3167,29 +3655,26 @@ res = requests.get(url, params=params, timeout=10).json()
 val = res["value"]["timeSeries"][0]["values"][0]["value"][-1]
 flow_cfs = float(val["value"])
 print(f"${cleanReachName}: {flow_cfs:,.0f} cfs at {val['dateTime']}")`;
-          notes = `Reach discharge indexed from USGS gage #${gaugeId}.`;
-        } else {
-          pyCode = `# Reach Hydrology: Mass-Balance Network Routing
-# Continuous vector reach without direct gauge at midpoint.
-# Flow is derived from upstream gauge sum minus diversions:
+      notes = `Discharge indexed from USGS gage #${gaugeId}.`;
+    } else {
+      pyCode = `# Reach Hydrology: Mass-Balance Network Routing
 reach_flow_cfs = ${Number(p.flow_cfs || 0)}
-print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")
-# Network topology computed via Shapely & GeoPandas`;
-          notes = "Calculated via conservation-of-mass river routing across confluences.";
-        }
+print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")`;
+      notes = "Calculated via conservation-of-mass river routing across confluences.";
+    }
 
-        const popupHtml = formatTabbedPopup({
-          dataHtml,
-          codeTitle: gaugeId ? `USGS Reach #${gaugeId}` : cleanReachName,
-          endpointUrl,
-          pythonCode: pyCode,
-          notes
-        });
-        const popup = new maplibregl.Popup({ offset: 10 }).setHTML(popupHtml);
-        showFeaturePopup(popup, e.lngLat);
-      });
+    const popupHtml = formatTabbedPopup({
+      dataHtml,
+      codeTitle: gaugeId ? `USGS Reach #${gaugeId}` : cleanReachName,
+      endpointUrl,
+      pythonCode: pyCode,
+      notes
     });
+    const popup = new maplibregl.Popup({ offset: 10 }).setHTML(popupHtml);
+    showFeaturePopup(popup, lngLat);
+    return popup;
   }
+  window.openReachPopup = openReachPopup;
 
   // 5. Trans-Mountain Tunnels & Conveyance Canals (Separate Layers)
   if (geo.tunnels) {
@@ -3299,7 +3784,7 @@ print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")
         }
       });
 
-      // 2b. Selected Tunnel Highlight (Luminous Cyan Casing & Pure White Core)
+      // 2b. Selected Tunnel Highlight (Editorial Cartographic Casing & Core)
       map.addLayer({
         id: 'tunnels-selected-highlight-casing',
         type: 'line',
@@ -3311,15 +3796,14 @@ print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#00f0ff',
+          'line-color': '#0f172a',
           'line-width': [
             'interpolate', ['linear'], ['zoom'],
-            5, ['+', ['*', ['get', 'flow_cfs'], 0.005], 9],
-            8, ['+', ['*', ['get', 'flow_cfs'], 0.008], 11],
-            12, ['+', ['*', ['get', 'flow_cfs'], 0.012], 14]
+            5, ['+', ['*', ['get', 'flow_cfs'], 0.005], 6],
+            8, ['+', ['*', ['get', 'flow_cfs'], 0.008], 8],
+            12, ['+', ['*', ['get', 'flow_cfs'], 0.012], 10]
           ],
-          'line-blur': 2.0,
-          'line-opacity': 0.95
+          'line-opacity': 0.90
         }
       });
       map.addLayer({
@@ -3333,12 +3817,12 @@ print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#ffffff',
+          'line-color': '#cbd5e1',
           'line-width': [
             'interpolate', ['linear'], ['zoom'],
-            5, ['+', ['*', ['get', 'flow_cfs'], 0.005], 3.5],
-            8, ['+', ['*', ['get', 'flow_cfs'], 0.008], 5],
-            12, ['+', ['*', ['get', 'flow_cfs'], 0.012], 7]
+            5, ['+', ['*', ['get', 'flow_cfs'], 0.005], 3],
+            8, ['+', ['*', ['get', 'flow_cfs'], 0.008], 4],
+            12, ['+', ['*', ['get', 'flow_cfs'], 0.012], 5]
           ],
           'line-opacity': 1.0
         }
@@ -3388,38 +3872,15 @@ print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")
         const t = e.features[0].properties;
         const flowVal = Number(t.flow_cfs || 0);
         const flowDisplay = flowVal > 0 
-          ? `<span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>`
-          : `<span style="font-size:14px; font-weight:700; color:#64748b;">0.0 cfs <span style="font-size:11px; font-weight:500;">(Inactive / Closed)</span></span>`;
-
-        const capDisplay = t.capacity_cfs ? `${Number(t.capacity_cfs).toLocaleString()} cfs` : '1,020 cfs';
-        const statusText = flowVal > 0 
-          ? (flowVal >= (Number(t.capacity_cfs) || 1000) * 0.8 ? 'Near Peak Trans-Divide Conveyance' : 'Active Trans-Divide Conveyance')
-          : 'Gates Closed / Seasonal Low Flow';
+          ? `<span style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums;">${flowVal.toLocaleString()} <span style="font-size:10.5px; font-weight:600; color:#64748b;">cfs</span></span>`
+          : `<span style="font-size:13px; font-weight:700; color:#64748b;">0.0 cfs <span style="font-size:10px;">(Closed)</span></span>`;
 
         showHoverTooltip(`
-          <div style="font-family:'Inter',sans-serif; min-width: 220px; max-width: 290px;">
-            <div style="display:flex; align-items:center; gap:6px; margin-bottom:5px;">
-              <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;">Trans-Mountain Diversion Tunnel</span>
-            </div>
-            <strong style="font-size:13.5px;color:#0f172a;display:block;">${t.name}</strong>
-            <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
-            ${t.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${t.tier}</div>` : ''}
-            ${t.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${t.era}</div>` : ''}
-            <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-              <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
-              ${flowDisplay}
-            </div>
-            <div style="font-size:11px;line-height:1.45;color:#334155;">
-              <strong>Destination:</strong> ${t.destination || t.to}<br>
-              <strong>Length:</strong> ${t.length_miles ? t.length_miles + ' miles under Divide' : 'Trans-Continental Divide Tunnel'}<br>
-              <strong>West Portal:</strong> ${t.from || 'West Slope Intake'}<br>
-              <strong>East Portal:</strong> ${t.to || 'Front Range Outlet'}<br>
-              ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
-            </div>
-            <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-              <strong>Design Capacity:</strong> ${capDisplay}<br>
-              <strong>Operational Status:</strong> ${statusText}
-            </div>
+          <div style="font-family:'Inter',sans-serif; min-width: 200px; max-width: 280px; line-height:1.4;">
+            <div style="font-size:9.5px; font-weight:700; color:#0369a1; text-transform:uppercase; letter-spacing:0.04em;">TRANS-MOUNTAIN TUNNEL</div>
+            <strong style="font-size:13px; color:#0f172a; display:block; margin-top:1px;">${t.name}</strong>
+            <div style="margin:3px 0;">${flowDisplay}</div>
+            <div style="font-size:10.5px; color:#64748b;">${t.operator ? t.operator + ' • ' : ''}CDSS #${t.id}</div>
           </div>
         `, e.lngLat, 'tunnels');
       };
@@ -3441,42 +3902,31 @@ print(f"${cleanReachName} Calculated Flow: {reach_flow_cfs:,.0f} cfs")
         const t = e.features[0].properties;
         const flowVal = Number(t.flow_cfs || 0);
         const capDisplay = t.capacity_cfs ? `${Number(t.capacity_cfs).toLocaleString()} cfs` : '1,020 cfs';
-        const statusText = flowVal > 0 
-          ? (flowVal >= (Number(t.capacity_cfs) || 1000) * 0.8 ? 'Near Peak Trans-Divide Conveyance' : 'Active Trans-Divide Conveyance')
-          : 'Gates Closed / Seasonal Low Flow';
         const portal = getPortalInfo(t);
 
         highlightSelectedConduit('tunnel', t.id);
 
-        const highlightBadge = `<div style="font-size:9.5px; font-weight:700; color:#0e7490; background:#cffafe; border:1px solid #a5f3fc; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px; margin-top:5px;">
-          <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#06b6d4;"></span>
-          Segment Isolated &amp; Highlighted
-        </div>`;
+        let singleSentenceNote = '';
+        if (t.historical_note) {
+          singleSentenceNote = t.historical_note.split('. ')[0];
+          if (!singleSentenceNote.endsWith('.')) singleSentenceNote += '.';
+        }
 
         const dataHtml = `
           <div style="padding: 2px;">
-            <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Trans-Mountain Diversion Tunnel</span>
-            <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
-            <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
-            ${t.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${t.tier}</div>` : ''}
-            ${t.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${t.era}</div>` : ''}
-            <div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-              <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
-              <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} cfs</span>
+            <div style="font-size:9.5px; font-weight:700; color:#0369a1; background:#e0f2fe; border:1px solid #bae6fd; padding:1px 5px; border-radius:2px; display:inline-block; margin-bottom:3px;">Trans-Mountain Diversion Tunnel</div>
+            <strong style="font-size:13.5px; color:#0f172a; display:block;">${t.name}</strong>
+            <span style="font-size:11px; color:#0284c7; font-weight:600;">${t.operator || ''}</span>
+            <div style="margin: 5px 0; padding: 5px 8px; background:#f8fafc; border-radius:3px; border:1px solid #cbd5e1; display:flex; justify-content:space-between; align-items:baseline;">
+              <span style="font-size:11px; color:#64748b; font-weight:600;">Current Diversion:</span>
+              <span style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums;">${flowVal.toLocaleString()} cfs</span>
             </div>
-            <div style="font-size:11px;line-height:1.45;color:#334155;">
+            <div style="font-size:11px; line-height:1.4; color:#334155;">
               <strong>Destination:</strong> ${t.destination || t.to}<br>
               <strong>Length:</strong> ${t.length_miles ? t.length_miles + ' miles under Divide' : 'Trans-Continental Divide'}<br>
-              <strong>West Portal:</strong> ${t.from || 'West Slope Intake'}<br>
-              <strong>East Portal:</strong> ${t.to || 'Front Range Outlet'}<br>
-              ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
-              ${t.historical_note ? `<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-left:3px solid #0284c7;font-size:10.5px;color:#334155;line-height:1.4;">${t.historical_note}</div>` : ''}
+              <strong>Capacity:</strong> ${capDisplay}
+              ${singleSentenceNote ? `<div style="margin-top:4px; font-size:10.5px; color:#64748b;">${singleSentenceNote}</div>` : ''}
             </div>
-            <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-              <strong>Design Capacity:</strong> ${capDisplay}<br>
-              <strong>Operational Status:</strong> ${statusText}
-            </div>
-            ${highlightBadge}
             ${formatPortalHtml(portal, '#0284c7')}
           </div>
         `;
@@ -3552,7 +4002,7 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
         }
       });
 
-      // Selected Canal Highlight (Luminous Cyan Casing & White Core)
+      // Selected Canal Highlight (Editorial Cartographic Casing & Core)
       map.addLayer({
         id: 'canals-selected-highlight-casing',
         type: 'line',
@@ -3564,15 +4014,14 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#00f0ff',
+          'line-color': '#0f172a',
           'line-width': [
             'interpolate', ['linear'], ['zoom'],
-            6, ['*', ['coalesce', ['get', 'weight'], 2.8], 2.8],
-            10, ['*', ['coalesce', ['get', 'weight'], 2.8], 3.4],
-            13, ['*', ['coalesce', ['get', 'weight'], 2.8], 4.0]
+            6, ['*', ['coalesce', ['get', 'weight'], 2.8], 2.2],
+            10, ['*', ['coalesce', ['get', 'weight'], 2.8], 2.6],
+            13, ['*', ['coalesce', ['get', 'weight'], 2.8], 3.0]
           ],
-          'line-blur': 2.0,
-          'line-opacity': 0.95
+          'line-opacity': 0.90
         }
       });
       map.addLayer({
@@ -3586,12 +4035,12 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
           'line-cap': 'round'
         },
         paint: {
-          'line-color': '#ffffff',
+          'line-color': '#f8fafc',
           'line-width': [
             'interpolate', ['linear'], ['zoom'],
-            6, ['*', ['coalesce', ['get', 'weight'], 2.8], 1.4],
-            10, ['*', ['coalesce', ['get', 'weight'], 2.8], 1.7],
-            13, ['*', ['coalesce', ['get', 'weight'], 2.8], 2.0]
+            6, ['coalesce', ['get', 'weight'], 2.8],
+            10, ['*', ['coalesce', ['get', 'weight'], 2.8], 1.2],
+            13, ['*', ['coalesce', ['get', 'weight'], 2.8], 1.4]
           ],
           'line-dasharray': [3, 2.5],
           'line-opacity': 1.0
@@ -3623,36 +4072,19 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
 
         let flowDisplay = '';
         if (isOffline) {
-          flowDisplay = `<span style="font-size:13px; font-weight:800; color:#dc2626;">Offline</span> <span style="font-size:10px; color:#94a3b8;">(Discontinued Gage)</span>`;
+          flowDisplay = `<span style="font-size:13px; font-weight:700; color:#dc2626;">Offline <span style="font-size:10px; color:#94a3b8;">(Discontinued)</span></span>`;
         } else if (t.data_status === 'delayed' || t.status === 'delayed') {
-          flowDisplay = `<span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span> <span style="font-size:9.5px; font-weight:700; color:#b45309; background:#fef3c7; border:1px solid #fde68a; padding:1px 5px; border-radius:4px; margin-left:4px;">Delayed</span>`;
+          flowDisplay = `<span style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums;">${flowVal.toLocaleString()} <span style="font-size:10.5px; font-weight:600; color:#64748b;">cfs</span></span> <span style="font-size:9.5px; font-weight:600; color:#b45309;">(Delayed)</span>`;
         } else {
-          flowDisplay = `<span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>`;
+          flowDisplay = `<span style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums;">${flowVal.toLocaleString()} <span style="font-size:10.5px; font-weight:600; color:#64748b;">cfs</span></span>`;
         }
 
         showHoverTooltip(`
-          <div style="font-family:'Inter',sans-serif; min-width: 220px; max-width: 290px;">
-            <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
-            <strong style="font-size:13px;color:#0f172a;display:block;">${t.name}</strong>
-            <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
-            ${t.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${t.tier}</div>` : ''}
-            ${t.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${t.era}</div>` : ''}
-            <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-              <span style="font-size:11px; color:#475569; font-weight:600;">${isOffline ? 'Status:' : 'Current Flow:'}</span>
-              ${flowDisplay}
-            </div>
-            <div style="font-size:11px;line-height:1.45;color:#334155;">
-              <strong>Destination:</strong> ${t.destination || t.to}<br>
-              <strong>Length:</strong> ${t.length_miles} miles<br>
-              <strong>Intake:</strong> ${t.from}<br>
-              <strong>Terminus:</strong> ${t.to}<br>
-              ${t.timestamp ? `<strong>${isOffline ? 'Last Reported' : 'Measured'}:</strong> ${formatTimestamp(t.timestamp)}<br>` : ''}
-              ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
-            </div>
-            <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-              <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : (t.id === "09522000" ? '7,500 cfs (Morelos Dam Headgates)' : '1,600 cfs (Whitsett Pumping Plant)'))}<br>
-              <strong>Infrastructure:</strong> Major Inter-Basin Conveyance Aqueduct
-            </div>
+          <div style="font-family:'Inter',sans-serif; min-width: 200px; max-width: 280px; line-height:1.4;">
+            <div style="font-size:9.5px; font-weight:700; color:#0369a1; text-transform:uppercase; letter-spacing:0.04em;">CONVEYANCE CANAL</div>
+            <strong style="font-size:13px; color:#0f172a; display:block; margin-top:1px;">${t.name}</strong>
+            <div style="margin:3px 0;">${flowDisplay}</div>
+            <div style="font-size:10.5px; color:#64748b;">${t.operator ? t.operator + ' • ' : ''}USGS #${t.id}</div>
           </div>
         `, e.lngLat, 'canals');
       });
@@ -3673,48 +4105,34 @@ print(f"${cleanTName}: {flow_cfs:,.1f} cfs")`;
 
         highlightSelectedConduit('canal', t.id);
 
-        const highlightBadge = `<div style="font-size:9.5px; font-weight:700; color:#0e7490; background:#cffafe; border:1px solid #a5f3fc; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px; margin-top:5px;">
-          <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#06b6d4;"></span>
-          Segment Isolated &amp; Highlighted
-        </div>`;
+        let singleSentenceNote = '';
+        if (t.historical_note) {
+          singleSentenceNote = t.historical_note.split('. ')[0];
+          if (!singleSentenceNote.endsWith('.')) singleSentenceNote += '.';
+        }
 
         const statusFlowBox = isOffline
-          ? `<div style="margin: 8px 0; padding: 6px 10px; background:#fef2f2; border-radius:6px; border:1px solid #fecaca; display:flex; justify-content:space-between; align-items:baseline;">
-               <span style="font-size:11px; color:#991b1b; font-weight:700;">Telemetry Status:</span>
-               <span style="font-size:13.5px; font-weight:800; color:#dc2626;">Offline (Discontinued USGS Station)</span>
-             </div>
-             <div style="font-size:11px; color:#64748b; margin-bottom:6px;">
-               <strong>Last Reported:</strong> ${t.timestamp ? formatTimestamp(t.timestamp) : 'Sep 30, 2022'}
+          ? `<div style="margin: 5px 0; padding: 5px 8px; background:#fef2f2; border-radius:3px; border:1px solid #fecaca; display:flex; justify-content:space-between; align-items:baseline;">
+               <span style="font-size:11px; color:#991b1b; font-weight:700;">Status:</span>
+               <span style="font-size:12px; font-weight:700; color:#dc2626;">Offline (Discontinued USGS Station)</span>
              </div>`
-          : `<div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-               <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
-               <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} cfs ${(t.data_status === 'delayed' || t.status === 'delayed') ? '<span style="font-size:10px; color:#b45309; font-weight:700;">(Delayed / Treaty Accounting)</span>' : ''}</span>
-             </div>
-             <div style="font-size:11px; color:#64748b; margin-bottom:6px;">
-               <strong>Measured:</strong> ${t.timestamp ? formatTimestamp(t.timestamp) : 'Live'}
+          : `<div style="margin: 5px 0; padding: 5px 8px; background:#f8fafc; border-radius:3px; border:1px solid #cbd5e1; display:flex; justify-content:space-between; align-items:baseline;">
+               <span style="font-size:11px; color:#64748b; font-weight:600;">Current Diversion:</span>
+               <span style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums;">${flowVal.toLocaleString()} cfs ${(t.data_status === 'delayed' || t.status === 'delayed') ? '<span style="font-size:9.5px; color:#b45309;">(Delayed)</span>' : ''}</span>
              </div>`;
 
         const dataHtml = `
           <div style="padding: 2px;">
-            <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
-            <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
-            <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
-            ${t.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${t.tier}</div>` : ''}
-            ${t.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${t.era}</div>` : ''}
+            <div style="font-size:9.5px; font-weight:700; color:#0369a1; background:#e0f2fe; border:1px solid #bae6fd; padding:1px 5px; border-radius:2px; display:inline-block; margin-bottom:3px;">Major Conveyance Canal</div>
+            <strong style="font-size:13.5px; color:#0f172a; display:block;">${t.name}</strong>
+            <span style="font-size:11px; color:#0284c7; font-weight:600;">${t.operator || ''}</span>
             ${statusFlowBox}
-            <div style="font-size:11px;line-height:1.45;color:#334155;margin-top:6px;">
+            <div style="font-size:11px; line-height:1.4; color:#334155; margin-top:4px;">
               <strong>Destination:</strong> ${t.destination || t.to}<br>
               <strong>Length:</strong> ${t.length_miles} miles<br>
-              <strong>Intake:</strong> ${t.from}<br>
-              <strong>Terminus:</strong> ${t.to}<br>
-              ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
-              ${t.historical_note ? `<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-left:3px solid #0284c7;font-size:10.5px;color:#334155;line-height:1.4;">${t.historical_note}</div>` : ''}
+              ${t.timestamp ? `<strong>Measured:</strong> ${formatTimestamp(t.timestamp)}<br>` : ''}
+              ${singleSentenceNote ? `<div style="margin-top:4px; font-size:10.5px; color:#64748b;">${singleSentenceNote}</div>` : ''}
             </div>
-            <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-              <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : (t.id === "09522000" ? '7,500 cfs (Morelos Dam Headgates)' : '1,600 cfs (Whitsett Pumping Plant)'))}<br>
-              <strong>Infrastructure:</strong> Major Inter-Basin Conveyance Aqueduct
-            </div>
-            ${highlightBadge}
             ${formatPortalHtml(portal, '#0284c7')}
           </div>
         `;
@@ -3812,19 +4230,22 @@ except Exception as e:
       if (e.originalEvent) e.originalEvent._handled = true;
       const d = e.features[0].properties;
       const portal = getPortalInfo(d);
+      let singleSentenceNote = '';
+      if (d.historical_note) {
+        singleSentenceNote = d.historical_note.split('. ')[0];
+        if (!singleSentenceNote.endsWith('.')) singleSentenceNote += '.';
+      }
+
       const dataHtml = `
         <div style="padding:2px;">
-          <strong style="font-size:13px;color:#0f172a;">${d.name}</strong><br>
-          <span style="font-size:11px;color:#64748b;font-weight:600;">${d.operator}</span>
-          ${d.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:2px;">${d.tier}</div>` : ''}
-          ${d.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${d.era}</div>` : ''}
-          <hr style="margin:6px 0;border:none;border-top:1px solid #e2e8f0;">
-          <div style="font-size:11px;line-height:1.45;color:#334155;">
+          <div style="font-size:9.5px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:1px 5px; border-radius:2px; display:inline-block; margin-bottom:3px;">Federal Dam</div>
+          <strong style="font-size:13.5px; color:#0f172a; display:block;">${d.name}</strong>
+          <span style="font-size:11px; color:#64748b; font-weight:600;">${d.operator}</span>
+          <div style="margin:5px 0; padding:5px 8px; background:#f8fafc; border-radius:3px; border:1px solid #cbd5e1; font-size:11px; line-height:1.4; color:#334155;">
             <strong>Impounds:</strong> ${d.impounds}<br>
             <strong>Height:</strong> ${d.height_ft} ft | <strong>Built:</strong> ${d.year}<br>
-            <strong>Purpose:</strong> ${d.purpose}<br>
-            ${d.legal_priority ? `<strong>Legal Priority:</strong> ${d.legal_priority}<br>` : ''}
-            ${d.historical_note ? `<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-left:3px solid #0284c7;font-size:10.5px;color:#334155;line-height:1.4;">${d.historical_note}</div>` : ''}
+            <strong>Purpose:</strong> ${d.purpose}
+            ${singleSentenceNote ? `<div style="margin-top:3px; color:#64748b; font-size:10.5px;">${singleSentenceNote}</div>` : ''}
           </div>
           ${formatPortalHtml(portal, '#0284c7')}
         </div>
@@ -3847,7 +4268,7 @@ params = {
       const popupHtml = formatTabbedPopup({
         dataHtml,
         codeTitle: `${cleanDamName}`,
-        endpointUrl: `https://www.usbr.gov/projects/facilities.php`,
+        endpointUrl: portal?.url || 'https://www.usbr.gov/lc/region/g4000/hourly/hourly.html',
         pythonCode: pyCode,
         notes: `Federal dam operations & tailwater release monitoring. Built ${d.year}.`
       });
@@ -3859,14 +4280,11 @@ params = {
       if (!e.features.length) return;
       const d = e.features[0].properties;
       showHoverTooltip(`
-        <div style="font-family:'Inter',sans-serif; min-width: 190px;">
-          <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">Federal Dam</span>
-          <strong style="font-size:13px; color:#0f172a; display:block;">${d.name}</strong>
-          ${d.tier ? `<div style="font-size:10px;font-weight:700;color:#0e7490;margin-top:1px;">${d.tier}</div>` : ''}
-          ${d.era ? `<div style="font-size:9.5px;font-weight:600;color:#64748b;margin-top:1px;">${d.era}</div>` : ''}
-          <div style="font-size:11px; color:#64748b; margin-top:3px;">${d.operator} • Impounds <strong>${d.impounds}</strong></div>
-          <div style="font-size:10.5px; color:#475569; margin-top:4px;">Height: ${d.height_ft} ft • Built ${d.year}</div>
-          ${d.legal_priority ? `<div style="font-size:10px; color:#0369a1; margin-top:2px;"><strong>Priority:</strong> ${d.legal_priority}</div>` : ''}
+        <div style="font-family:'Inter',sans-serif; min-width: 190px; line-height:1.4;">
+          <div style="font-size:9.5px; font-weight:700; color:#0369a1; text-transform:uppercase; letter-spacing:0.04em;">FEDERAL DAM</div>
+          <strong style="font-size:13px; color:#0f172a; display:block; margin-top:1px;">${d.name}</strong>
+          <div style="font-size:11px; color:#334155; margin:2px 0;">Impounds <strong>${d.impounds}</strong> • Height: ${d.height_ft} ft</div>
+          <div style="font-size:10.5px; color:#64748b;">${d.operator} • Built ${d.year}</div>
         </div>
       `, e.lngLat, 'dams');
     };
@@ -3889,11 +4307,18 @@ params = {
 function ensurePointLayersOnTop() {
   if (!map) return;
   const topPointLayers = [
+    'flow-direction-arrows',
+    'gis-flow-arrows',
+    'topology-sections-casing',
+    'topology-sections-core',
+    'topology-junctions',
     'tunnels-portals-layer',
     'streamflow-gauges-casing',
     'streamflow-gauges-circle',
     'dams-layer',
     'streamflow-gauges-hit-buffer',
+    'topology-sections-hit-buffer',
+    'topology-junctions-hit-buffer',
     'dams-hit-buffer'
   ];
   topPointLayers.forEach(id => {
@@ -3918,14 +4343,14 @@ function getHistoricalNormal(siteId) {
   return site[todayKey()] ?? null;
 }
 
-// Color scale: critically low → low → below-normal → normal → abundant
+// Color scale: critically low → low → below-normal → normal → abundant (ColorBrewer RdYlBu standard)
 function flowHealthColor(pctOfNormal) {
   if (pctOfNormal === null || pctOfNormal === undefined) return '#0284c7';  // fallback / unmonitored baseline
-  if (pctOfNormal >= 150) return '#1d4ed8';  // abundant — deep blue
-  if (pctOfNormal >= 90)  return '#0ea5e9';  // normal — sky blue
-  if (pctOfNormal >= 50)  return '#f59e0b';  // below normal — amber
-  if (pctOfNormal >= 25)  return '#ef4444';  // low — red
-  return '#991b1b';                           // critically low — dark red
+  if (pctOfNormal >= 150) return '#1d4ed8';  // abundant — deep water blue
+  if (pctOfNormal >= 90)  return '#0284c7';  // normal — water blue
+  if (pctOfNormal >= 50)  return '#d97706';  // below normal — warm ochre
+  if (pctOfNormal >= 25)  return '#ea580c';  // low — terracotta
+  return '#b2182b';                           // critically low — deep oxblood
 }
 
 // Label for the health status
@@ -4007,28 +4432,28 @@ function formatGaugePopup(s) {
     const color = flowHealthColor(pct);
     const label = flowHealthLabel(pct);
     healthBadgeHtml = `
-      <div style="margin: 6px 0; padding: 5px 8px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
-        <span style="font-size:10.5px; color:#64748b; font-weight:600;">vs. Hist. Daily Avg:</span>
-        <span style="font-size:12.5px; font-weight:800; color:${color};">${pct}% <span style="font-size:10px; font-weight:600;">(${label})</span></span>
+      <div style="margin: 5px 0; padding: 4px 8px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:3px; display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:10px; color:#64748b; font-weight:600;">vs. Hist. Daily Avg:</span>
+        <span style="font-size:12px; font-weight:800; color:${color}; font-variant-numeric:tabular-nums;">${pct}% <span style="font-size:10px; font-weight:600;">(${label})</span></span>
       </div>
-      <div style="font-size:10px; color:#94a3b8; margin-bottom:6px;">Avg today: ${Math.round(norm).toLocaleString()} cfs</div>
+      <div style="font-size:9.5px; color:#94a3b8; margin-bottom:5px;">Avg today: ${Math.round(norm).toLocaleString()} cfs</div>
     `;
   }
 
   const dataHtml = `
     <div style="padding: 2px;">
-      <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-        <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px;">USGS Gage</span>
-        ${isLeesFerry ? '<span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; border: 1px solid #bae6fd; padding:2px 6px; border-radius:4px;">1922 Compact Divide</span>' : ''}
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="font-size:9.5px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:1px 5px; border-radius:2px;">USGS Gage</span>
+        ${isLeesFerry ? '<span style="font-size:9.5px; font-weight:700; color:#0369a1; background:#e0f2fe; border: 1px solid #bae6fd; padding:1px 5px; border-radius:2px;">1922 Compact Divide</span>' : ''}
       </div>
-      <strong style="font-size:13px; color:#0f172a; line-height:1.35; display:block;">${s.name}</strong>
-      <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
+      <strong style="font-size:13px; color:#0f172a; line-height:1.3; display:block;">${s.name}</strong>
+      <div style="margin: 5px 0; padding: 5px 8px; background:#f8fafc; border-radius:3px; border:1px solid #cbd5e1; display:flex; justify-content:space-between; align-items:baseline;">
         <span style="font-size:11px; color:#64748b; font-weight:600;">Discharge:</span>
-        <span style="font-size:16px; font-weight:800; color:#0284c7;">${(s.flow_cfs || 0).toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>
+        <span style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums;">${(s.flow_cfs || 0).toLocaleString()} <span style="font-size:10.5px; font-weight:600; color:#64748b;">cfs</span></span>
       </div>
       ${healthBadgeHtml}
-      <div style="font-size:11px; color:#475569; line-height:1.5;">
-        <strong>Station ID:</strong> <a href="https://waterdata.usgs.gov/monitoring-location/${s.id}" target="_blank" style="color:#0284c7; text-decoration:none; font-weight:600;">#${s.id} ↗</a><br>
+      <div style="font-size:11px; color:#475569; line-height:1.45;">
+        <strong>Station ID:</strong> <a href="https://waterdata.usgs.gov/monitoring-location/${s.id}/#parameterCode=00060" target="_blank" rel="noopener" style="color:#0284c7; text-decoration:none; font-weight:600;">#${s.id} ↗</a><br>
         <strong>Measured:</strong> ${formatTimestamp(s.timestamp)}
       </div>
     </div>
@@ -4056,6 +4481,70 @@ print(f"Discharge: {flow_cfs:,.0f} cfs at {val['dateTime']}")`;
     endpointUrl: `https://waterservices.usgs.gov/nwis/iv/?sites=${s.id}&parameterCd=00060&format=json`,
     pythonCode: pyCode,
     notes: "Parameter 00060 = Discharge (cfs). Telemetry refreshed every 15–60 minutes."
+  });
+}
+
+function formatReservoirStationPopup(r) {
+  const cleanResName = (r.name || 'Reservoir').replace(/["\\]/g, '');
+  const portal = getPortalInfo(r);
+  const portalLink = portal ? `<a href="${portal.url}" target="_blank" rel="noopener" style="color:#0284c7; text-decoration:none; font-weight:700; margin-left:4px;">↗</a>` : '';
+  const isFrontRange = r.category === 'front_range' || (r.id && ['lake_granby', 'dillon_reservoir', 'green_mountain', 'homestake_reservoir'].includes(r.id));
+  const capacityPct = (r.capacity_pct !== undefined && r.capacity_pct !== null) ? r.capacity_pct : Math.round(((r.storage_af || 0) / (r.capacity_af || 1)) * 100);
+  const elevText = r.elevation_ft ? `${Number(r.elevation_ft).toLocaleString()} ft` : 'USBR Telemetry';
+  const storageAfText = r.storage_af ? `${Math.round(r.storage_af).toLocaleString()} AF` : (r.storage_maf ? `${r.storage_maf.toFixed(2)}M AF` : 'Teletype Reported');
+  const capAfText = r.capacity_af ? `${Math.round(r.capacity_af).toLocaleString()} AF` : 'Authoritative Capacity';
+
+  const dataHtml = `
+    <div style="padding: 2px;">
+      <span style="font-size:10px; font-weight:700; color:#dc2626; background:#fee2e2; border:1px solid #fecaca; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">
+        Major Storage Reservoir Station
+      </span>
+      <strong style="font-size:13.5px; color:#0f172a; display:block;">${cleanResName} ${portalLink}</strong>
+      <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:6px;">${r.river || 'Colorado River Basin'} &bull; ${r.operator || (isFrontRange ? 'Denver Water / Northern' : 'USBR')}</div>
+      <div style="margin: 6px 0; padding: 6px 8px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+          <span style="font-size:11px; color:#475569; font-weight:600;">Current Storage:</span>
+          <span style="font-size:15px; font-weight:800; color:#0284c7;">${capacityPct}% <span style="font-size:11px; font-weight:600; color:#64748b;">Full</span></span>
+        </div>
+        <div style="height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
+          <div style="width:${Math.min(100, capacityPct)}%; height:100%; background:${capacityPct < 25 ? '#ef4444' : (capacityPct < 50 ? '#f59e0b' : '#0891b2')};"></div>
+        </div>
+      </div>
+      <div style="font-size:11px; color:#475569; line-height:1.5;">
+        <strong>Surface Elevation:</strong> ${elevText}<br>
+        <strong>Volume Stored:</strong> ${storageAfText}<br>
+        <strong>Active Capacity:</strong> ${capAfText}<br>
+        <strong>Operational Role:</strong> ${r.role || 'System Storage &amp; Regulation'}<br>
+        <strong>Last Synced:</strong> ${formatTimestamp(r.timestamp)}
+      </div>
+      ${formatPortalHtml(portal, '#dc2626')}
+    </div>
+  `;
+
+  const endpointUrl = isFrontRange
+    ? `https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrytimeseriesday/?abbrev=${r.id.toUpperCase()}&format=json`
+    : `https://www.usbr.gov/lc/region/g4000/hourly/hourly.html`;
+
+  const pyCode = isFrontRange ? `import requests
+
+# Colorado DWR HydroBase Daily Reservoir Telemetry
+url = "https://dwr.state.co.us/Rest/GET/api/v2/telemetrystations/telemetrytimeseriesday/"
+params = {"abbrev": "${r.id.toUpperCase()}", "format": "json"}
+res = requests.get(url, params=params, timeout=10).json()
+reading = res["ResultList"][0]
+print(f"${cleanResName} Elevation: {reading['measValue']} ft")` : `import requests
+
+# USBR Lower/Upper Colorado River Operations
+# Station: ${cleanResName} (#${r.id})
+# Elevation: ${elevText}
+print(f"${cleanResName} Storage: ${storageAfText} (${capacityPct}% Full)")`;
+
+  return formatTabbedPopup({
+    dataHtml,
+    codeTitle: `${cleanResName} Telemetry`,
+    endpointUrl,
+    pythonCode: pyCode,
+    notes: "Official storage reservoir telemetry. Water surface elevation converted to volume via USBR/CDSS elevation-area-capacity curves."
   });
 }
 
@@ -4100,13 +4589,19 @@ function renderMetrics(metrics) {
     });
 
     el.addEventListener('mouseenter', () => {
+      const norm = getHistoricalNormal(s.id);
+      let healthText = '';
+      if (norm && norm > 0 && s.flow_cfs != null) {
+        const pct = Math.round((Number(s.flow_cfs) / norm) * 100);
+        const color = flowHealthColor(pct);
+        healthText = `<span style="font-size:11px; font-weight:700; color:${color}; margin-left:6px;">(${pct}% of Normal)</span>`;
+      }
       showHoverTooltip(`
-        <div style="font-family:'Inter',sans-serif; min-width: 190px;">
-          <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">USGS Gage</span>
-          <strong style="font-size:13px; color:#0f172a; display:block;">${s.name}</strong>
-          <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-            <span style="font-size:11px; color:#64748b; font-weight:600;">Discharge:</span>
-            <span style="font-size:15px; font-weight:800; color:#0284c7;">${(s.flow_cfs || 0).toLocaleString()} cfs</span>
+        <div style="font-family:'Inter',sans-serif; min-width: 190px; line-height:1.4;">
+          <div style="font-size:9.5px; font-weight:700; color:#0369a1; text-transform:uppercase; letter-spacing:0.04em;">USGS GAGE</div>
+          <strong style="font-size:13px; color:#0f172a; display:block; margin-top:1px;">${s.name}</strong>
+          <div style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums; margin:3px 0;">
+            ${(s.flow_cfs || 0).toLocaleString()} <span style="font-size:10.5px; font-weight:600; color:#64748b;">cfs</span> ${healthText}
           </div>
           <div style="font-size:10.5px; color:#64748b;">Station ID: #${s.id}</div>
         </div>
@@ -4153,123 +4648,8 @@ function renderMetrics(metrics) {
     }
 
     markers.gauges.push(marker);
-    stationMarkers[s.id] = { marker, popup, lat: s.lat, lon: s.lon };
+    stationMarkers[s.id] = { marker, popup, lat: s.lat, lon: s.lon, type: 'streamflow' };
   });
-
-  // 1b. Native WebGL Point Layer for USGS Streamflow Gauges (Station Dots matching the Legend)
-  if (metrics.streamflows && metrics.streamflows.length > 0) {
-    const gaugesGeoJSON = {
-      type: 'FeatureCollection',
-      features: metrics.streamflows.map(s => ({
-        type: 'Feature',
-        properties: {
-          id: s.id,
-          name: s.name,
-          flow_cfs: s.flow_cfs,
-          timestamp: s.timestamp
-        },
-        geometry: { type: 'Point', coordinates: [s.lon, s.lat] }
-      }))
-    };
-
-    if (!map.getSource('streamflow-gauges')) {
-      map.addSource('streamflow-gauges', { type: 'geojson', data: gaugesGeoJSON });
-
-      const showGauges = document.getElementById('toggle-streamflow-gauges')?.checked ?? true;
-
-      // 1. Casing / border circle
-      map.addLayer({
-        id: 'streamflow-gauges-casing',
-        type: 'circle',
-        source: 'streamflow-gauges',
-        layout: {
-          'visibility': showGauges ? 'visible' : 'none'
-        },
-        paint: {
-          'circle-color': '#ffffff',
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            4, 4.5,
-            7, 6.0,
-            10, 7.5,
-            13, 9.5
-          ],
-          'circle-stroke-color': '#0f172a',
-          'circle-stroke-width': 1.0,
-          'circle-opacity': 0.95
-        }
-      });
-
-      // 2. Core blue dot matching the legend
-      map.addLayer({
-        id: 'streamflow-gauges-circle',
-        type: 'circle',
-        source: 'streamflow-gauges',
-        layout: {
-          'visibility': showGauges ? 'visible' : 'none'
-        },
-        paint: {
-          'circle-color': '#0284c7',
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            4, 3.0,
-            7, 4.2,
-            10, 5.5,
-            13, 7.5
-          ],
-          'circle-opacity': 1.0
-        }
-      });
-
-      // 3. Generous hit buffer for interactive hover & click
-      map.addLayer({
-        id: 'streamflow-gauges-hit-buffer',
-        type: 'circle',
-        source: 'streamflow-gauges',
-        layout: {
-          'visibility': showGauges ? 'visible' : 'none'
-        },
-        paint: {
-          'circle-radius': 18,
-          'circle-opacity': 0.0001
-        }
-      });
-
-      map.on('mousemove', 'streamflow-gauges-hit-buffer', (e) => {
-        if (!e.features.length) return;
-        map.getCanvas().style.cursor = 'pointer';
-        const g = e.features[0].properties;
-        showHoverTooltip(`
-          <div style="font-family:'Inter',sans-serif; min-width: 190px;">
-            <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">USGS Gage</span>
-            <strong style="font-size:13px; color:#0f172a; display:block;">${g.name}</strong>
-            <div style="margin: 6px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-              <span style="font-size:11px; color:#64748b; font-weight:600;">Discharge:</span>
-              <span style="font-size:15px; font-weight:800; color:#0284c7;">${Number(g.flow_cfs).toLocaleString()} cfs</span>
-            </div>
-            <div style="font-size:10.5px; color:#64748b;">Station ID: #${g.id}</div>
-          </div>
-        `, e.lngLat, 'streamflow-gauges');
-      });
-
-      map.on('mouseleave', 'streamflow-gauges-hit-buffer', () => {
-        hideHoverTooltip('streamflow-gauges');
-      });
-
-      map.on('click', 'streamflow-gauges-hit-buffer', (e) => {
-        if (e.originalEvent && e.originalEvent._handled) return;
-        if (!e.features.length) return;
-        if (e.originalEvent) e.originalEvent._handled = true;
-        const g = e.features[0].properties;
-        const entry = stationMarkers[g.id];
-        if (entry && entry.popup) {
-          showFeaturePopup(entry.popup, [e.lngLat.lng, e.lngLat.lat]);
-        }
-      });
-    } else {
-      map.getSource('streamflow-gauges').setData(gaugesGeoJSON);
-    }
-  }
 
   // 2. Trans-Mountain Tunnels & Conveyance Canals Badges
   const allDiversions = [...(metrics.tunnels || []), ...(metrics.canals || [])];
@@ -4285,9 +4665,15 @@ function renderMetrics(metrics) {
     const toText = isFrontRange ? `<strong>East Portal:</strong> ${toVal}` : `<strong>Terminus:</strong> ${toVal}`;
     const badgeClass = isFrontRange ? "tunnel-badge" : "canal-badge";
 
+    const flowVal = Number(t.flow_cfs || 0);
+    const flowText = (t.flow_cfs != null && !isNaN(t.flow_cfs)) ? Number(t.flow_cfs).toLocaleString() : 'Offline';
+    const flowDisplayHtml = (t.flow_cfs != null && !isNaN(t.flow_cfs))
+      ? `${Number(t.flow_cfs).toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span>`
+      : `<span style="font-size:13px; font-weight:700; color:#64748b;">Offline (Maintenance)</span>`;
+
     const el = document.createElement('div');
     el.className = 'cfs-marker-wrap';
-    el.innerHTML = `<div class="cfs-badge ${badgeClass}"><span class="cfs-val">${t.flow_cfs.toLocaleString()}</span> <span class="cfs-unit">cfs</span></div>`;
+    el.innerHTML = `<div class="cfs-badge ${badgeClass}"><span class="cfs-val">${flowText}</span> <span class="cfs-unit">${t.flow_cfs != null ? 'cfs' : ''}</span></div>`;
 
     const portal = getPortalInfo(t);
     const dataHtml = `
@@ -4299,7 +4685,7 @@ function renderMetrics(metrics) {
         <div style="font-size:11px; color:#64748b; font-weight:600; margin-bottom:6px;">${t.operator || ''}</div>
         <div style="margin: 6px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
           <span style="font-size:11px; color:#475569; font-weight:600;">Diverted Flow:</span>
-          <span style="font-size:16px; font-weight:800; color:#0284c7;">${t.flow_cfs.toLocaleString()} <span style="font-size:11px; font-weight:600; color:#64748b;">cfs</span></span>
+          <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowDisplayHtml}</span>
         </div>
         <div style="font-size:11px; color:#475569; line-height:1.5;">
           <strong>Destination:</strong> ${t.destination}<br>
@@ -4410,11 +4796,252 @@ print(f"${cleanTName}: {flow_cfs:,.0f} cfs")`;
       markers.canals.push(marker);
     }
 
-    stationMarkers[t.id] = { marker, popup, lat: t.lat, lon: t.lon };
+    stationMarkers[t.id] = { marker, popup, lat: t.lat, lon: t.lon, type: isFrontRange ? 'diversion_tunnel' : 'diversion_canal' };
   });
 
-  // 3. Reservoirs: Floating labels on the map are eliminated to keep the waterbodies clean;
-  // all detailed telemetry is showcased in the dedicated sidebar panel and via polygon hover/click.
+  // 3. Storage Reservoirs: Register station markers and popups for 1:1 map & telemetry parity
+  (metrics.reservoirs || []).forEach(r => {
+    const popupHtml = formatReservoirStationPopup(r);
+    const popup = new maplibregl.Popup({ offset: 12 }).setHTML(popupHtml);
+    popup.on('open', () => {
+      if (tooltipPopup && tooltipPopup.isOpen()) tooltipPopup.remove();
+      if (activeFeaturePopup && activeFeaturePopup !== popup && activeFeaturePopup.isOpen()) {
+        activeFeaturePopup.remove();
+      }
+      activeFeaturePopup = popup;
+    });
+    popup.on('close', () => {
+      if (activeFeaturePopup === popup) activeFeaturePopup = null;
+    });
+    stationMarkers[r.id] = { popup, lat: r.lat, lon: r.lon, type: 'reservoir', data: r };
+  });
+
+  // 4. Native WebGL Point Layer for All Telemetry Stations (98 Stations: 79 Streamflows, 4 Tunnels, 4 Canals, 11 Reservoirs)
+  const allStationFeatures = [];
+
+  (metrics.streamflows || []).forEach(s => {
+    allStationFeatures.push({
+      type: 'Feature',
+      properties: {
+        id: s.id,
+        name: s.name,
+        station_type: 'streamflow',
+        type_label: 'USGS Streamflow Gage',
+        flow_cfs: s.flow_cfs,
+        timestamp: s.timestamp
+      },
+      geometry: { type: 'Point', coordinates: [s.lon, s.lat] }
+    });
+  });
+
+  (metrics.tunnels || []).forEach(t => {
+    allStationFeatures.push({
+      type: 'Feature',
+      properties: {
+        id: t.id,
+        name: t.name,
+        station_type: 'diversion_tunnel',
+        type_label: 'Trans-Mountain Diversion Tunnel',
+        flow_cfs: t.flow_cfs,
+        timestamp: t.timestamp
+      },
+      geometry: { type: 'Point', coordinates: [t.lon, t.lat] }
+    });
+  });
+
+  (metrics.canals || []).forEach(c => {
+    allStationFeatures.push({
+      type: 'Feature',
+      properties: {
+        id: c.id,
+        name: c.name,
+        station_type: 'diversion_canal',
+        type_label: 'Major Conveyance Canal',
+        flow_cfs: c.flow_cfs,
+        timestamp: c.timestamp
+      },
+      geometry: { type: 'Point', coordinates: [c.lon, c.lat] }
+    });
+  });
+
+  (metrics.reservoirs || []).forEach(r => {
+    allStationFeatures.push({
+      type: 'Feature',
+      properties: {
+        id: r.id,
+        name: r.name,
+        station_type: 'reservoir',
+        type_label: 'Storage Reservoir Station',
+        storage_af: r.storage_af,
+        capacity_pct: r.capacity_pct,
+        elevation_ft: r.elevation_ft,
+        timestamp: r.timestamp
+      },
+      geometry: { type: 'Point', coordinates: [r.lon, r.lat] }
+    });
+  });
+
+  const gaugesGeoJSON = {
+    type: 'FeatureCollection',
+    features: allStationFeatures
+  };
+
+  if (!map.getSource('streamflow-gauges')) {
+    map.addSource('streamflow-gauges', { type: 'geojson', data: gaugesGeoJSON });
+
+    const showGauges = document.getElementById('toggle-streamflow-gauges')?.checked ?? true;
+
+    // 1. Casing / border circle
+    map.addLayer({
+      id: 'streamflow-gauges-casing',
+      type: 'circle',
+      source: 'streamflow-gauges',
+      layout: {
+        'visibility': showGauges ? 'visible' : 'none'
+      },
+      paint: {
+        'circle-color': '#ffffff',
+        'circle-radius': [
+          'interpolate', ['linear'], ['zoom'],
+          4, ['match', ['get', 'station_type'], 'reservoir', 5.5, 4.5],
+          7, ['match', ['get', 'station_type'], 'reservoir', 7.2, 6.0],
+          10, ['match', ['get', 'station_type'], 'reservoir', 9.0, 7.5],
+          13, ['match', ['get', 'station_type'], 'reservoir', 11.2, 9.5]
+        ],
+        'circle-stroke-color': '#0f172a',
+        'circle-stroke-width': 1.0,
+        'circle-opacity': 0.95
+      }
+    });
+
+    // 2. Core colored dot matching the legend (blue streamflows, cyan tunnels, emerald canals, crimson reservoirs)
+    map.addLayer({
+      id: 'streamflow-gauges-circle',
+      type: 'circle',
+      source: 'streamflow-gauges',
+      layout: {
+        'visibility': showGauges ? 'visible' : 'none'
+      },
+      paint: {
+        'circle-color': [
+          'match', ['get', 'station_type'],
+          'streamflow', '#0284c7',
+          'diversion_tunnel', '#0891b2',
+          'diversion_canal', '#059669',
+          'reservoir', '#dc2626',
+          '#0284c7'
+        ],
+        'circle-radius': [
+          'interpolate', ['linear'], ['zoom'],
+          4, ['match', ['get', 'station_type'], 'reservoir', 3.8, 3.0],
+          7, ['match', ['get', 'station_type'], 'reservoir', 5.2, 4.2],
+          10, ['match', ['get', 'station_type'], 'reservoir', 6.8, 5.5],
+          13, ['match', ['get', 'station_type'], 'reservoir', 8.8, 7.5]
+        ],
+        'circle-opacity': 1.0
+      }
+    });
+
+    // 3. Generous hit buffer for interactive hover & click
+    map.addLayer({
+      id: 'streamflow-gauges-hit-buffer',
+      type: 'circle',
+      source: 'streamflow-gauges',
+      layout: {
+        'visibility': showGauges ? 'visible' : 'none'
+      },
+      paint: {
+        'circle-radius': 18,
+        'circle-opacity': 0.0001
+      }
+    });
+
+    map.on('mousemove', 'streamflow-gauges-hit-buffer', (e) => {
+      if (!e.features.length) return;
+      map.getCanvas().style.cursor = 'pointer';
+      const g = e.features[0].properties;
+      let headerKicker = 'USGS GAGE';
+      let kickerBg = '#0369a1';
+      let metricRow = '';
+
+      if (g.station_type === 'reservoir') {
+        headerKicker = 'STORAGE RESERVOIR STATION';
+        kickerBg = '#dc2626';
+        metricRow = `
+          <div style="font-size:15px; font-weight:800; color:#dc2626; font-variant-numeric:tabular-nums; margin:3px 0;">
+            ${g.capacity_pct != null ? g.capacity_pct + '% Full' : ''} 
+            <span style="font-size:10.5px; font-weight:600; color:#64748b;">(${g.storage_af ? Math.round(Number(g.storage_af)).toLocaleString() + ' AF' : ''})</span>
+          </div>
+        `;
+      } else if (g.station_type === 'diversion_tunnel') {
+        headerKicker = 'TRANS-MOUNTAIN DIVERSION TUNNEL';
+        kickerBg = '#0891b2';
+        metricRow = `
+          <div style="font-size:15px; font-weight:800; color:#0891b2; font-variant-numeric:tabular-nums; margin:3px 0;">
+            ${Number(g.flow_cfs || 0).toLocaleString()} <span style="font-size:10.5px; font-weight:600; color:#64748b;">cfs</span>
+          </div>
+        `;
+      } else if (g.station_type === 'diversion_canal') {
+        headerKicker = 'MAJOR CONVEYANCE CANAL';
+        kickerBg = '#059669';
+        metricRow = `
+          <div style="font-size:15px; font-weight:800; color:#059669; font-variant-numeric:tabular-nums; margin:3px 0;">
+            ${Number(g.flow_cfs || 0).toLocaleString()} <span style="font-size:10.5px; font-weight:600; color:#64748b;">cfs</span>
+          </div>
+        `;
+      } else {
+        headerKicker = 'USGS STREAMFLOW GAGE';
+        kickerBg = '#0369a1';
+        const norm = getHistoricalNormal(g.id);
+        let healthText = '';
+        if (norm && norm > 0 && g.flow_cfs != null) {
+          const pct = Math.round((Number(g.flow_cfs) / norm) * 100);
+          const color = flowHealthColor(pct);
+          healthText = `<span style="font-size:11px; font-weight:700; color:${color}; margin-left:6px;">(${pct}% of Normal)</span>`;
+        }
+        metricRow = `
+          <div style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums; margin:3px 0;">
+            ${Number(g.flow_cfs).toLocaleString()} <span style="font-size:10.5px; font-weight:600; color:#64748b;">cfs</span> ${healthText}
+          </div>
+        `;
+      }
+
+      showHoverTooltip(`
+        <div style="font-family:'Inter',sans-serif; min-width: 190px; line-height:1.4;">
+          <div style="font-size:9.5px; font-weight:700; color:${kickerBg}; text-transform:uppercase; letter-spacing:0.04em;">${headerKicker}</div>
+          <strong style="font-size:13px; color:#0f172a; display:block; margin-top:1px;">${g.name}</strong>
+          ${metricRow}
+          <div style="font-size:10.5px; color:#64748b;">Station ID: #${g.id}</div>
+        </div>
+      `, e.lngLat, 'streamflow-gauges');
+    });
+
+    map.on('mouseleave', 'streamflow-gauges-hit-buffer', () => {
+      hideHoverTooltip('streamflow-gauges');
+    });
+
+    map.on('click', 'streamflow-gauges-hit-buffer', (e) => {
+      if (e.originalEvent && e.originalEvent._handled) return;
+      if (!e.features.length) return;
+      if (e.originalEvent) e.originalEvent._handled = true;
+      const g = e.features[0].properties;
+      const entry = stationMarkers[g.id];
+      if (entry && entry.popup) {
+        showFeaturePopup(entry.popup, [entry.lon, entry.lat]);
+        if (g.station_type === 'reservoir') {
+          const cleanName = (g.name || '').split('(')[0].trim();
+          const lakeGNIS = findMatchingLakeGNIS(cleanName);
+          if (lakeGNIS) {
+            highlightSelectedReservoir(lakeGNIS);
+            flashFeatureHighlight('lake');
+          }
+        }
+      }
+    });
+  } else {
+    map.getSource('streamflow-gauges').setData(gaugesGeoJSON);
+  }
+
   ensurePointLayersOnTop();
 }
 
@@ -4581,22 +5208,150 @@ function updateSidebar(metrics) {
   renderResCardList("front-range-res-list", frontRangeRes);
 }
 
-function populateTelemetryTable(metrics) {
-  const tbody = document.getElementById("telemetry-rows");
-  if (!tbody) return;
-  tbody.innerHTML = "";
+// Map Telemetry Gage Tray State & Logic
+let trayGageNodes = [];
+let activeTrayCategory = 'all';
+let trayFilterQuery = '';
 
+window.toggleMapGageTray = function(forceOpen) {
+  const tray = document.getElementById("map-gage-tray");
+  const icon = document.getElementById("tray-toggle-icon");
+  if (!tray) return;
+  const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : tray.classList.contains("collapsed");
+  if (shouldOpen) {
+    tray.classList.remove("collapsed");
+    tray.classList.add("expanded");
+    if (icon) icon.textContent = "▼ Hide";
+  } else {
+    tray.classList.remove("expanded");
+    tray.classList.add("collapsed");
+    if (icon) icon.textContent = "▲ Gages";
+  }
+};
+
+window.handleTraySearch = function(query) {
+  trayFilterQuery = (query || '').toLowerCase().trim();
+  renderTrayRows();
+};
+
+window.filterTrayCategory = function(category) {
+  activeTrayCategory = category;
+  ['all', 'sentinel', 'streamflow', 'diversion', 'reservoir'].forEach(cat => {
+    const btn = document.getElementById(`tpill-${cat}`);
+    if (btn) {
+      if (cat === category) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    }
+  });
+  renderTrayRows();
+};
+
+window.openDedicatedLedger = function() {
+  if (window.parent && window.parent !== window && typeof window.parent.setTab === 'function') {
+    window.parent.setTab('telemetry');
+  } else {
+    window.open('./telemetry.html', '_blank');
+  }
+};
+
+function getTraySentinelTier(node) {
+  if (node.id === "09380000") {
+    return { label: "Compact Sentinel", isSentinel: true, badge: "background:#e0e7ff; color:#3730a3; border:1px solid #c7d2fe; font-weight:800;" };
+  }
+  const basinSentinels = ['09095500', '09070500', '09163500', '09180500', '09234500', '09260050', '09261000', '09315000', '09152500', '09180000', '09379500', '09421500', 'USBR_HOOVER', 'USBR-HOOVER', '09423000', 'USBR_DAVIS', 'USBR-DAVIS', '09427520', 'USBR_PARKER', 'USBR-PARKER', '09429100', '09429500'];
+  if (basinSentinels.includes(node.id)) {
+    return { label: "Basin Sentinel", isSentinel: true, badge: "background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-weight:700;" };
+  }
+  if (node.type === 'diversion_tunnel') {
+    return { label: "Export Tunnel", isSentinel: false, badge: "background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; font-weight:700;" };
+  }
+  if (node.type === 'diversion_canal') {
+    return { label: "Delivery Canal", isSentinel: false, badge: "background:#f0fdfa; color:#115e59; border:1px solid #99f6e4; font-weight:700;" };
+  }
+  if (node.type === 'reservoir') {
+    return { label: "Storage Reservoir", isSentinel: false, badge: "background:#faf5ff; color:#6b21a8; border:1px solid #e9d5ff; font-weight:700;" };
+  }
+  return { label: "Tributary Gage", isSentinel: false, badge: "background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; font-weight:500;" };
+}
+
+function renderTrayRows() {
+  const tbody = document.getElementById("tray-table-rows");
+  if (!tbody) return;
+
+  const filtered = trayGageNodes.filter(node => {
+    if (activeTrayCategory === 'sentinel' && !node.isSentinel) return false;
+    if (activeTrayCategory === 'streamflow' && node.type !== 'streamflow') return false;
+    if (activeTrayCategory === 'diversion' && !node.type.startsWith('diversion')) return false;
+    if (activeTrayCategory === 'reservoir' && node.type !== 'reservoir') return false;
+
+    if (trayFilterQuery) {
+      const match = node.name.toLowerCase().includes(trayFilterQuery) ||
+                    node.id.toLowerCase().includes(trayFilterQuery) ||
+                    node.tier.label.toLowerCase().includes(trayFilterQuery) ||
+                    node.type.toLowerCase().includes(trayFilterQuery);
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:#94a3b8;">No facilities match "${trayFilterQuery}"</td></tr>`;
+    return;
+  }
+
+  // Event delegation: Bind single click handler on tbody once (no inline onclicks)
+  if (!tbody._hasDelegatedClick) {
+    tbody.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return; // Allow portal links to open without map pan
+      const row = e.target.closest('tr[data-station-id]');
+      if (!row) return;
+      const id = row.dataset.stationId;
+      const lat = parseFloat(row.dataset.lat);
+      const lon = parseFloat(row.dataset.lon);
+      flyToNode(id, lat, lon);
+    });
+    tbody._hasDelegatedClick = true;
+  }
+
+  tbody.innerHTML = filtered.map(node => {
+    const portal = getPortalInfo(node);
+    const portalLink = portal 
+      ? `<a href="${portal.url}" target="_blank" rel="noopener" title="Open official ${portal.name}" onclick="event.stopPropagation();" style="margin-left:5px; color:#0284c7; text-decoration:none; font-weight:700;">↗</a>`
+      : '';
+
+    return `
+      <tr data-station-id="${node.id}" data-lat="${node.lat}" data-lon="${node.lon}" style="cursor:pointer;">
+        <td style="font-weight:600; color:#0f172a;">${node.name}${portalLink}</td>
+        <td style="font-family:monospace; color:#64748b; font-size:11px; white-space:nowrap;">${node.id}</td>
+        <td><span style="display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; ${node.tier.badge}">${node.tier.label}</span></td>
+        <td><span class="type-pill ${node.type}">${node.type.replace('_', ' ')}</span></td>
+        <td style="text-align:right; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap;">${node.reading}</td>
+        <td style="text-align:center; white-space:nowrap;">
+          <button type="button" style="padding:2px 7px; font-size:10.5px; font-weight:700; background:#f1f5f9; color:#0284c7; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer;" title="Fly to this station on the map">
+            Map ↗
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function populateTelemetryTable(metrics) {
   const allNodes = [
     ...metrics.streamflows.map(s => {
       let b = "Upper Basin";
       if (s.id === "09380000") b = "Upper/Lower Divide";
       else if (["09402000", "09415000", "09426000", "09429100", "09474000", "09520500", "09498500", "09511300"].includes(s.id)) b = "Lower Basin";
+      const readingStr = s.flow_cfs != null ? `${s.flow_cfs.toLocaleString()} cfs` : 'Offline (Discontinued)';
       return {
         id: s.id,
         name: s.name,
         type: "streamflow",
         basin: b,
-        reading: `${s.flow_cfs.toLocaleString()} cfs`,
+        reading: readingStr,
         notes: "USGS NWIS Real-Time Gauge",
         timestamp: s.timestamp,
         lat: s.lat,
@@ -4608,7 +5363,7 @@ function populateTelemetryTable(metrics) {
       name: t.name,
       type: "diversion_tunnel",
       basin: "Continental Divide",
-      reading: `${t.flow_cfs.toLocaleString()} cfs`,
+      reading: t.flow_cfs != null ? (t.flow_cfs === 0 ? "0.0 cfs (Winter Shutdown)" : `${t.flow_cfs.toLocaleString()} cfs`) : "Offline",
       notes: t.destination,
       timestamp: t.timestamp,
       lat: t.lat,
@@ -4619,7 +5374,7 @@ function populateTelemetryTable(metrics) {
       name: c.name,
       type: "diversion_canal",
       basin: "Lower Basin Conveyance",
-      reading: `${c.flow_cfs.toLocaleString()} cfs`,
+      reading: c.flow_cfs != null ? `${c.flow_cfs.toLocaleString()} cfs` : "Offline (Discontinued)",
       notes: c.destination,
       timestamp: c.timestamp,
       lat: c.lat,
@@ -4637,7 +5392,7 @@ function populateTelemetryTable(metrics) {
       name: r.name,
       type: "reservoir",
       basin: r.category === "front_range" ? "Front Range Storage" : (["lake_powell", "flaming_gorge", "navajo", "blue_mesa"].includes(r.id) ? "Upper Basin Storage" : "Lower Basin Storage"),
-      reading: `${(r.capacity_pct !== undefined && r.capacity_pct !== null) ? r.capacity_pct : ((r.storage_af / r.capacity_af) * 100).toFixed(1)}% (${Math.round(r.storage_af / 1000).toLocaleString()}k AF)`,
+      reading: `${(r.capacity_pct !== undefined && r.capacity_pct !== null) ? r.capacity_pct : ((r.storage_af / r.capacity_af) * 100).toFixed(1)}% (${Math.round((r.storage_af || 0) / 1000).toLocaleString()}k AF)`,
       notes: r.feet_below_full ? `${r.feet_below_full} ft down (Elev: ${r.elevation_ft ? r.elevation_ft.toLocaleString() : 'N/A'} ft)` : `Elevation: ${r.elevation_ft ? r.elevation_ft.toLocaleString() : 'N/A'} ft`,
       timestamp: r.timestamp,
       lat: r.lat,
@@ -4645,9 +5400,30 @@ function populateTelemetryTable(metrics) {
     }))
   ];
 
+  // Update counts on map
   const countElem = document.getElementById("node-count");
   if (countElem) countElem.textContent = allNodes.length;
+  const trayCountElem = document.getElementById("tray-node-count");
+  if (trayCountElem) trayCountElem.textContent = allNodes.length;
 
+  // Enrich nodes with sentinel tier
+  trayGageNodes = allNodes.map(node => {
+    const tier = getTraySentinelTier(node);
+    return {
+      ...node,
+      tier: tier,
+      isSentinel: tier.isSentinel
+    };
+  });
+
+  // Render tray rows
+  renderTrayRows();
+
+  // Populate legacy table if present using DocumentFragment batching and event delegation
+  const tbody = document.getElementById("telemetry-rows");
+  if (!tbody) return;
+
+  const fragment = document.createDocumentFragment();
   allNodes.forEach(node => {
     const portal = getPortalInfo(node);
     const portalLink = portal 
@@ -4655,6 +5431,10 @@ function populateTelemetryTable(metrics) {
       : '';
 
     const tr = document.createElement("tr");
+    tr.dataset.stationId = node.id;
+    tr.dataset.lat = node.lat;
+    tr.dataset.lon = node.lon;
+    tr.style.cursor = "pointer";
     tr.innerHTML = `
       <td><strong>${node.name}</strong>${portalLink}</td>
       <td><span class="type-pill ${node.type}">${node.type.replace('_', ' ')}</span></td>
@@ -4663,11 +5443,20 @@ function populateTelemetryTable(metrics) {
       <td style="color:#64748b;font-size:11px;">${node.notes}</td>
       <td style="color:#64748b;font-size:11px;white-space:nowrap;">${formatTimestamp(node.timestamp)}</td>
     `;
-    tr.addEventListener("click", () => {
-      flyToNode(node.id, node.lat, node.lon);
-    });
-    tbody.appendChild(tr);
+    fragment.appendChild(tr);
   });
+  tbody.replaceChildren(fragment);
+
+  if (!tbody._hasDelegatedClick) {
+    tbody.addEventListener("click", (e) => {
+      if (e.target.closest("a")) return;
+      const row = e.target.closest("tr[data-station-id]");
+      if (row) {
+        flyToNode(row.dataset.stationId, parseFloat(row.dataset.lat), parseFloat(row.dataset.lon));
+      }
+    });
+    tbody._hasDelegatedClick = true;
+  }
 }
 
 function flyToNode(id, lat, lon) {
@@ -4675,7 +5464,7 @@ function flyToNode(id, lat, lon) {
     window.focusMapStation(id);
     return;
   }
-  map.flyTo({
+  safeFlyTo(map, {
     center: [lon, lat],
     zoom: 10.5,
     pitch: isTilted ? 48 : 0,
@@ -4690,12 +5479,35 @@ function flyToNode(id, lat, lon) {
   }
 }
 
+let lastFocusedStationId = null;
+
+function highlightActiveStationRow(stationId) {
+  const trayTbody = document.getElementById("tray-table-rows");
+  if (trayTbody) {
+    const prev = trayTbody.querySelector('tr.active-station-row');
+    if (prev && prev.dataset.stationId === stationId) return;
+    if (prev) prev.classList.remove('active-station-row');
+    const target = trayTbody.querySelector(`tr[data-station-id="${stationId}"]`);
+    if (target) {
+      target.classList.add('active-station-row');
+      target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }
+}
+
 window.focusMapStation = function(stationId) {
   if (!stationId) return;
   if (!map) {
     window._pendingFocusStation = stationId;
     return;
   }
+
+  // Idempotent guard: avoid redundant re-flying if already focused and open
+  if (lastFocusedStationId === stationId && activeFeaturePopup && activeFeaturePopup.isOpen()) {
+    return;
+  }
+  lastFocusedStationId = stationId;
+  highlightActiveStationRow(stationId);
 
   // 1. Close secondary popovers if open
   if (typeof closeMapMenu === 'function') closeMapMenu();
@@ -4736,8 +5548,8 @@ window.focusMapStation = function(stationId) {
   // 5. In stationMarkers registry (active USGS streamflow gauges or tunnels)
   if (stationMarkers && stationMarkers[stationId]) {
     const entry = stationMarkers[stationId];
-    if (map && map.flyTo) {
-      map.flyTo({
+    if (map) {
+      safeFlyTo(map, {
         center: [entry.lon, entry.lat],
         zoom: 11,
         pitch: isTilted ? 45 : 0,
@@ -4755,8 +5567,8 @@ window.focusMapStation = function(stationId) {
   if (metrics?.streamflows) {
     const stm = metrics.streamflows.find(s => s.id === stationId);
     if (stm) {
-      if (map && map.flyTo) {
-        map.flyTo({
+      if (map) {
+        safeFlyTo(map, {
           center: [stm.lon, stm.lat],
           zoom: 11,
           pitch: isTilted ? 45 : 0,
@@ -4776,8 +5588,8 @@ window.focusMapStation = function(stationId) {
   if (cachedGeography?.dams) {
     const dam = cachedGeography.dams.find(d => d.id === stationId || d.name === stationId);
     if (dam) {
-      if (map && map.flyTo) {
-        map.flyTo({
+      if (map) {
+        safeFlyTo(map, {
           center: [dam.lon, dam.lat],
           zoom: 12,
           pitch: isTilted ? 45 : 0,
@@ -4804,7 +5616,7 @@ function handleConduitCardClick(type, id, center, zoomLevel) {
   }
 
   // 2. Fly to target conduit/gauge
-  map.flyTo({
+  safeFlyTo(map, {
     center: center,
     zoom: zoomLevel || 9.5,
     pitch: isTilted ? 45 : 0,
@@ -4842,7 +5654,7 @@ function handleReservoirCardClick(r) {
 
   // 2. Fly to reservoir location
   if (r.lat && r.lon) {
-    map.flyTo({
+    safeFlyTo(map, {
       center: [r.lon, r.lat],
       zoom: 10.2,
       pitch: isTilted ? 42 : 0,
@@ -4881,42 +5693,35 @@ function formatCanalPopupHtml(t) {
   const isOffline = t.data_status === 'offline' || t.status === 'offline' || t.flow_cfs == null;
   const flowVal = Number(t.flow_cfs || 0);
   const portal = getPortalInfo(t);
-  const highlightBadge = `<div style="font-size:9.5px; font-weight:700; color:#0e7490; background:#cffafe; border:1px solid #a5f3fc; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px; margin-top:5px;">
-    <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#06b6d4;"></span>
-    Segment Isolated &amp; Highlighted
-  </div>`;
   const isDelayed = t.data_status === 'delayed' || t.status === 'delayed';
+
+  let singleSentenceNote = '';
+  if (t.historical_note) {
+    singleSentenceNote = t.historical_note.split('. ')[0];
+    if (!singleSentenceNote.endsWith('.')) singleSentenceNote += '.';
+  }
+
   const dataHtml = `
     <div style="padding: 2px;">
-      <span style="font-size:10px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;">Major Conveyance Canal</span>
-      <strong style="font-size:14px;color:#0f172a;display:block;">${t.name}</strong>
-      <span style="font-size:11px;color:#0284c7;font-weight:600;">${t.operator || ''}</span>
+      <div style="font-size:9.5px; font-weight:700; color:#0369a1; background:#e0f2fe; border:1px solid #bae6fd; padding:1px 5px; border-radius:2px; display:inline-block; margin-bottom:3px;">Major Conveyance Canal</div>
+      <strong style="font-size:13.5px; color:#0f172a; display:block;">${t.name}</strong>
+      <span style="font-size:11px; color:#0284c7; font-weight:600;">${t.operator || ''}</span>
       ${isOffline 
-        ? `<div style="margin: 8px 0; padding: 6px 10px; background:#fef2f2; border-radius:6px; border:1px solid #fecaca; display:flex; justify-content:space-between; align-items:baseline;">
+        ? `<div style="margin: 5px 0; padding: 5px 8px; background:#fef2f2; border-radius:3px; border:1px solid #fecaca; display:flex; justify-content:space-between; align-items:baseline;">
              <span style="font-size:11px; color:#991b1b; font-weight:600;">Status:</span>
              <span style="font-size:12px; font-weight:700; color:#dc2626;">Offline (Gage Discontinued)</span>
            </div>`
-        : `<div style="margin: 8px 0; padding: 6px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:baseline;">
-             <span style="font-size:11px; color:#475569; font-weight:600;">Current Diversion:</span>
-             <span style="font-size:16px; font-weight:800; color:#0284c7;">${flowVal.toLocaleString()} cfs ${isDelayed ? '<span style="font-size:10px; color:#b45309; font-weight:700;">(Delayed / Treaty Accounting)</span>' : ''}</span>
-           </div>
-           <div style="font-size:11px; color:#64748b; margin-bottom:6px;">
-             <strong>Measured:</strong> ${t.timestamp ? formatTimestamp(t.timestamp) : 'Live'}
+        : `<div style="margin: 5px 0; padding: 5px 8px; background:#f8fafc; border-radius:3px; border:1px solid #cbd5e1; display:flex; justify-content:space-between; align-items:baseline;">
+             <span style="font-size:11px; color:#64748b; font-weight:600;">Current Diversion:</span>
+             <span style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums;">${flowVal.toLocaleString()} cfs ${isDelayed ? '<span style="font-size:9.5px; color:#b45309;">(Delayed)</span>' : ''}</span>
            </div>`
       }
-      <div style="font-size:11px;line-height:1.45;color:#334155;margin-top:6px;">
+      <div style="font-size:11px; line-height:1.4; color:#334155; margin-top:4px;">
         <strong>Destination:</strong> ${t.destination || t.to}<br>
         <strong>Length:</strong> ${t.length_miles} miles<br>
-        <strong>Intake:</strong> ${t.from}<br>
-        <strong>Terminus:</strong> ${t.to}<br>
-        ${t.legal_priority ? `<strong>Legal Priority:</strong> ${t.legal_priority}<br>` : ''}
-        ${t.historical_note ? `<div style="margin-top:6px;padding:6px 8px;background:#f8fafc;border-left:3px solid #0284c7;font-size:10.5px;color:#334155;line-height:1.4;">${t.historical_note}</div>` : ''}
+        ${t.timestamp ? `<strong>Measured:</strong> ${formatTimestamp(t.timestamp)}<br>` : ''}
+        ${singleSentenceNote ? `<div style="margin-top:4px; font-size:10.5px; color:#64748b;">${singleSentenceNote}</div>` : ''}
       </div>
-      <div style="font-size:10.5px;color:#64748b;margin-top:6px;border-top:1px solid #e2e8f0;padding-top:5px;line-height:1.4;">
-        <strong>Design Capacity:</strong> ${t.id === "09527700" ? '26,155 cfs (Imperial Dam Headworks)' : (t.id === "09426650" ? '3,000 cfs (Mark Wilmer Pumping Plant)' : (t.id === "09522000" ? '7,500 cfs (Morelos Dam Headgates)' : '1,600 cfs (Whitsett Pumping Plant)'))}<br>
-        <strong>Infrastructure:</strong> Major Inter-Basin Conveyance Aqueduct
-      </div>
-      ${highlightBadge}
       ${formatPortalHtml(portal, '#0284c7')}
     </div>
   `;
@@ -4953,31 +5758,26 @@ except Exception as e:
 
 function formatReservoirDetailPopup(matchRes, cleanName) {
   const portal = getPortalInfo(matchRes || { name: cleanName });
-  const highlightBadge = `<div style="font-size:9.5px; font-weight:700; color:#0e7490; background:#cffafe; border:1px solid #a5f3fc; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; gap:4px; margin-top:5px;">
-    <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#06b6d4;"></span>
-    Waterbody Isolated &amp; Highlighted
-  </div>`;
   const dataHtml = `
     <div style="padding:2px;">
-      <span style="font-size:10px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:4px; display:inline-block; margin-bottom:4px;">Major Storage Reservoir</span>
-      <strong style="font-size:14px; color:#0f172a; display:block;">${matchRes.name}</strong>
+      <div style="font-size:9.5px; font-weight:700; color:#0369a1; background:#e0f2fe; padding:1px 5px; border-radius:2px; display:inline-block; margin-bottom:3px;">Major Storage Reservoir</div>
+      <strong style="font-size:13.5px; color:#0f172a; display:block;">${matchRes.name}</strong>
       <span style="font-size:11px; color:#64748b; font-weight:600;">${matchRes.river || ''}</span>
-      <div style="margin: 8px 0; padding: 8px 10px; background:#f8fafc; border-radius:6px; border:1px solid #e2e8f0;">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
-          <span style="font-size:11px; color:#475569; font-weight:600;">Current Storage:</span>
-          <span style="font-size:16px; font-weight:800; color:#0284c7;">${matchRes.capacity_pct}% <span style="font-size:11px; font-weight:600; color:#64748b;">Full</span></span>
+      <div style="margin: 5px 0; padding: 6px 8px; background:#f8fafc; border-radius:3px; border:1px solid #cbd5e1;">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:3px;">
+          <span style="font-size:11px; color:#64748b; font-weight:600;">Current Storage:</span>
+          <span style="font-size:15px; font-weight:800; color:#0284c7; font-variant-numeric:tabular-nums;">${matchRes.capacity_pct}% <span style="font-size:10.5px; font-weight:600; color:#64748b;">Full</span></span>
         </div>
-        <div style="height:6px; background:#e2e8f0; border-radius:3px; overflow:hidden;">
+        <div style="height:5px; background:#e2e8f0; border-radius:2px; overflow:hidden;">
           <div style="width:${Math.min(100, matchRes.capacity_pct)}%; height:100%; background:${matchRes.capacity_pct < 25 ? '#ef4444' : (matchRes.capacity_pct < 50 ? '#f59e0b' : '#0891b2')};"></div>
         </div>
       </div>
-      <div style="font-size:11.5px; color:#334155; line-height:1.5;">
+      <div style="font-size:11px; color:#334155; line-height:1.45;">
         <strong>Elevation:</strong> ${matchRes.elevation_ft ? matchRes.elevation_ft.toLocaleString() + ' ft' : 'USBR'}<br>
         <strong>Volume Stored:</strong> ${Math.round(matchRes.storage_af).toLocaleString()} Acre-Feet<br>
         <strong>Active Capacity:</strong> ${Math.round(matchRes.capacity_af || 0).toLocaleString()} Acre-Feet<br>
         <strong>Operational Role:</strong> ${matchRes.role || 'Basin Storage'}
       </div>
-      ${highlightBadge}
       ${formatPortalHtml(portal, '#0284c7')}
     </div>
   `;
@@ -5054,7 +5854,7 @@ function zoomToPreset(preset) {
           padding: { top: 135, bottom: 45, left: 45, right: 45 },
           bearing: -8
         });
-        map.flyTo({
+        safeFlyTo(map, {
           center: [cam.center.lng, cam.center.lat + 0.35],
           zoom: cam.zoom,
           pitch: map.getPitch() > 10 ? map.getPitch() : 38,
@@ -5064,13 +5864,13 @@ function zoomToPreset(preset) {
         break;
       }
       case "divide":
-        map.flyTo({ center: [-105.9, 39.85], zoom: 9.8, pitch: 56, bearing: -30, duration: 1500 });
+        safeFlyTo(map, { center: [-105.9, 39.85], zoom: 9.8, pitch: 56, bearing: -30, duration: 1500 });
         break;
       case "lees_ferry":
-        map.flyTo({ center: [-111.59, 36.86], zoom: 11.2, pitch: 54, bearing: 40, duration: 1500 });
+        safeFlyTo(map, { center: [-111.59, 36.86], zoom: 11.2, pitch: 54, bearing: 40, duration: 1500 });
         break;
       case "reservoirs":
-        map.flyTo({ center: [-113.2, 36.6], zoom: 7.5, pitch: 50, bearing: -15, duration: 1500 });
+        safeFlyTo(map, { center: [-113.2, 36.6], zoom: 7.5, pitch: 50, bearing: -15, duration: 1500 });
         break;
     }
   } else {
@@ -5081,7 +5881,7 @@ function zoomToPreset(preset) {
           padding: { top: 45, bottom: 45, left: 45, right: 45 },
           bearing: 0
         });
-        map.flyTo({
+        safeFlyTo(map, {
           center: cam.center,
           zoom: cam.zoom,
           pitch: 0,
@@ -5091,13 +5891,13 @@ function zoomToPreset(preset) {
         break;
       }
       case "divide":
-        map.flyTo({ center: [-105.95, 39.85], zoom: 9.8, pitch: 0, bearing: 0, duration: 1500 });
+        safeFlyTo(map, { center: [-105.95, 39.85], zoom: 9.8, pitch: 0, bearing: 0, duration: 1500 });
         break;
       case "lees_ferry":
-        map.flyTo({ center: [-111.59, 36.86], zoom: 11.2, pitch: 0, bearing: 0, duration: 1500 });
+        safeFlyTo(map, { center: [-111.59, 36.86], zoom: 11.2, pitch: 0, bearing: 0, duration: 1500 });
         break;
       case "reservoirs":
-        map.flyTo({ center: [-113.2, 36.6], zoom: 7.5, pitch: 0, bearing: 0, duration: 1500 });
+        safeFlyTo(map, { center: [-113.2, 36.6], zoom: 7.5, pitch: 0, bearing: 0, duration: 1500 });
         break;
     }
   }
@@ -5509,8 +6309,44 @@ function toggleLayer(layerName) {
       setLayerVisibility('basin-line', isChecked);
       setLayerVisibility('basin-line-hit-buffer', isChecked);
       break;
+    case "flowArrows":
+    case "flow-arrows":
+    case "flowDirection":
+    case "flow-direction":
+    case "gisFlowArrows":
+    case "gis-flow-arrows":
+      setLayerVisibility('flow-direction-arrows', isChecked);
+      setLayerVisibility('gis-flow-arrows', isChecked);
+      break;
+    case "topologyJunctions":
+    case "topology-junctions":
+      setLayerVisibility('topology-junctions', isChecked);
+      setLayerVisibility('topology-junctions-hit-buffer', isChecked);
+      break;
+    case "topologySections":
+    case "topology-sections":
+    case "topologyNodes":
+    case "topology-nodes":
+    case "gisNodes":
+    case "gis-nodes":
+      setLayerVisibility('topology-sections-casing', isChecked);
+      setLayerVisibility('topology-sections-core', isChecked);
+      setLayerVisibility('topology-sections-hit-buffer', isChecked);
+      break;
   }
 }
+
+// ─── Diagnostics Sync & Toggles (Compatibility Stubs) ──────────────
+function toggleQuickGis(type) {
+  // Legacy stub - toolbar removed per anti-clutter design rules
+}
+
+function syncQuickGisButtons() {
+  // Legacy stub - toolbar removed per anti-clutter design rules
+}
+
+window.toggleQuickGis = toggleQuickGis;
+window.syncQuickGisButtons = syncQuickGisButtons;
 
 // ─── Google Earth Style Trackball Navigation Control ─────────────────────────
 function initTrackballNavigation() {
@@ -5644,7 +6480,7 @@ function initTrackballNavigation() {
 
   // Double-click to reset everything (North-up and flat 2D)
   wrapper.addEventListener('dblclick', () => {
-    map.easeTo({ bearing: 0, pitch: 0, duration: 600 });
+    safeEaseTo(map, { bearing: 0, pitch: 0, duration: 600 });
   });
 
   // Initial sync
@@ -5653,7 +6489,7 @@ function initTrackballNavigation() {
 
 window.resetNorth = function() {
   if (!map) return;
-  map.easeTo({ bearing: 0, duration: 550 });
+  safeEaseTo(map, { bearing: 0, duration: 550 });
 };
 
 window.toggle3DMode = function() {
@@ -5661,13 +6497,13 @@ window.toggle3DMode = function() {
   const currentPitch = map.getPitch();
   if (currentPitch >= 8) {
     // Already in 3D -> smoothly reset to flat 2D perspective
-    map.easeTo({ pitch: 0, duration: 600 });
+    safeEaseTo(map, { pitch: 0, duration: 600 });
   } else {
     // Flat 2D -> engage 3D terrain and pitch camera to 50 degrees
     if (!map.getTerrain()) {
       map.setTerrain({ source: 'terrain-dem', exaggeration: 1.5 });
     }
-    map.easeTo({ pitch: 50, duration: 800 });
+    safeEaseTo(map, { pitch: 50, duration: 800 });
   }
 };
 
@@ -5680,7 +6516,7 @@ window.stepTilt = function(delta) {
   } else if (targetPitch === 0 && map.getTerrain()) {
     map.setTerrain(null);
   }
-  map.easeTo({ pitch: targetPitch, duration: 400 });
+  safeEaseTo(map, { pitch: targetPitch, duration: 400 });
 };
 
 // ==========================================================================
@@ -5693,27 +6529,31 @@ window.toggleSidebar = function() {
   const arrow = document.getElementById('sidebar-tab-arrow');
   if (!panel) return;
 
-  const isMobile = window.innerWidth <= 900;
-  if (isMobile) {
-    const isOpen = panel.classList.contains('mobile-open') || panel.classList.contains('drawer-open');
+  const isSlideDrawer = panel.classList.contains('drawer-open') || 
+                        window.getComputedStyle(panel).position === 'fixed' || 
+                        document.getElementById('sidebar-expand-tab') !== null;
+
+  if (isSlideDrawer) {
+    const isOpen = panel.classList.contains('drawer-open') || panel.classList.contains('mobile-open');
     if (!isOpen) {
       if (typeof closeMapMenu === 'function') closeMapMenu();
-      panel.classList.add('mobile-open');
       panel.classList.add('drawer-open');
+      panel.classList.add('mobile-open');
+      panel.classList.remove('desktop-collapsed');
       if (backdrop) backdrop.classList.add('show');
       if (btn) btn.classList.add('active');
       if (arrow) arrow.textContent = '▶';
       document.body.classList.add('sidebar-drawer-active');
     } else {
-      panel.classList.remove('mobile-open');
       panel.classList.remove('drawer-open');
+      panel.classList.remove('mobile-open');
       if (backdrop) backdrop.classList.remove('show');
       if (btn) btn.classList.remove('active');
       if (arrow) arrow.textContent = '◀';
       document.body.classList.remove('sidebar-drawer-active');
     }
   } else {
-    // Desktop layout toggling
+    // Desktop flex layout toggling (map.html standalone view)
     const isCollapsed = panel.classList.contains('desktop-collapsed');
     if (isCollapsed) {
       panel.classList.remove('desktop-collapsed');
@@ -5740,7 +6580,9 @@ window.closeSidebar = function() {
   if (panel) {
     panel.classList.remove('drawer-open');
     panel.classList.remove('mobile-open');
-    panel.classList.add('desktop-collapsed');
+    if (!document.getElementById('sidebar-expand-tab')) {
+      panel.classList.add('desktop-collapsed');
+    }
   }
   if (backdrop) {
     backdrop.classList.remove('show');

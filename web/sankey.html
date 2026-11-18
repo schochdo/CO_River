@@ -34,7 +34,7 @@
       font-variant-numeric: tabular-nums;
       font-feature-settings: "tnum";
     }
-    .mono, code, pre {
+    code, pre {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
     
@@ -58,23 +58,23 @@
       stroke-opacity: 0.85 !important;
     }
 
-    /* Tooltip */
+    /* Editorial Tooltip & Popups */
     #sankey-tooltip {
       position: fixed;
       background: #ffffff;
       border: 1px solid #cbd5e1;
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 12px;
+      border-radius: 3px;
+      padding: 10px 12px;
+      font-size: 11px;
       color: #0f172a;
-      pointer-events: none;
+      pointer-events: auto;
       opacity: 0;
       transform: translateY(4px);
       transition: opacity 0.15s ease, transform 0.15s ease;
       z-index: 1000;
-      max-width: 340px;
-      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
-      line-height: 1.45;
+      max-width: 320px;
+      box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+      line-height: 1.4;
     }
     #sankey-tooltip.visible {
       opacity: 1;
@@ -148,7 +148,7 @@
     <header class="flex flex-wrap items-center justify-between gap-4 mb-3 pb-3 border-b border-stone-300">
       <div>
         <div class="flex items-center gap-2">
-          <a id="btn-back-workspace" href="./" onclick="backToWorkspace(event)" class="text-xs px-3 py-1 rounded-md bg-white border border-stone-300 text-stone-700 font-semibold hover:bg-stone-50 transition shadow-xs">← Back to Research Workspace</a>
+          <a id="btn-back-workspace" href="./" onclick="backToWorkspace(event)" class="text-xs px-3 py-1 rounded-md bg-white border border-stone-300 text-stone-700 font-semibold hover:bg-stone-50 transition shadow-xs">← Back to Colorado River Basin</a>
           <span class="text-xs text-stone-400">•</span>
           <span class="text-xs font-semibold text-stone-500 uppercase tracking-wider">End-to-End Basin Mass-Balance</span>
           <span class="text-xs text-stone-400">•</span>
@@ -181,7 +181,7 @@
         <span class="font-black text-stone-900 uppercase tracking-wider text-[11px]">Modern Hydrologic Mass-Balance:</span>
         <span>Natural snowpack yield (<strong>12.40 MAF</strong>) is insufficient to satisfy total basin depletions &amp; evaporation (<strong>14.45 MAF</strong>).</span>
       </div>
-      <div class="text-[11px] font-mono text-stone-500">
+      <div class="text-[11px] tabular-nums text-stone-500">
         Unit Conversion: <span class="text-stone-800 font-bold">1 cfs sustained over 1 year = ~724 acre-feet (~0.000724 MAF)</span>
       </div>
     </div>
@@ -197,19 +197,19 @@
           <span>River Inflows &amp; Compact Delivery</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <span class="w-3 h-3 rounded-xs bg-[#dc2626]"></span>
+          <span class="w-3 h-3 rounded-xs bg-[#b2182b]"></span>
           <span>Storage Overdraft / Deficit</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <span class="w-3 h-3 rounded-xs bg-[#16a34a]"></span>
+          <span class="w-3 h-3 rounded-xs bg-[#15803d]"></span>
           <span>Agricultural Irrigation (All Basins)</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <span class="w-3 h-3 rounded-xs bg-[#d97706]"></span>
+          <span class="w-3 h-3 rounded-xs bg-[#b45309]"></span>
           <span>Municipal Cities &amp; Aqueducts</span>
         </div>
         <div class="flex items-center gap-1.5">
-          <span class="w-3 h-3 rounded-xs bg-[#4f46e5]"></span>
+          <span class="w-3 h-3 rounded-xs bg-[#4338ca]"></span>
           <span>1944 Mexico Treaty Delivery</span>
         </div>
         <div class="flex items-center gap-1.5">
@@ -230,8 +230,10 @@
       </div>
 
       <div id="sankey-container" class="w-full h-[650px] overflow-x-auto"></div>
-      <!-- Hover Tooltip -->
+      <!-- Hover / Click Tooltip & Popups -->
       <div id="sankey-tooltip"></div>
+      <div id="flowComparisonBox" style="display:none;"></div>
+      <div id="combinedInflowBox" style="display:none;"></div>
     </div>
 
     <!-- Explanatory Footnotes (Edward Tufte Editorial Standard) -->
@@ -267,6 +269,283 @@
   </div>
 
   <script>
+    const NODE_META = {
+      "Upper Colorado Mainstem": {
+        cleanTitle: "Upper Colorado Mainstem",
+        summary: "Alpine snowpack originating in the Colorado Rockies; supplies ~50% of Lake Powell natural runoff.",
+        stationId: "09095500",
+        stationLabel: "USGS #09095500",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09095500/#parameterCode=00060",
+        flowCfs: 2840,
+        pctMean: "92%"
+      },
+      "Green River Basin": {
+        cleanTitle: "Green River Basin",
+        summary: "Regulated by Flaming Gorge Dam; supplies ~34% of Lake Powell's natural inflow.",
+        stationId: "09315000",
+        stationLabel: "USGS #09315000",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09315000/#parameterCode=00060",
+        flowCfs: 2150,
+        pctMean: "88%"
+      },
+      "San Juan River Basin": {
+        cleanTitle: "San Juan River Basin",
+        summary: "Alpine snowmelt from the San Juan Mountains in Colorado and New Mexico into Lake Powell.",
+        stationId: "09379500",
+        stationLabel: "USGS #09379500",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09379500/#parameterCode=00060",
+        flowCfs: 890,
+        pctMean: "94%"
+      },
+      "Reservoir Storage Drawdown": {
+        cleanTitle: "Reservoir Storage Drawdown",
+        summary: "Annual structural overdraft drawn from storage in Lake Mead and Lake Powell to bridge consumptive demand.",
+        stationId: "lake_mead",
+        stationLabel: "USBR Lake Mead",
+        portalUrl: "https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html",
+        flowCfs: null,
+        pctMean: null
+      },
+      "Upper Basin Allocations": {
+        cleanTitle: "Upper Basin Allocations",
+        summary: "Consumptive water use across Colorado, Utah, Wyoming, and New Mexico under the 1948 Upper Basin Compact.",
+        stationId: "09095500",
+        stationLabel: "Upper Basin Network",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09095500/#parameterCode=00060",
+        flowCfs: null,
+        pctMean: null
+      },
+      "Lees Ferry Compact Delivery": {
+        cleanTitle: "Lees Ferry Compact Delivery",
+        summary: "1922 Compact dividing point measuring releases from Glen Canyon Dam to the Lower Basin.",
+        stationId: "09380000",
+        stationLabel: "USGS #09380000",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09380000/#parameterCode=00060",
+        flowCfs: 8420,
+        pctMean: "101%"
+      },
+      "Lower Basin Storage Drawdown": {
+        cleanTitle: "Lower Basin Storage Drawdown",
+        summary: "Lower Basin consumptive overdraft exceeding annual deliveries past Lees Ferry.",
+        stationId: "lake_mead",
+        stationLabel: "USBR Lake Mead",
+        portalUrl: "https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html",
+        flowCfs: null,
+        pctMean: null
+      },
+      "Western Slope In-Basin Canals": {
+        cleanTitle: "Western Slope In-Basin Canals",
+        summary: "Direct gravity agricultural irrigation canals across western Colorado, Utah, and Wyoming.",
+        stationId: "09095500",
+        stationLabel: "USGS #09095500",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09095500/#parameterCode=00060",
+        flowCfs: null,
+        pctMean: null
+      },
+      "Trans-Mountain Tunnels": {
+        cleanTitle: "Trans-Mountain Tunnels",
+        summary: "Diversion tunnels conveying West Slope headwaters under the Continental Divide to Front Range cities.",
+        stationId: "ROBTUNCO",
+        stationLabel: "CDSS #ROBTUNCO",
+        portalUrl: "https://dwr.state.co.us/Tools/Stations?station=ROBTUNCO",
+        flowCfs: 410,
+        pctMean: "85%"
+      },
+      "Lake Mead & Lower Mainstem Hub": {
+        cleanTitle: "Lake Mead & Lower Mainstem Hub",
+        summary: "Hoover Dam reservoir storage pool and downstream regulatory reaches feeding Lower Basin water users.",
+        stationId: "09421500",
+        stationLabel: "USGS #09421500",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09421500/#parameterCode=00060",
+        flowCfs: 8950,
+        pctMean: "98%"
+      },
+      "Western Slope Agriculture (CO, UT, WY, NM)": {
+        cleanTitle: "Western Slope Agriculture",
+        summary: "In-basin irrigated pasture, alfalfa, and orchard crops across Colorado, Utah, and Wyoming.",
+        stationId: "09095500",
+        stationLabel: "Western Slope Basin",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09095500/#parameterCode=00060",
+        flowCfs: null,
+        pctMean: null
+      },
+      "Front Range Cities (Denver, CO Springs, Northern)": {
+        cleanTitle: "Front Range Municipalities",
+        summary: "Municipal water supply for Denver, Colorado Springs, and Northern Colorado via trans-mountain collection.",
+        stationId: "ROBTUNCO",
+        stationLabel: "CDSS #ROBTUNCO",
+        portalUrl: "https://dwr.state.co.us/Tools/Stations?station=ROBTUNCO",
+        flowCfs: 410,
+        pctMean: "85%"
+      },
+      "California Agriculture (Imperial & Coachella)": {
+        cleanTitle: "California Agriculture",
+        summary: "Senior 1901 present perfected rights delivered via the All-American Canal to Imperial & Coachella Valleys.",
+        stationId: "09527700",
+        stationLabel: "USGS #09527700",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09527700/#parameterCode=00060",
+        flowCfs: 2850,
+        pctMean: "96%"
+      },
+      "Arizona Agriculture (Palo Verde, Yuma, Gila)": {
+        cleanTitle: "Arizona Agriculture",
+        summary: "Senior run-of-the-river irrigation diversions for Palo Verde, Yuma, and Gila Valley agriculture.",
+        stationId: "09427520",
+        stationLabel: "USGS #09427520",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09427520/#parameterCode=00060",
+        flowCfs: 1620,
+        pctMean: "94%"
+      },
+      "Central Arizona Project (Phoenix & Tucson)": {
+        cleanTitle: "Central Arizona Project",
+        summary: "336-mile canal pumping water from Lake Havasu to Phoenix and Tucson municipal and tribal users.",
+        stationId: "09426650",
+        stationLabel: "USGS #09426650",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09426650/#parameterCode=00060",
+        flowCfs: 1450,
+        pctMean: "92%"
+      },
+      "Southern California CRA (Los Angeles, San Diego)": {
+        cleanTitle: "Southern California Aqueduct",
+        summary: "242-mile Colorado River Aqueduct conveying Lake Havasu water to the Metropolitan Water District.",
+        stationId: "09424150",
+        stationLabel: "USGS #09424150",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09424150/#parameterCode=00060",
+        flowCfs: 980,
+        pctMean: "89%"
+      },
+      "Nevada / SNWA (Las Vegas)": {
+        cleanTitle: "Southern Nevada (Las Vegas)",
+        summary: "Deep straw intakes pumping municipal water from Lake Mead for the Las Vegas Valley.",
+        stationId: "lake_mead",
+        stationLabel: "USBR Lake Mead",
+        portalUrl: "https://www.usbr.gov/lc/region/g4000/hourly/mead-elv.html",
+        flowCfs: null,
+        pctMean: null
+      },
+      "1944 Mexico Treaty Delivery (Mexicali)": {
+        cleanTitle: "1944 Mexico Treaty Delivery",
+        summary: "International treaty entitlement delivered at Morelos Dam into Canal Alimentador Central for Mexicali.",
+        stationId: "09522000",
+        stationLabel: "USGS #09522000",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09522000/#parameterCode=00060",
+        flowCfs: 1890,
+        pctMean: "95%"
+      },
+      "Reservoir Evaporation (Mead & Powell)": {
+        cleanTitle: "Reservoir Evaporation",
+        summary: "Atmospheric evaporation losses from the vast open water surfaces of Lake Mead and Lake Powell.",
+        stationId: "lake_powell",
+        stationLabel: "USBR CRSP",
+        portalUrl: "https://www.usbr.gov/uc/water/crsp/cs/gcd.html",
+        flowCfs: null,
+        pctMean: null
+      },
+      "River Transit Seepage & Riparian Loss": {
+        cleanTitle: "River Transit Seepage & Losses",
+        summary: "Channel infiltration, phreatophyte evapotranspiration, and unmeasured lower river losses.",
+        stationId: "09421500",
+        stationLabel: "USGS NWIS",
+        portalUrl: "https://waterdata.usgs.gov/monitoring-location/09421500/#parameterCode=00060",
+        flowCfs: null,
+        pctMean: null
+      }
+    };
+
+    function showOnMap(stationId, event) {
+      if (event) event.preventDefault();
+      if (window.parent && window.parent !== window) {
+        if (typeof window.parent.focusMapStation === 'function') {
+          window.parent.focusMapStation(stationId);
+        } else {
+          window.parent.postMessage({ type: 'focusStation', stationId: stationId }, '*');
+        }
+        if (typeof window.parent.setTab === 'function') {
+          window.parent.setTab('overview');
+        }
+      } else {
+        window.location.href = `./?station=${stationId}`;
+      }
+    }
+    window.showOnMap = showOnMap;
+
+    function formatSankeyNodeCard(d) {
+      const meta = NODE_META[d.name] || {};
+      const cleanTitle = meta.cleanTitle || d.name;
+      const summary = meta.summary || d.desc || '';
+      const portalUrl = meta.portalUrl || (meta.stationId ? `https://waterdata.usgs.gov/monitoring-location/${meta.stationId}/#parameterCode=00060` : null);
+      const portalLabel = meta.portalLabel || (meta.stationId ? `USGS #${meta.stationId}` : 'Data Portal');
+
+      let currentFlowRow = '';
+      if (meta.stationId && meta.flowCfs != null) {
+        const meanPct = meta.pctMean ? ` (${meta.pctMean} of mean)` : '';
+        currentFlowRow = `
+          <div style="display:flex; justify-content:space-between; margin-top:2px;">
+            <span style="color:#64748b;">Current Flow (${portalLabel}):</span>
+            <strong style="color:#0284c7; font-variant-numeric:tabular-nums;">${meta.flowCfs.toLocaleString()} cfs<span style="font-size:10px; font-weight:600; color:#64748b;">${meanPct}</span></strong>
+          </div>
+        `;
+      } else if (meta.stationId) {
+        currentFlowRow = `
+          <div style="display:flex; justify-content:space-between; margin-top:2px;">
+            <span style="color:#64748b;">Station / Control:</span>
+            <strong style="color:#0284c7;">${portalLabel}</strong>
+          </div>
+        `;
+      }
+
+      const portalLink = portalUrl ? `
+        <a href="${portalUrl}" target="_blank" rel="noopener" style="color:#0284c7; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:2px;">
+          Official Portal: ${portalLabel} <span style="font-size:9.5px;">↗</span>
+        </a>
+      ` : `<span style="color:#64748b; font-size:10.5px;">Water Budget Model</span>`;
+
+      const stationId = meta.stationId || '';
+      const mapLink = stationId ? `
+        <a href="./?station=${stationId}" onclick="showOnMap('${stationId}', event)" style="color:#0284c7; text-decoration:none; font-weight:700; display:inline-flex; align-items:center; gap:2px;">
+          Show on Map →
+        </a>
+      ` : '';
+
+      return `
+        <div class="sankey-card" style="font-family:'Inter',sans-serif; min-width:260px; max-width:320px; line-height:1.4;">
+          <div style="font-size:13px; font-weight:800; color:#0f172a; margin-bottom:2px;">${cleanTitle}</div>
+          <div style="font-size:11px; color:#475569; margin-bottom:6px; line-height:1.35;">${summary}</div>
+          <div style="border-top:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; padding:4px 0; margin-bottom:6px; font-size:11px;">
+            <div style="display:flex; justify-content:space-between;">
+              <span style="color:#64748b;">Annual Budget Mean:</span>
+              <strong style="color:#0f172a; font-variant-numeric:tabular-nums;">${d.value.toFixed(2)} MAF/yr</strong>
+            </div>
+            ${currentFlowRow}
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px;">
+            ${portalLink}
+            ${mapLink}
+          </div>
+        </div>
+      `;
+    }
+
+    function formatSankeyLinkCard(d) {
+      const sourceMeta = NODE_META[d.source.name] || {};
+      const targetMeta = NODE_META[d.target.name] || {};
+      const sourceName = sourceMeta.cleanTitle || d.source.name;
+      const targetName = targetMeta.cleanTitle || d.target.name;
+      return `
+        <div class="sankey-card" style="font-family:'Inter',sans-serif; min-width:240px; max-width:300px; line-height:1.4;">
+          <div style="font-size:12.5px; font-weight:800; color:#0f172a; margin-bottom:2px;">${sourceName} → ${targetName}</div>
+          <div style="font-size:11px; color:#475569; margin-bottom:6px; line-height:1.35;">Annual mass-balance conveyance.</div>
+          <div style="border-top:1px solid #e2e8f0; border-bottom:1px solid #e2e8f0; padding:4px 0; margin-bottom:6px; font-size:11px;">
+            <div style="display:flex; justify-content:space-between;">
+              <span style="color:#64748b;">Annual Volume:</span>
+              <strong style="color:#0f172a; font-variant-numeric:tabular-nums;">${d.value.toFixed(2)} MAF/yr</strong>
+            </div>
+          </div>
+          <div style="font-size:10.5px; color:#64748b;">Water Budget Conveyance</div>
+        </div>
+      `;
+    }
+
     function renderSankey() {
       const container = document.getElementById('sankey-container');
       container.innerHTML = '';
@@ -274,40 +553,34 @@
       const width = Math.max(1260, container.clientWidth || 1400);
       const height = 650;
 
-      // 4-Tier Topology:
-      // TIER 1: Inflow Sources & Reservoir Overdraft
-      // TIER 2: 1922 Compact Divisions (Upper Allocation vs Lees Ferry Delivery)
-      // TIER 3: Regional Conveyance & Mainstem Hubs
-      // TIER 4: Final End Uses & Environmental Losses
-
       const nodes = [
         // --- Tier 1: Inflow Sources & Storage Deficit ---
-        { name: "Upper Colorado Mainstem", category: "inflow", desc: "Alpine snowpack originating in the Colorado Rockies", tier: "Tier 1: Basin Headwaters (50% Upper Inflow)", era: "Natural Hydrologic Regime", legal_priority: "Originating Source Waters" },
-        { name: "Green River Basin", category: "inflow", desc: "Wind River & Uinta snowpack across WY, UT, and CO", tier: "Tier 1: Largest Tributary Basin (34% Upper Inflow)", era: "Natural Hydrologic Regime", legal_priority: "Originating Source Waters" },
-        { name: "San Juan River Basin", category: "inflow", desc: "Alpine snowmelt from the San Juan Mountains in CO and NM", tier: "Tier 1: Monsoon & Alpine Basin (16% Upper Inflow)", era: "Natural Hydrologic Regime", legal_priority: "Originating Source Waters" },
-        { name: "Reservoir Storage Drawdown", category: "deficit", desc: "Annual net drawdown of Lake Mead & Lake Powell storage", tier: "System-Wide Storage Depletion", era: "21st-Century Structural Deficit Era (2000–Present)", legal_priority: "Overdraft bridging ~1.2–2.0 MAF/yr structural gap" },
+        { name: "Upper Colorado Mainstem", category: "inflow" },
+        { name: "Green River Basin", category: "inflow" },
+        { name: "San Juan River Basin", category: "inflow" },
+        { name: "Reservoir Storage Drawdown", category: "deficit" },
 
         // --- Tier 2: 1922 Compact Divisions ---
-        { name: "Upper Basin Allocations", category: "inflow", desc: "Water diverted in CO, WY, UT, NM before reaching Lees Ferry", tier: "Upper Basin Percentage Division (CO 51.75%, UT 23%, WY 14%, NM 11.25%)", era: "1948 Upper Colorado River Basin Compact", legal_priority: "Upper Basin Compact Entitlements (~4.5 MAF/yr actual)" },
-        { name: "Lees Ferry Compact Delivery", category: "inflow", desc: "Glen Canyon Dam release mandated for Lower Basin", tier: "Tier 1: Upper Basin Escrow Bank (Lake Powell 24.32 MAF)", era: "Era 4 (1962–1972): CRSP Act / Glen Canyon Dam (1963)", legal_priority: "Article III(d) 1922 Compact 75 MAF / 10-Year Rolling Mandate" },
-        { name: "Lower Basin Storage Drawdown", category: "deficit", desc: "Water drafted from storage beyond Lees Ferry delivery", tier: "Tier 1: Lower Basin Reservoir Depletion", era: "Structural Overdraft Period", legal_priority: "Consumptive demand exceeding compact physical yield" },
+        { name: "Upper Basin Allocations", category: "inflow" },
+        { name: "Lees Ferry Compact Delivery", category: "inflow" },
+        { name: "Lower Basin Storage Drawdown", category: "deficit" },
 
         // --- Tier 3: Regional Conveyance & Mainstem Hubs ---
-        { name: "Western Slope In-Basin Canals", category: "ag", desc: "Direct gravity irrigation canals across the Western Slope", tier: "Tier 3: Direct Gravity In-Basin Diversions", era: "Era 1 (1901–1915): Pre-Compact Ag & Salton Sea Trigger", legal_priority: "Senior 1901–1915 Present Perfected In-Basin Rights" },
-        { name: "Trans-Mountain Tunnels", category: "municipal", desc: "Adams, Roberts, Moffat, and Boustead tunnels exporting to Front Range", tier: "Tier 3: Trans-Mountain Collection & Export", era: "Era 2–4 (1936–1972): Trans-Divide Municipal Boom", legal_priority: "Denver Water, Northern Water & Fryingpan-Arkansas Decrees" },
-        { name: "Lake Mead & Lower Mainstem Hub", category: "inflow", desc: "Lake Mead storage pool, Hoover Dam releases, & regulatory dams", tier: "Tier 1: Lower Basin Megabank (26.13 MAF)", era: "Era 2 (1935–1943): Boulder Canyon Project Act / CA First Mover", legal_priority: "Senior Statutory Lower Basin Anchor (1928 Act)" },
+        { name: "Western Slope In-Basin Canals", category: "ag" },
+        { name: "Trans-Mountain Tunnels", category: "municipal" },
+        { name: "Lake Mead & Lower Mainstem Hub", category: "inflow" },
 
         // --- Tier 4: Consumptive Uses & System Losses ---
-        { name: "Western Slope Agriculture (CO, UT, WY, NM)", category: "ag", desc: "Cattle pasture, alfalfa, fruit orchards, & mountain communities", tier: "Tier 3: In-Basin Agricultural Diversions", era: "Era 1 (1901–1915): Pre-Compact Agricultural Settlement", legal_priority: "Senior Western Slope In-Basin Water Rights" },
-        { name: "Front Range Cities (Denver, CO Springs, Northern)", category: "municipal", desc: "Trans-mountain municipal drinking water supply", tier: "Tier 3: Trans-Mountain Municipal Export", era: "Era 2–4 (1936–1972): Colorado Front Range Urban Growth", legal_priority: "Municipal Priorities (Denver, Colorado Springs, Northern Water)" },
-        { name: "California Agriculture (Imperial & Coachella)", category: "ag", desc: "All-American Canal winter produce & alfalfa in Imperial Valley", tier: "Tier 3: Trans-Basin Ag Canal Conveyance (11,500 cfs)", era: "Era 2 (1935–1943): Boulder Canyon Project Act (Imperial Dam / All-American Canal 1940)", legal_priority: "Senior 1901 Present Perfected Rights (3.1+ MAF/yr, uncurtailable)" },
-        { name: "Arizona Agriculture (Palo Verde, Yuma, Gila)", category: "ag", desc: "Senior priority desert agriculture along the lower Colorado River", tier: "Tier 4: Run-of-the-River Diversion Works", era: "Era 1–4 (1877–1968): Pre-Compact to Modern Diversions", legal_priority: "Senior 1877 Present Perfected Rights (Palo Verde first priority in CA)" },
-        { name: "Central Arizona Project (Phoenix & Tucson)", category: "municipal", desc: "336-mile canal supplying central Arizona municipal & tribal water", tier: "Tier 3: Trans-Basin Canal (3,000 cfs, 336 Miles)", era: "Era 5 (1985–1993): Junior Lower Basin Straw", legal_priority: "Junior 1968 Priority (Subordinated to California 4.4 MAF; absorbs first shortage cuts)" },
-        { name: "Southern California CRA (Los Angeles, San Diego)", category: "municipal", desc: "Colorado River Aqueduct delivering to Metropolitan Water District", tier: "Tier 3: Trans-Basin Municipal Aqueduct (1,600 cfs, 242 Miles)", era: "Era 2 (1935–1943): Parker Dam (1938) & Aqueduct (1941)", legal_priority: "Priority 4 & 5 (Metropolitan Water District of SoCal)" },
-        { name: "Nevada / SNWA (Las Vegas)", category: "municipal", desc: "Municipal straw intakes from Lake Mead for the Las Vegas Valley", tier: "Tier 3: Lake Mead Direct Municipal Pumpage", era: "Era 2 / Modern Third Straw Intake (2015)", legal_priority: "Nevada 300,000 AF/yr Statutory Allocation + Return Flow Credits" },
-        { name: "1944 Mexico Treaty Delivery (Mexicali)", category: "treaty", desc: "International sovereign treaty commitment delivered at Morelos Dam", tier: "Tier 4: International Treaty Diversion Dam", era: "Era 3 (1947–1953): Mexican Treaty & C-BT Era (Morelos Dam 1950)", legal_priority: "1944 Mexican Water Treaty Sovereign Commitment (1.5 MAF/yr)" },
-        { name: "Reservoir Evaporation (Mead & Powell)", category: "loss", desc: "Net atmospheric evaporation from desert reservoir surfaces", tier: "Atmospheric System Losses", era: "Post-Dam Construction Ongoing", legal_priority: "Unallocated System Loss (~1.0–1.4 MAF/yr)" },
-        { name: "River Transit Seepage & Riparian Loss", category: "loss", desc: "Channel infiltration, phreatophyte uptake, & lower river transit loss", tier: "Physical Channel Transit Losses", era: "Lower River Channel Dynamics", legal_priority: "Unallocated Lower Basin Transit Loss (~0.55 MAF/yr)" }
+        { name: "Western Slope Agriculture (CO, UT, WY, NM)", category: "ag" },
+        { name: "Front Range Cities (Denver, CO Springs, Northern)", category: "municipal" },
+        { name: "California Agriculture (Imperial & Coachella)", category: "ag" },
+        { name: "Arizona Agriculture (Palo Verde, Yuma, Gila)", category: "ag" },
+        { name: "Central Arizona Project (Phoenix & Tucson)", category: "municipal" },
+        { name: "Southern California CRA (Los Angeles, San Diego)", category: "municipal" },
+        { name: "Nevada / SNWA (Las Vegas)", category: "municipal" },
+        { name: "1944 Mexico Treaty Delivery (Mexicali)", category: "treaty" },
+        { name: "Reservoir Evaporation (Mead & Powell)", category: "loss" },
+        { name: "River Transit Seepage & Riparian Loss", category: "loss" }
       ];
 
       const links = [
@@ -331,11 +604,9 @@
         { source: "Lower Basin Storage Drawdown", target: "Lake Mead & Lower Mainstem Hub", value: 2.05, category: "deficit" },
 
         // --- Tier 3 -> Tier 4 (Conveyance & Hubs to Final Uses & Losses) ---
-        // Upper Basin Deliveries
         { source: "Western Slope In-Basin Canals", target: "Western Slope Agriculture (CO, UT, WY, NM)", value: 4.00, category: "ag" },
         { source: "Trans-Mountain Tunnels", target: "Front Range Cities (Denver, CO Springs, Northern)", value: 0.50, category: "municipal" },
 
-        // Lower Basin Deliveries from Lake Mead & Mainstem Hub
         { source: "Lake Mead & Lower Mainstem Hub", target: "California Agriculture (Imperial & Coachella)", value: 2.80, category: "ag" },
         { source: "Lake Mead & Lower Mainstem Hub", target: "Arizona Agriculture (Palo Verde, Yuma, Gila)", value: 1.47, category: "ag" },
         { source: "Lake Mead & Lower Mainstem Hub", target: "1944 Mexico Treaty Delivery (Mexicali)", value: 1.50, category: "treaty" },
@@ -346,7 +617,6 @@
         { source: "Lake Mead & Lower Mainstem Hub", target: "River Transit Seepage & Riparian Loss", value: 0.55, category: "loss" }
       ];
 
-      // D3 Sankey Generator (nodeSort: null preserves logical geographic & compact hierarchy without ugly link crossovers)
       const sankey = d3.sankey()
         .nodeId(d => d.name)
         .nodeWidth(18)
@@ -359,23 +629,22 @@
         links: links.map(d => Object.assign({}, d))
       });
 
-      // Semantic Color Palette
       const colorMap = {
-        inflow: "#0284c7",    // River Blue
-        deficit: "#dc2626",   // Warning Red (Structural Deficit / Mined Storage)
-        ag: "#16a34a",        // Crop Green (All Irrigated Agriculture)
-        municipal: "#d97706", // Amber Gold (All Municipal / City Aqueducts)
-        treaty: "#4f46e5",    // Diplomatic Indigo (1944 Mexico Treaty Delivery)
-        loss: "#64748b"       // Slate Gray (Reservoir Evaporation & Transit Loss)
+        inflow: "#0284c7",
+        deficit: "#b2182b",
+        ag: "#15803d",
+        municipal: "#b45309",
+        treaty: "#4338ca",
+        loss: "#64748b"
       };
 
       const linkColorMap = {
-        inflow: "#38bdf8",
-        deficit: "#ef4444",
-        ag: "#4ade80",
-        municipal: "#fbbf24",
-        treaty: "#818cf8",
-        loss: "#94a3b8"
+        inflow: "#0284c7",
+        deficit: "#b2182b",
+        ag: "#15803d",
+        municipal: "#b45309",
+        treaty: "#4338ca",
+        loss: "#64748b"
       };
 
       const svg = d3.select(container)
@@ -386,6 +655,29 @@
         .style("font", "11px Inter, sans-serif");
 
       const tooltip = document.getElementById("sankey-tooltip");
+      const flowComparisonBox = document.getElementById("flowComparisonBox");
+      const combinedInflowBox = document.getElementById("combinedInflowBox");
+      window.flowComparisonBox = flowComparisonBox;
+      window.combinedInflowBox = combinedInflowBox;
+
+      let tooltipTimer = null;
+      tooltip.addEventListener('mouseenter', () => {
+        if (tooltipTimer) clearTimeout(tooltipTimer);
+      });
+      tooltip.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('visible');
+      });
+
+      const scheduleTooltipHide = () => {
+        tooltipTimer = setTimeout(() => {
+          tooltip.classList.remove('visible');
+        }, 220);
+      };
+
+      function updateCardBoxes(html) {
+        if (flowComparisonBox) flowComparisonBox.innerHTML = html;
+        if (combinedInflowBox) combinedInflowBox.innerHTML = html;
+      }
 
       // Render Links
       const link = svg.append("g")
@@ -402,19 +694,24 @@
         .attr("stroke-opacity", d => d.category === 'deficit' ? 0.75 : 0.48)
         .attr("class", "link")
         .on("mouseenter", (e, d) => {
-          tooltip.innerHTML = `
-            <div class="font-bold text-stone-900 text-xs">${d.source.name} → ${d.target.name}</div>
-            <div class="mt-1 flex items-baseline justify-between gap-4">
-              <span class="text-stone-500 text-xs">Annual Volume:</span>
-              <span class="tabular-nums font-bold text-sm" style="color: ${colorMap[d.category] || '#0f172a'}">${d.value.toFixed(2)} MAF/yr</span>
-            </div>
-            <div class="text-[10px] text-stone-400 mt-1">Equivalent continuous flow: ~${Math.round(d.value * 1381.18).toLocaleString()} cfs</div>
-          `;
+          if (tooltipTimer) clearTimeout(tooltipTimer);
+          const html = formatSankeyLinkCard(d);
+          tooltip.innerHTML = html;
+          updateCardBoxes(html);
           tooltip.classList.add("visible");
           updateTooltip(e);
         })
         .on("mousemove", updateTooltip)
-        .on("mouseleave", () => tooltip.classList.remove("visible"));
+        .on("mouseleave", scheduleTooltipHide)
+        .on("click", (e, d) => {
+          e.stopPropagation();
+          if (tooltipTimer) clearTimeout(tooltipTimer);
+          const html = formatSankeyLinkCard(d);
+          tooltip.innerHTML = html;
+          updateCardBoxes(html);
+          tooltip.classList.add("visible");
+          updateTooltip(e);
+        });
 
       // Render Nodes
       const node = svg.append("g")
@@ -434,23 +731,24 @@
         .attr("stroke-width", 0.7)
         .attr("fill-opacity", 0.95)
         .on("mouseenter", (e, d) => {
-          tooltip.innerHTML = `
-            <div class="font-bold text-stone-900 text-xs">${d.name}</div>
-            <div class="text-[11px] text-stone-600 mt-0.5">${d.desc || ''}</div>
-            ${d.tier ? `<div class="text-[10px] font-bold text-cyan-700 mt-1">${d.tier}</div>` : ''}
-            ${d.era ? `<div class="text-[9.5px] font-semibold text-stone-500 mt-0.5">${d.era}</div>` : ''}
-            ${d.legal_priority ? `<div class="text-[10px] text-stone-600 mt-0.5"><span class="font-bold">Legal Priority:</span> ${d.legal_priority}</div>` : ''}
-            <div class="mt-1.5 pt-1.5 border-t border-stone-200 flex items-baseline justify-between gap-4">
-              <span class="text-stone-500 text-xs">Total Accounting:</span>
-              <span class="tabular-nums font-bold text-sm" style="color: ${colorMap[d.category] || '#0f172a'}">${d.value.toFixed(2)} MAF/yr</span>
-            </div>
-            <div class="text-[10px] text-stone-400 mt-0.5">Continuous rate: ~${Math.round(d.value * 1381.18).toLocaleString()} cfs</div>
-          `;
+          if (tooltipTimer) clearTimeout(tooltipTimer);
+          const html = formatSankeyNodeCard(d);
+          tooltip.innerHTML = html;
+          updateCardBoxes(html);
           tooltip.classList.add("visible");
           updateTooltip(e);
         })
         .on("mousemove", updateTooltip)
-        .on("mouseleave", () => tooltip.classList.remove("visible"));
+        .on("mouseleave", scheduleTooltipHide)
+        .on("click", (e, d) => {
+          e.stopPropagation();
+          if (tooltipTimer) clearTimeout(tooltipTimer);
+          const html = formatSankeyNodeCard(d);
+          tooltip.innerHTML = html;
+          updateCardBoxes(html);
+          tooltip.classList.add("visible");
+          updateTooltip(e);
+        });
 
       // Dual-Layer Node Labels (Clear Title on top, Monospace Value beneath)
       const textGroup = node.append("text")
@@ -470,14 +768,14 @@
         .style("stroke-width", "3.5px")
         .style("stroke-linejoin", "round");
 
-      // Line 1: Name
+      // Line 1: Name (Clean Title without parenthetical fluff)
       textGroup.append("tspan")
         .attr("x", function() { return d3.select(this.parentNode).attr("x"); })
         .attr("dy", "-0.25em")
         .attr("font-size", d => (d.depth === 0 || d.depth === 3) ? "11px" : "10.5px")
         .attr("font-weight", d => d.category === 'deficit' ? "800" : "700")
         .attr("fill", "#0f172a")
-        .text(d => d.name);
+        .text(d => NODE_META[d.name]?.cleanTitle || d.name);
 
       // Line 2: Value Badge with Tabular Figures
       textGroup.append("tspan")
