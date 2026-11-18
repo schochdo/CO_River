@@ -5237,6 +5237,12 @@ window.toggleMapGageTray = function(forceOpen) {
     tray.classList.remove("collapsed");
     tray.classList.add("expanded");
     if (icon) icon.textContent = "▼ Hide";
+    if (window.innerHeight < 720) {
+      const legend = document.getElementById("map-legend");
+      if (legend && !legend.classList.contains("collapsed")) {
+        window.toggleLegend();
+      }
+    }
   } else {
     tray.classList.remove("expanded");
     tray.classList.add("collapsed");
@@ -6349,6 +6355,16 @@ function toggleLayer(layerName) {
       setLayerVisibility('topology-sections-hit-buffer', isChecked);
       break;
   }
+  syncLegendDiagnosticsVisibility();
+}
+
+function syncLegendDiagnosticsVisibility() {
+  const diagLegend = document.getElementById('topology-diagnostics-legend');
+  if (!diagLegend) return;
+  const isArrows = document.getElementById('toggle-flow-arrows')?.checked ?? false;
+  const isJunctions = document.getElementById('toggle-topology-junctions')?.checked ?? false;
+  const isSections = document.getElementById('toggle-topology-sections')?.checked ?? false;
+  diagLegend.style.display = (isArrows || isJunctions || isSections) ? 'block' : 'none';
 }
 
 // ─── Diagnostics Sync & Toggles (Compatibility Stubs) ──────────────
@@ -6638,7 +6654,7 @@ function initLegendState() {
   const legend = document.getElementById('map-legend');
   if (!legend) return;
   let shouldCollapse = false;
-  if (window.innerWidth <= 900) {
+  if (window.innerWidth <= 900 || window.innerHeight <= 700) {
     shouldCollapse = true;
   } else {
     try {
@@ -6656,6 +6672,7 @@ function initLegendState() {
   if (toggleBtn) {
     toggleBtn.setAttribute('aria-expanded', String(!shouldCollapse));
   }
+  syncLegendDiagnosticsVisibility();
 }
 
 if (document.readyState === 'loading') {

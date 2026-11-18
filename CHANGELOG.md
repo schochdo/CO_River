@@ -152,6 +152,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - *Visual Verification:* Captured headless Chrome screenshots confirming clean editorial footers and cards (`verified_telemetry_clean_footer_visible.png`, `verified_profile_mockup_clean_cards.png`).
 
 ### Fixed
+- **Map Legend Overflow & Close Inaccessibility Defect (`web/style.css`, `web/map.html`, `web/map_embed.html`, `web/app.js`):**
+  - Diagnosed critical UX defect on laptop and smaller height screens where the Map Legend expanded upward beyond the top of the browser viewport (`top: -63px` to `-267px`), pushing the `.legend-header-toggle` with the collapse button completely off-screen and leaving users with no way to close it.
+  - Eliminated horizontal bloat (previously 634px wide) by setting a clean editorial fixed width of `290px` with `box-sizing: border-box`.
+  - Implemented flex column layout with `max-height: min(65vh, 460px)` (and `min(48vh, 320px)` when the gage tray is expanded), guaranteeing the legend never breaches the top edge of the map viewport.
+  - Pinned `.legend-header-toggle` with `flex-shrink: 0; background: #f8fafc`, ensuring the close toggle is permanently visible and accessible at the top of the card at all times.
+  - Added internal vertical scrolling on `.legend-content` with a sleek 5px custom scrollbar (`scrollbar-width: thin; overscroll-behavior: contain`).
+  - Added an explicit secondary `Collapse ▲` button in the legend footer so users who scroll to the bottom can collapse the legend without scrolling back up.
+  - Streamlined gage indicators into a compact 2-column grid (`Streamflow`, `Reservoirs`, `Tunnels`, `Canals`), saving 4 lines of dead height.
+  - Wrapped 3D flight & keyboard shortcuts in an expandable `<details>` section and made Topology Diagnostics and Flow Health display dynamically only when those layers are active.
+  - Enhanced `initLegendState()` to auto-collapse the legend on short viewports (`window.innerHeight <= 700`) and when the bottom gage tray opens on smaller displays.
+  - Verified 100% pass rate via automated CDP test suite (`scripts/verify_collapsible_legend_sizing.js`) across 1280x720 and 1024x600 viewports (`verified_legend_compact_sizing.png`, `verified_legend_collapsed_pill.png`).
 - **Map Drag Pan "Sticking" Defect (`web/cameraFlight.js`):**
   - Eliminated map drag stuttering and sticking caused by:
     1. `onMapMoveDuringDrag` repeatedly invoking `map.setZoom()` inside `map.on('move')` while `map.isDragging()` was true, which repeatedly reset MapLibre's internal `DragPanHandler` projection offset to zero. Removed `onMapMoveDuringDrag` and its `map.on('move')` listener.
