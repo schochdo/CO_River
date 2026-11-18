@@ -10,6 +10,7 @@ Dimensionality:
 - Timestamps: ISO 8601 hourly UTC snapshots (168-170 hours per 7-day window)
 """
 
+import gzip
 import json
 import os
 import sys
@@ -17,16 +18,44 @@ import time
 import urllib.request
 from datetime import datetime, timezone
 
-def fetch_chunk(sites, timeout=25, retries=2):
+def fetch_chunk(sites, cache_dir, timeout=25, retries=2):
     sites_str = ','.join(sites)
+    cache_key = f"chunk_{abs(hash(sites_str)) % 1000000}_{len(sites)}.json"
+    cache_path = os.path.join(cache_dir, cache_key)
+
+    # Check cache freshness (valid for 6 hours)
+    if os.path.exists(cache_path):
+        mtime = os.path.getmtime(cache_path)
+        if (time.time() - mtime) < 21600:
+            try:
+                with open(cache_path, 'r') as f:
+                    cached_data = json.load(f)
+                if cached_data:
+                    return cached_data
+            except Exception:
+                pass
+
     url = f"https://waterservices.usgs.gov/nwis/iv/?format=json&sites={sites_str}&period=P7D&parameterCd=00060"
-    req = urllib.request.Request(url, headers={'User-Agent': 'ColoradoRiverHydrology/1.0'})
+    req = urllib.request.Request(url, headers={
+        'User-Agent': 'ColoradoRiverHydrology/1.0',
+        'Accept-Encoding': 'gzip'
+    })
     
     for attempt in range(retries):
         try:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
-                data = json.loads(resp.read().decode('utf-8'))
-                return data.get('value', {}).get('timeSeries', [])
+                raw = resp.read()
+                if resp.info().get('Content-Encoding') == 'gzip':
+                    raw = gzip.decompress(raw)
+                data = json.loads(raw.decode('utf-8'))
+                series = data.get('value', {}).get('timeSeries', [])
+                if series:
+                    try:
+                        with open(cache_path, 'w') as f:
+                            json.dump(series, f)
+                    except Exception:
+                        pass
+                    return series
         except Exception as e:
             print(f"  [Attempt {attempt+1}/{retries}] Error fetching chunk: {e}", file=sys.stderr)
             time.sleep(2)
@@ -36,6 +65,8 @@ def main():
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     hierarchy_path = os.path.join(root_dir, 'web', 'data', 'station_hierarchy.json')
     output_path = os.path.join(root_dir, 'web', 'data', 'replay_7d.json')
+    cache_dir = os.path.join(root_dir, 'web', 'data', '.cache_usgs_7d')
+    os.makedirs(cache_dir, exist_ok=True)
 
     if not os.path.exists(hierarchy_path):
         print(f"Error: {hierarchy_path} not found.", file=sys.stderr)
@@ -61,7 +92,7 @@ def main():
     all_series = []
     for idx, chunk in enumerate(chunks):
         print(f"Fetching chunk {idx + 1}/{len(chunks)} ({len(chunk)} stations)...")
-        series = fetch_chunk(chunk)
+        series = fetch_chunk(chunk, cache_dir)
         print(f"  Received {len(series)} time series.")
         all_series.extend(series)
 

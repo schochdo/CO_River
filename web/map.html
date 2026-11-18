@@ -401,7 +401,11 @@
         <!-- Top Row: Kicker, Timestamp, Sentinel Readouts, Close -->
         <div class="replay-top-row">
           <div class="replay-kicker-group">
-            <span class="replay-kicker">7-DAY FLOW REPLAY</span>
+            <span class="replay-kicker">FLOW REPLAY</span>
+            <div class="replay-period-pills">
+              <button class="period-pill active" id="period-pill-7d" onclick="FlowReplayEngine.switchPeriod('7D')" title="7-Day Hourly Replay">7D</button>
+              <button class="period-pill" id="period-pill-30d" onclick="FlowReplayEngine.switchPeriod('30D')" title="30-Day 2-Hourly Replay">30D</button>
+            </div>
             <span class="replay-time-display" id="replay-time-display">--</span>
             <span class="replay-rel-time" id="replay-rel-time">--</span>
           </div>

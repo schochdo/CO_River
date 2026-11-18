@@ -1,14 +1,17 @@
 /**
- * flowReplay.js - 7-Day Empirical Flow Replay Engine for MapLibre GL JS
+ * flowReplay.js - 7-Day & 30-Day Empirical Flow Replay Engine for MapLibre GL JS
  * 
  * Provides 60 FPS temporal replay of USGS streamflow observations across the
- * Colorado River basin using a compact pre-downsampled columnar matrix (~82 KB).
+ * Colorado River basin using compact pre-downsampled columnar matrices:
+ * - 7-Day (1h resolution, ~82 KB)
+ * - 30-Day (2h resolution, ~165 KB)
  * 
  * Architecture:
  * - Decoupled state store preventing canvas layout thrashing.
  * - Non-destructive: preserves original real-time GeoJSON baselines and restores them on exit.
  * - Dynamic SVG/WebGL styling: scales marker radius via sqrt(Q) and colors pulse surges (>1.8x median).
  * - Real hydrologic story: visualizes flood wave travel and Glen Canyon / Hoover dam interception.
+ * - Multi-period switching (7D / 30D) with lazy-loading and in-memory caching.
  */
 
 (function (window) {
@@ -17,6 +20,11 @@
   const FlowReplayEngine = {
     map: null,
     metrics: null,
+    activePeriod: '7D', // '7D' or '30D'
+    datasets: {
+      '7D': null,
+      '30D': null
+    },
     data: null,
     totalHours: 0,
     currentIndex: 0,
@@ -58,7 +66,7 @@
       }
     },
 
-    async open() {
+    async open(targetPeriod) {
       const bar = document.getElementById('flow-replay-bar');
       const toggleBtn = document.getElementById('btn-flow-replay');
       if (!bar) return;
@@ -67,33 +75,71 @@
       if (toggleBtn) toggleBtn.classList.add('active');
       this.isOpen = true;
 
-      // Lazy load replay matrix if not loaded
-      if (!this.data) {
+      const period = targetPeriod || this.activePeriod || '7D';
+      await this.switchPeriod(period);
+    },
+
+    async switchPeriod(period) {
+      this.pause();
+      this.activePeriod = period === '30D' ? '30D' : '7D';
+
+      // Update period pill styles
+      const pill7d = document.getElementById('period-pill-7d');
+      const pill30d = document.getElementById('period-pill-30d');
+      if (pill7d) pill7d.classList.toggle('active', this.activePeriod === '7D');
+      if (pill30d) pill30d.classList.toggle('active', this.activePeriod === '30D');
+
+      // Update slider tick labels
+      const ticksWrap = document.getElementById('replay-slider-ticks');
+      if (ticksWrap) {
+        if (this.activePeriod === '7D') {
+          ticksWrap.innerHTML = `
+            <span>T - 7 Days</span>
+            <span>T - 5 Days</span>
+            <span>T - 3 Days</span>
+            <span>T - 1 Day</span>
+            <span>Live</span>
+          `;
+        } else {
+          ticksWrap.innerHTML = `
+            <span>T - 30 Days</span>
+            <span>T - 20 Days</span>
+            <span>T - 10 Days</span>
+            <span>T - 3 Days</span>
+            <span>Live</span>
+          `;
+        }
+      }
+
+      // Lazy load replay matrix if not cached in memory
+      if (!this.datasets[this.activePeriod]) {
         this._showLoading(true);
         try {
-          const resp = await fetch('./data/replay_7d.json');
+          const file = this.activePeriod === '30D' ? './data/replay_30d.json' : './data/replay_7d.json';
+          const resp = await fetch(file);
           if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-          this.data = await resp.json();
-          this.totalHours = this.data.timestamps.length;
-          
-          const slider = document.getElementById('replay-scrubber-slider');
-          if (slider) {
-            slider.max = this.totalHours - 1;
-            slider.value = 0;
-          }
-          this._cacheBaselines();
-          this.seek(0);
+          const data = await resp.json();
+          this.datasets[this.activePeriod] = data;
         } catch (err) {
-          console.error('[FlowReplayEngine] Failed to load replay data:', err);
+          console.error(`[FlowReplayEngine] Failed to load ${this.activePeriod} replay data:`, err);
           const timeDisplay = document.getElementById('replay-time-display');
-          if (timeDisplay) timeDisplay.textContent = 'Error loading replay matrix';
+          if (timeDisplay) timeDisplay.textContent = `Error loading ${this.activePeriod} matrix`;
           return;
         } finally {
           this._showLoading(false);
         }
-      } else {
-        this.seek(this.currentIndex);
       }
+
+      this.data = this.datasets[this.activePeriod];
+      this.totalHours = this.data.timestamps.length;
+
+      const slider = document.getElementById('replay-scrubber-slider');
+      if (slider) {
+        slider.max = this.totalHours - 1;
+        slider.value = 0;
+      }
+      this._cacheBaselines();
+      this.seek(0);
     },
 
     close() {
@@ -117,7 +163,7 @@
     _showLoading(isLoading) {
       const timeDisplay = document.getElementById('replay-time-display');
       if (timeDisplay && isLoading) {
-        timeDisplay.textContent = 'Loading 7-day telemetry matrix...';
+        timeDisplay.textContent = `Loading ${this.activePeriod} telemetry matrix...`;
       }
     },
 
@@ -233,10 +279,10 @@
       });
     },
 
-    step(deltaHours) {
+    step(deltaSteps) {
       this.pause();
       if (!this.data || this.totalHours === 0) return;
-      let nextIndex = this.currentIndex + deltaHours;
+      let nextIndex = this.currentIndex + deltaSteps;
       if (nextIndex < 0) nextIndex = 0;
       if (nextIndex >= this.totalHours) nextIndex = this.totalHours - 1;
       this.seek(nextIndex);
@@ -271,7 +317,7 @@
         slider.value = index;
       }
 
-      // Format Mountain Time: 'Wed, Nov 11 • 14:00 MST'
+      // Format Mountain Time: 'Wed, Nov 11, 05:00 AM MST'
       if (timeDisplay) {
         const options = {
           weekday: 'short',
@@ -287,13 +333,15 @@
 
       // Format Relative Time: T - Xd Yh
       if (relTimeDisplay) {
-        const hoursFromLatest = (this.totalHours - 1) - index;
-        if (hoursFromLatest === 0) {
+        const stepsFromLatest = (this.totalHours - 1) - index;
+        if (stepsFromLatest === 0) {
           relTimeDisplay.textContent = 'Current Snapshot (Live)';
           relTimeDisplay.style.color = '#0284c7';
         } else {
-          const days = Math.floor(hoursFromLatest / 24);
-          const hours = hoursFromLatest % 24;
+          const stepMultiplier = this.activePeriod === '30D' ? 2 : 1;
+          const totalHours = stepsFromLatest * stepMultiplier;
+          const days = Math.floor(totalHours / 24);
+          const hours = totalHours % 24;
           const str = days > 0 ? `T - ${days}d ${hours}h` : `T - ${hours}h`;
           relTimeDisplay.textContent = str;
           relTimeDisplay.style.color = '#64748b';

@@ -24,3 +24,4 @@ updater.pid
 patch_rivers.js
 cache/
 scratch/
+web/data/.cache_usgs*/
