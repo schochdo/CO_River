@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.3.0] - 2026-11-17 – 2026-11-18
 ### Added
+- **Automated 2x/Daily GitHub Actions Ingestion Workflow (`.github/workflows/update_data.yml`):** Implemented an automated serverless data refresh workflow running twice daily at 05:00 UTC and 17:00 UTC (`cron: '0 5,17 * * *'`) plus manual execution on demand via `workflow_dispatch`. The job checks out the repository, installs Python dependencies (`requests`), executes `src/fetch_water_data.py`, `src/fetch_replay_7d.py`, and `src/fetch_replay_30d.py`, detects whether data matrices have updated via `git diff --staged`, and commits updated JSON files back to `main` as `github-actions[bot]`.
+- **Automated Map Drag Panning Verification Suite (`scripts/test_drag_pan.js`):** Built automated Chrome DevTools Protocol test simulating mouse drag panning at 0° pitch and 45° 3D terrain pitch, verifying continuous non-sticking map movement, correct coordinate deltas, and clean return to FSM `idle` mode.
 - **7-Day & 30-Day Empirical Flow Replay Subsystem (`src/fetch_replay_7d.py`, `src/fetch_replay_30d.py`, `web/flowReplay.js`, `web/map_embed.html`, `web/map.html`, `web/style.css`):** Built a high-performance, zero-bloat temporal replay player for the System Map visualizing flood wave movement and reservoir buffering across 1-week and 1-month horizons using real USGS streamflow data:
   - *Lightweight Pre-Downsampled Columnar Matrices:* 
     - 7-Day Window (`web/data/replay_7d.json`): 1-hour resolution, 170 steps across 70 stations = **81.9 KB uncompressed** (11.9 KB gzipped).
@@ -150,6 +152,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - *Visual Verification:* Captured headless Chrome screenshots confirming clean editorial footers and cards (`verified_telemetry_clean_footer_visible.png`, `verified_profile_mockup_clean_cards.png`).
 
 ### Fixed
+- **Map Drag Pan "Sticking" Defect (`web/cameraFlight.js`):**
+  - Eliminated map drag stuttering and sticking caused by:
+    1. `onMapMoveDuringDrag` repeatedly invoking `map.setZoom()` inside `map.on('move')` while `map.isDragging()` was true, which repeatedly reset MapLibre's internal `DragPanHandler` projection offset to zero. Removed `onMapMoveDuringDrag` and its `map.on('move')` listener.
+    2. `cancelProgrammaticFlight` invoking `map.stop()` unconditionally on every pointerdown/mousedown capture event. Guarded `cancelProgrammaticFlight` and pointer listeners so `map.stop()` is only invoked when `CameraStateMachine.getMode() === 'flyto'`. Converted pointer event listeners on canvas container to non-capturing `{ passive: true }`.
+    3. MapLibre's internal drag pan kinetic deceleration passing `{ noMoveStart: true }` into `map.easeTo` (wrapped by `safeEaseTo`), which previously triggered `cancelProgrammaticFlight` and locked the FSM into `'flyto'`. Added `isInternalInertia` guard (`options.noMoveStart || mapInstance.isDragging()`) to pass inertial deceleration directly to native `easeTo` without disrupting the camera state machine.
+  - Verified 100% smooth drag pan without sticking or stuttering across both 0° pitch and 45° 3D terrain pitch via automated CDP test suite (`scripts/test_drag_pan.js`).
+- **Top Actions Bar Replay Button Label (`web/map.html`, `web/map_embed.html`):**
+  - Renamed top floating replay button from `7D Replay` to `Flow Replay` with updated tooltip `Historical Flow Replay (7-Day & 30-Day)` and aria-label `Toggle Historical Flow Replay`, accurately reflecting both available 7-day and 30-day temporal horizons. Verified in live browser.
 - **Data Sources Modal Mini Scrollbar & Overflow Elimination (`web/index.html`):**
   - Diagnosed double vertical scrollbar artifact in the "Data Sources and Research Notebooks" modal (`#api-modal`). The Jump To anchor bar had `overflow-x-auto` without `overflow-y-hidden`, causing browsers to compute `overflow-y: auto` and sprout an 8px vertical scrollbar thumb immediately above the modal body's main scrollbar.
   - Converted the Jump To navigation bar to `flex flex-wrap items-center gap-2 px-6 py-2.5 border-b border-stone-200 bg-stone-50 text-[11px] font-semibold text-stone-700`, removing unnecessary overflow constraints.

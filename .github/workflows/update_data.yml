@@ -1,0 +1,63 @@
+name: Update Basin Water Data
+
+'on':
+  schedule:
+    # Runs twice daily at 05:00 UTC and 17:00 UTC (10:00 PM and 10:00 AM MST)
+    - cron: '0 5,17 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+# Prevent concurrent data commits
+concurrency:
+  group: basin-data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh-data:
+    name: Ingest & Refresh Basin Telemetry & Replay Matrices
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Ingestion Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests>=2.31.0
+
+      - name: Fetch Real-Time Water Metrics & Current Conditions
+        run: |
+          python3 src/fetch_water_data.py
+
+      - name: Ingest & Downsample 7-Day Flow Replay Matrix
+        run: |
+          python3 src/fetch_replay_7d.py
+
+      - name: Ingest & Downsample 30-Day Flow Replay Matrix
+        run: |
+          python3 src/fetch_replay_30d.py
+
+      - name: Commit and Push Updated Data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # Stage updated JSON data files
+          git add web/data/*.json data/*.json 2>/dev/null || true
+
+          # Check if there are unstaged or staged data updates
+          if git diff --staged --quiet; then
+            echo "Basin telemetry is already up to date. Zero changes to commit."
+          else
+            TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M UTC")
+            git commit -m "Automated basin water data refresh (${TIMESTAMP}) [skip ci]"
+            git push origin main
+          fi

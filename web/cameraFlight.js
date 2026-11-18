@@ -141,10 +141,10 @@
         return function () { listeners.delete(listener); };
       },
       cancelProgrammaticFlight: function (mapInstance) {
-        if (mapInstance && typeof mapInstance.stop === 'function') {
-          try { mapInstance.stop(); } catch (_) {}
-        }
         if (currentMode === 'flyto') {
+          if (mapInstance && typeof mapInstance.stop === 'function') {
+            try { mapInstance.stop(); } catch (_) {}
+          }
           var prev = currentMode;
           currentMode = 'idle';
           listeners.forEach(function (fn) {
@@ -211,12 +211,17 @@
     if (!mapInstance) return;
     options = options ? Object.assign({}, options) : {};
 
+    // Do not interfere with MapLibre's internal inertial kinetic panning deceleration
+    var isInternalInertia = options.noMoveStart || (mapInstance.isDragging && mapInstance.isDragging());
+
     if (options.center && !validateCenterCoords(options.center)) {
       console.warn('[safeEaseTo] Aborting: target coordinates are invalid or non-finite:', options.center);
       return mapInstance;
     }
 
-    CameraStateMachine.cancelProgrammaticFlight(mapInstance);
+    if (!isInternalInertia) {
+      CameraStateMachine.cancelProgrammaticFlight(mapInstance);
+    }
 
     var targetZoom = options.zoom !== undefined ? options.zoom : mapInstance.getZoom();
     var maxPitch = getMaxAllowedPitch(targetZoom);
@@ -228,16 +233,15 @@
       try { mapInstance.setCenterClampedToGround(true); } catch (_) {}
     }
 
-    if (CameraStateMachine.getMode() !== 'inspect') {
+    if (!isInternalInertia && CameraStateMachine.getMode() !== 'inspect') {
       CameraStateMachine.setMode('flyto');
+      var onEnd = function () {
+        if (CameraStateMachine.getMode() === 'flyto') {
+          CameraStateMachine.setMode('idle');
+        }
+      };
+      mapInstance.once('moveend', onEnd);
     }
-
-    var onEnd = function () {
-      if (CameraStateMachine.getMode() === 'flyto') {
-        CameraStateMachine.setMode('idle');
-      }
-    };
-    mapInstance.once('moveend', onEnd);
 
     var rawEase = mapInstance._rawEaseTo || mapInstance.easeTo;
     return rawEase.call(mapInstance, options);
@@ -688,57 +692,17 @@
       stopFlight(true);
     }
 
-    // Stabilize altitude during mouse drag across 3D terrain
-    function onMapMoveDuringDrag() {
-      if (isAdjustingZoom) return;
-      if (!map.isDragging || !map.isDragging()) return;
-      if (!map.getTerrain || !map.getTerrain() || map.getPitch() < 5) return;
-
-      var info = getCameraInfo(map);
-      if (!info) return;
-
-      if (mouseDragTargetAltitude === null) {
-        mouseDragTargetAltitude = info.altitude;
-        return;
-      }
-
-      isAdjustingZoom = true;
-      try {
-        var groundCam = map.queryTerrainElevation ? (map.queryTerrainElevation(info.camLngLat) || 0) : 0;
-        var groundCenter = map.queryTerrainElevation ? (map.queryTerrainElevation(info.center) || 0) : 0;
-        var maxGround = Math.max(groundCam, groundCenter, info.groundElevation);
-        var minAllowed = maxGround + CAMERA_CONSTANTS.MIN_CAMERA_CLEARANCE_METERS;
-        if (minAllowed > mouseDragTargetAltitude) {
-          mouseDragTargetAltitude = minAllowed;
-        }
-
-        var minClearance = CAMERA_CONSTANTS.MIN_CAMERA_CLEARANCE_METERS;
-        var deltaZ_cur = Math.max(minClearance, info.altitude - info.groundElevation);
-        var deltaZ_target = Math.max(minClearance, mouseDragTargetAltitude - info.groundElevation);
-
-        if (Math.abs(deltaZ_cur - deltaZ_target) > 0.4) {
-          var rawOffset = Math.log2(deltaZ_cur / deltaZ_target);
-          var clampedOffset = Math.max(-0.6, Math.min(0.6, rawOffset));
-          map.setZoom(Math.max(1.0, Math.min(22.0, map.getZoom() + clampedOffset)));
-        }
-      } finally {
-        isAdjustingZoom = false;
-      }
-    }
-
     function onDragStart() {
-      CameraStateMachine.cancelProgrammaticFlight(map);
+      if (CameraStateMachine.getMode() === 'flyto') {
+        CameraStateMachine.cancelProgrammaticFlight(map);
+      }
       if (animationFrameId !== null || activeKeys.size > 0) {
         stopFlight(true);
-      }
-      if (map.getTerrain && map.getTerrain() && map.getPitch() >= 5) {
-        var info = getCameraInfo(map);
-        if (info) mouseDragTargetAltitude = info.altitude;
       }
     }
 
     function onDragEnd() {
-      mouseDragTargetAltitude = null;
+      // Clean settlement after drag
     }
 
     // SECTION 6 & PITFALL 4: Guard synchronous pitch corrections inside moveend and zoom
@@ -766,9 +730,7 @@
     document.addEventListener('visibilitychange', stopFlightOnBlur);
 
     map.on('dragstart', onDragStart);
-    map.on('move', onMapMoveDuringDrag);
     map.on('dragend', onDragEnd);
-    map.on('moveend', onDragEnd);
     map.on('moveend', enforceProgressivePitch);
     map.on('zoom', enforceProgressivePitch);
 
@@ -818,7 +780,9 @@
     }
 
     function onPointerDownInteraction() {
-      CameraStateMachine.cancelProgrammaticFlight(map);
+      if (CameraStateMachine.getMode() === 'flyto') {
+        CameraStateMachine.cancelProgrammaticFlight(map);
+      }
       if (animationFrameId !== null || activeKeys.size > 0) {
         stopFlight(true);
       }
@@ -1016,8 +980,8 @@
     }
 
     if (canvasContainer) {
-      canvasContainer.addEventListener('mousedown', onPointerDownInteraction, { capture: true });
-      canvasContainer.addEventListener('pointerdown', onPointerDownInteraction, { capture: true });
+      canvasContainer.addEventListener('mousedown', onPointerDownInteraction, { passive: true });
+      canvasContainer.addEventListener('pointerdown', onPointerDownInteraction, { passive: true });
       canvasContainer.addEventListener('touchstart', handleTouchStart, { capture: true, passive: false });
       canvasContainer.addEventListener('touchmove', handleTouchMove, { capture: true, passive: false });
       canvasContainer.addEventListener('touchend', handleTouchEnd, { capture: true, passive: true });
@@ -1045,15 +1009,13 @@
       document.removeEventListener('visibilitychange', stopFlightOnBlur);
 
       map.off('dragstart', onDragStart);
-      map.off('move', onMapMoveDuringDrag);
       map.off('dragend', onDragEnd);
-      map.off('moveend', onDragEnd);
       map.off('moveend', enforceProgressivePitch);
       map.off('zoom', enforceProgressivePitch);
 
       if (canvasContainer) {
-        canvasContainer.removeEventListener('mousedown', onPointerDownInteraction, { capture: true });
-        canvasContainer.removeEventListener('pointerdown', onPointerDownInteraction, { capture: true });
+        canvasContainer.removeEventListener('mousedown', onPointerDownInteraction);
+        canvasContainer.removeEventListener('pointerdown', onPointerDownInteraction);
         canvasContainer.removeEventListener('touchstart', handleTouchStart, { capture: true });
         canvasContainer.removeEventListener('touchmove', handleTouchMove, { capture: true });
         canvasContainer.removeEventListener('touchend', handleTouchEnd, { capture: true });
