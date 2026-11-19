@@ -6,8 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
-## [2.3.0] - 2026-11-17 – 2026-11-18
+## [2.3.0] - 2026-11-17 – 2026-11-19
 ### Added
+- **Water Budget Tab Architecture & Dual Stacked Bars Integration (`web/sankey.html`, `web/pipeline.html`):**
+  - Relocated the complete "Physical Water Runoff vs. Legal Paper Allocations" dual stacked bar component into `web/sankey.html`, bringing both macro-annual accounting tools (Sankey Flow Diagram and Runoff vs. Paper Allocations) into a unified home on the Water Budget tab.
+  - Added a responsive top view switcher: `[ ⇋ Unified Sankey Diagram ]`, `[ ⫸ Physical Runoff vs. Paper Allocations ]`, and `[ ☰ View Both (Continuous Scroll) ]`, allowing users to either toggle views with zero screen clutter or scroll continuously between them.
+  - Un-squeezed the Sankey diagram by expanding its canvas container from 650px to 740px height (`min-h-[720px]`, `const height = 740`), providing generous vertical spacing for all 20 nodes and 21 links without crowding.
+  - Ported interactive segment hover inspection (`#stacked-detail-strip`), shared 0–20 MAF scale, Lee's Ferry dividers, and the +3.90 MAF structural deficit overhang bracket to `web/sankey.html`.
+  - Added deep-link URL parameter support: `?view=stacked` and `?view=both`.
+- **Topological River Flow Schematic Full Viewport Expansion (`web/pipeline.html`):**
+  - Removed the dual stacked comparison card from `web/pipeline.html`, eliminating the previous `max-h-[46vh]` height restriction.
+  - Expanded the river reach schematic SVG container to full viewport height (`h-[calc(100vh-105px)] min-h-[640px]`), allowing the topological schematic to render with optimal scale and clarity.
+  - Renamed the primary sub-tab to `Topological River Reach Network`.
+- **Automated Topology & Budget Verification Suite (`scripts/verify_topology_and_budget_tab.js`):** Built an automated Chrome DevTools Protocol verification script validating: default topology diagnostics off-state on `map.html` and `map_embed.html`, explicit URL param override (`?topology_junctions=1`), un-squeezed full-height schematic on `pipeline.html`, and full-height Sankey plus interactive stacked bar sub-tab switching on `sankey.html`.
 - **Vertical Tributary Inflows & 14,000 ft Elevation Headroom (`web/pipeline.html`):** Redesigned the Longitudinal Elevation Profile so all 6 major basin tributaries drop straight down vertically into their exact confluence river mile along the mainstem fall line:
   - *Green River (4.90 MAF, $w=7.3\text{px}$):* Drops vertically along $x=342$ from the 13,800 ft Wind River Range crest down to Cataract Canyon confluence at 3,880 ft, including Flaming Gorge pool (6,040 ft) and USGS streamgage #09315000.
   - *Gunnison River (2.10 MAF, $w=5.4\text{px}$):* Drops vertically along $x=226$ from 12,000 ft Elk Mtns down to Grand Junction at 4,790 ft, including Blue Mesa Dam.
@@ -66,6 +77,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - *Trackpad & Mouse Wheel Controller:* Attached captured `{ passive: false, capture: true }` wheel listener on canvas container: Shift+wheel tilts 3D pitch directly, Alt+wheel rotates azimuth heading directly, and Ctrl+wheel prevents browser tab zoom.
 
 ### Fixed
+- **Topology Diagnostics Off by Default (`web/map.html`, `web/map_embed.html`, `web/app.js`):**
+  - Unchecked all 3 topology diagnostic layer toggles (`Flow Direction ▶`, `Confluence Junctions ■`, `Reach Section Nodes ●`) by default on both standalone map and embedded map interfaces.
+  - Set `showJunctions` layer initialization default to `false` in `web/app.js`.
+  - Updated URL parameter query string logic so Confluence Junctions are only rendered when explicitly requested via `?topology_junctions=1` or `?confluences=1`.
+  - Kept `#topology-diagnostics-legend` hidden by default until a diagnostic layer is actively enabled by the user.
 - **Constant-Altitude Camera Panning & Asymmetric Obstacle Clearance (`web/cameraFlight.js`, `web/app.js`):**
   - *Root Cause Diagnosis:* In MapLibre GL JS v4.7.1, `Map.prototype._render` continuously overwrites `this.transform.elevation` with `terrain.getElevationForLngLatZoom(center)` on every render frame. When panning across mountain ranges in 3D perspective ($pitch > 0$), camera altitude ($H = \cos(\text{pitch}) \cdot \frac{\text{dist}}{\text{ppm}} + \text{elevation}$) shifted by thousands of meters, causing the camera to bob/bounce up and down tracking the terrain elevation at the map's center crosshairs. In addition, keyboard flight was attempting to counteract this by pumping `map.setZoom()` via `adjustZoomForTargetAltitude`, which introduced visual zoom pumping (zooming out from zoom 12 to 7.5), and obstacle lookahead was erroneously sampling terrain at `center` (miles away).
   - *Constant-Altitude Panning Stabilization:* Engaged MapLibre's `_elevationFreeze = true` during 3D terrain operation (`isTilted` / $pitch > 5^\circ$) across all mouse/touch drag panning (`dragPan`), kinetic inertial panning, and keyboard flight cruising. When frozen, MapLibre preserves `transform.elevation`, allowing the camera to pan along a flat, constant absolute altitude plane (meters above sea level) with zero bouncing (<0.4% altitude variance across mountain passes).
