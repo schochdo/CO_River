@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.3.0] - 2026-11-17 – 2026-11-19
 ### Added
+- **Restoration of Streamflow Gage Dots & MapLibre Radius Expression Repair (`web/app.js`):**
+  - Diagnosed and resolved the root cause of missing gage dots: `circle-radius` on `streamflow-gauges-casing` and `streamflow-gauges-circle` previously wrapped an `interpolate` zoom expression inside a `coalesce` block with nested dynamic `match` expressions as stop outputs. MapLibre GL JS rejected both layers during `map.addLayer` with `Error: "zoom" expression may only be used as input to a top-level "step" or "interpolate" expression`, completely preventing the gage dots from rendering when flow badges were off.
+  - Converted `circle-radius` on both layers to spec-compliant top-level linear zoom interpolation (`[interpolate, [linear], [zoom], 4, 3.5, 7, 5.0, 10, 7.0, 13, 9.0]` for the inner core dot and 1.5px larger for the white outer casing).
+  - Maintained distinct station color coding on `streamflow-gauges-circle` matching the legend (`#0284c7` for streamflow gages, `#0891b2` for tunnels, `#059669` for canals, `#dc2626` for reservoirs).
+  - Verified 100% layer creation and rendering: all 89 point facilities render cleanly above river reaches with full hover inspection tooltips and click popups, independent of whether flow badges are toggled.
 - **Camera Controls Immediate Focus & Interaction (`web/cameraFlight.js`, `web/app.js`, `web/index.html`, `web/map.html`, `web/map_embed.html`):**
   - Eliminated the requirement to click the map before camera controls respond:
     - Fixed `isInputElementFocused()` in `cameraFlight.js`: Textbox check now isolates text-entry inputs (`text`, `search`, `password`, `email`, etc.) and no longer treats layer checkboxes (`<input type="checkbox">`), range sliders, or radio buttons as typing fields that lock out keyboard flight controls.
