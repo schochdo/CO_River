@@ -7,6 +7,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.0] - 2026-11-17 – 2026-11-19
+### Changed
+- **Canonical Compact Math Standardization & Single-Page Editorial Overview Redesign (`web/index.html`, `web/law.html`, `web/map.html`, `web/ml_analysis.html`):**
+  - *Standardized Basin Compact Math:* Reconciled discordant math citations across the site into one unified, legally and physically airtight mathematical ladder:
+    - **Modern River Supply (2000–2026):** `12.50 MAF/yr` (historical mean: `15.20 MAF/yr`)
+    - **1922 Core Compact (Art. III.a):** `15.00 MAF/yr` (7.50 Upper + 7.50 Lower)
+    - **Statutory Paper Rights Total:** `17.50 MAF/yr` (+1.00 Art. III.b Lower Expansion + 1.50 Mexican Water Treaty Art. 10)
+    - **Total System Demand / Pull:** `19.10 MAF/yr` (17.50 statutory entitlements + 1.60 reservoir evaporation & transit losses)
+    - **Statutory Paper Deficit:** `+5.00 MAF/yr` ($17.50 - 12.50$)
+    - **Physical Structural Overdraft:** `+6.60 MAF/yr` ($19.10 - 12.50$)
+  - *Harmonized Law Modals & ML Baseline:* Fixed contradictory citations in `web/law.html`, `web/map.html`, and `web/index.html` where text cited 16.5 MAF while stat cards cited 17.5 MAF; clarified Card 3 of `web/ml_analysis.html` as the 16.5 MAF core treaty line (7.5 Upper + 7.5 Lower + 1.5 MX) noting the full 17.5 MAF statutory apportionment.
+  - *Single-Page Overview Dashboard (`web/index.html`):* Replaced the sprawling 4,500px vertical scrolling presentation deck (Acts 1–4) with a clean 2x2 grid of four high-contrast, easy-to-read charts with exactly one clear takeaway sentence per card:
+    - **Card 1 (The Allocation Gap):** Comparative horizontal ledger bars displaying 12.50 MAF vs 15.00 MAF vs 17.50 MAF vs 19.10 MAF, with +5.00 MAF paper deficit and +6.60 MAF physical overdraft callouts.
+    - **Card 2 (The Seasonal Engine):** 365-day hydrograph canvas (`#chart-seasonal-engine`) with view toggles (`[ 5 Regimes ]` / `[ Inflow vs Demand ]`) and spring peak / winter base benchmarks.
+    - **Card 3 (90-Year Reservoir Buffer Depletion):** System storage timeline (1935–2026) canvas (`#chart-macro-overview-timeline`) with 60 MAF capacity, 1984 peak (56.2 MAF), today (17.7 MAF / 29.5%), and Min Power Pool limit (6.0 MAF).
+    - **Card 4 (Consumptive Use by State & Sector):** Depletion bar chart canvas (`#chart-state-use`) with clean Y-axis in `MAF`, >80% agriculture vs 15% municipal breakdown, and 1901 senior rights priority callout.
+  - *Basin Core Accounting Ticker:* Replaced old `#storyboard-nav` with a single-line horizontal ticker directly in the header bar showing: `RIVER SUPPLY: 12.50 MAF | 1922 COMPACT: 15.00 MAF | STATUTORY PAPER: 17.50 MAF | TOTAL PULL: 19.10 MAF | OVERDRAFT: -6.60 MAF/yr` and `[Law of River ↗]`.
+  - *Docked Deep-Dive Action Strip:* Embedded a clean, single-row gateway dock linking to System Map, Water Budget Sankey, Transit Pipeline, Tributary Dynamics (ML), Reservoir Heatmaps, and Law Framework, plus compact open science reproducible notebook links.
+  - *Automated CDP Verification (`scripts/verify_overview_redesign.js`):* Validated single-page layout, zero console errors, 100% canvas rendering, view toggle switching, and exact math verification; captured high-resolution verification artifacts `verified_overview_single_page.png` and `verified_overview_bottom_dock.png`.
+
 ### Fixed
 - **Systematic Resolution of 7 Visual & Axis Formatting Glitches across Dashboard (`web/pipeline.html`, `web/sankey.html`, `web/ml_analysis.html`, `web/index.html`):**
   - *Bug 1 (River Schematic View):* Elevated Hoover Dam card from `translate(515, 538)` to `translate(515, 520)` with `height="38"` ($y$-span $[520, 558]$), establishing a guaranteed 25px vertical clearance above Parker Dam text ($y=583$); moved Virgin River label and badge up to $y \in [438, 474]$ ($y$-span $[457, 474]$), providing 24px clearance above Lake Mead Evaporation plume ($y=498$); shortened SNWA diversion text and pulled diversion arrow back to $x=290$, eliminating text-over-arrow collision.
