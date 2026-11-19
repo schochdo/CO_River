@@ -155,6 +155,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - *Visual Verification:* Captured headless Chrome screenshots confirming clean editorial footers and cards (`verified_telemetry_clean_footer_visible.png`, `verified_profile_mockup_clean_cards.png`).
 
 ### Fixed
+- **Safari on iPad & iOS Viewport Bottom Cutoff Repair (`web/index.html`, `web/map_embed.html`, `web/map.html`, `web/style.css`):**
+  - Diagnosed critical Safari / WebKit defect where the bottom ~1 inch of the screen (Map Legend button, Gyroscope trackball dial, and navigation panel utilities) was clipped off on iPads and iOS devices due to WebKit calculating `100vh` against un-chromed viewport height, overflowing past the browser toolbar and home bar.
+  - Added `viewport-fit=cover` and `maximum-scale=1.0` to the `<meta name="viewport">` declaration across all dashboard shells.
+  - Upgraded root layout containers (`html`, `body`, `.sidebar-academic`, `main`, `#map-container`) from static `100vh` to dynamic viewport units: `height: 100%; height: -webkit-fill-available; height: 100dvh; max-height: 100dvh;`.
+  - Integrated CSS environment variables (`env(safe-area-inset-bottom)`, `env(safe-area-inset-left)`, `env(safe-area-inset-right)`) across all docked map controls and navigation elements:
+    - Elevated `.map-legend` to `bottom: calc(48px + env(safe-area-inset-bottom, 0px))` and `left: max(20px, calc(16px + env(safe-area-inset-left, 0px)))` (and `calc(256px + env(...))` when the gage tray is expanded).
+    - Elevated `.trackball-nav-control` (Gyroscope dial) to `bottom: calc(48px + env(safe-area-inset-bottom, 0px))` and `right: max(20px, calc(16px + env(safe-area-inset-right, 0px)))`.
+    - Elevated `.flow-replay-bar` to `bottom: calc(48px + env(safe-area-inset-bottom, 0px))` (and `calc(252px + env(...))` when expanded).
+    - Elevated `.sidebar-academic` bottom utilities with `padding-bottom: max(1.25rem, calc(0.875rem + env(safe-area-inset-bottom, 0px))) !important;`, keeping the Fullscreen toggle, Data Sources modal, and legal links fully visible above the iPad home indicator.
+    - Updated `.map-gage-tray` with `padding-bottom: env(safe-area-inset-bottom, 0px);` and dynamic safe-area height calculations.
+  - Verified 100% on-screen visibility across iPad landscape (1024x768) and iPad portrait (810x1080) via automated Chrome DevTools Protocol test suite (`scripts/test_ipad_viewport.js`), capturing visual verification artifacts (`verified_ipad_landscape.png`, `verified_ipad_portrait.png`).
 - **Map Legend Overflow & Close Inaccessibility Defect (`web/style.css`, `web/map.html`, `web/map_embed.html`, `web/app.js`):**
   - Diagnosed critical UX defect on laptop and smaller height screens where the Map Legend expanded upward beyond the top of the browser viewport (`top: -63px` to `-267px`), pushing the `.legend-header-toggle` with the collapse button completely off-screen and leaving users with no way to close it.
   - Eliminated horizontal bloat (previously 634px wide) by setting a clean editorial fixed width of `290px` with `box-sizing: border-box`.
