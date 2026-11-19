@@ -8,6 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.3.0] - 2026-11-17 – 2026-11-19
 ### Changed
+- **Harmonization of Statutory Paper Over-Allocation vs. Active Storage Drawdown (`web/index.html`, `web/sankey.html`):**
+  - *Explicit Conceptual Bridge:* Eliminated researcher confusion caused by dual overdraft figures by clearly separating legal paper rights from physical reservoir drawdown across headers and cards:
+    - **Full Statutory Paper Over-Allocation:** `+6.60 MAF/yr` ($19.10\text{ MAF paper claims \& system losses} - 12.50\text{ MAF modern river supply}$, or `+5.00 MAF/yr` paper gap without evaporation). Represents the structural deficit if all Upper and Lower Basin paper entitlements are fully exercised.
+    - **Active Storage Drawdown:** `-2.05 MAF/yr` ($14.45\text{ MAF actual current depletions} - 12.40\text{ MAF natural runoff}$). Represents the actual physical rate at which Lake Mead and Lake Powell are currently losing storage because Upper Basin depletions are currently ~4.5 MAF.
+  - *Overview Top Ticker (`web/index.html`):* Updated horizontal ticker from generic `OVERDRAFT: -6.60 MAF/yr` to explicit dual metrics: `RIVER SUPPLY: 12.50 MAF | 1922 COMPACT: 15.00 MAF | STATUTORY PAPER: 17.50 MAF | PAPER OVER-ALLOCATION: +6.60 MAF/yr | ACTIVE STORAGE DRAWDOWN: -2.05 MAF/yr`.
+  - *Overview Card 1 (`web/index.html`):* Updated right callout card from `Physical Overdraft` to `Full Paper Over-Allocation: +6.60 MAF/yr` noting `Active Drawdown: -2.05 MAF`, and calibrated the takeaway sentence to state that legal claims exceed runoff by 5.00 MAF/yr (expanding to +6.60 MAF/yr with uncounted evaporation) while actual physical reservoir drawdown is -2.05 MAF/yr.
+  - *Water Budget Header & Context Banner (`web/sankey.html`):* Renamed header pill from `Consumptive Overdraft` to `Active Storage Drawdown: -2.05 MAF/yr` and added an explicit bridge in the context banner contrasting the physical drawdown with the +6.60 MAF full statutory paper over-allocation.
+- **Streamlined Gaging Registry & Elimination of Redundant KPI Grid (`web/telemetry.html`):**
+  - Removed the 4 redundant top KPI summary cards (`Total Active Nodes`, `Streamflow Gages`, `Diversions & Tunnels`, `Storage Reservoirs`) which duplicated the filter pills directly below them.
+  - Elevated the station category filter pills (`All Facilities (98)`, `1922 Compact Divide (1)`, `Basin Sentinels (23)`, `Upper Basin (42)`, `Lower Basin (37)`, `Tunnels & Canals (8)`, `Reservoirs (11)`) and search filters directly to the top of the container, bringing the 98-row gage database ~120px higher on screen and making station telemetry instantly accessible without scrolling.
+  - Updated `updateKpis()` in JavaScript with defensive element guards for zero console errors.
+- **Dual Stacked Comparative Bar Glitch Resolution (`web/sankey.html`):**
+  - *San Juan Segment Clearance:* Re-anchored San Juan segment text in Bar 1 to `justify-start pl-1` enclosed in a solid protective white pill badge (`San Juan 2.1`), establishing a 138.25px open clearance before the 12.50 MAF modern drought red dashed line and completely eliminating line-through-text collisions.
+  - *Tributary Text Truncation Cleanup:* Removed truncated overflow labels (`Dolores: ...`, `Lower Tri...`, `L...`, `V.`) on narrow segments ($<6\%$ width); applied clean unclipped labels (`Dolores`, `Lower Tribs`) and preserved full hover inspection cards and color swatches.
+  - *Lee's Ferry Marker Vertical Clearance:* Repositioned the Lee's Ferry callout marker below Bar 1 to `top-full mt-1.5` with dedicated vertical padding (`pb-5`), creating a 26px clear gap above the paradox connector bracket and eliminating overlap with the Bar 1 bottom border.
+  - *Scale & Demand Labels:* Clarified Bar 1 supply as `15.20 MAF/yr (20th-century historical avg • Drought: 12.50 MAF)` and Bar 2 demand as `19.10 MAF/yr (Paper Over-Allocation: +3.90 to +6.60 MAF)`.
+- **Automated Verification Suite (`scripts/verify_streamlined_discrepancies.js`):**
+  - Executed automated Chrome DevTools Protocol verification: verified ticker text, 138.25px San Juan clearance, 26px Lee's Ferry gap, 0 redundant cards on telemetry, and clean elevation profile rendering; saved visual artifacts: `verified_overview_ticker_bridge.png`, `verified_sankey_header_and_stacked_bars.png`, `verified_telemetry_streamlined_top.png`, and `verified_profile_granby_and_tribs.png`.
+
 - **Canonical Compact Math Standardization & Single-Page Editorial Overview Redesign (`web/index.html`, `web/law.html`, `web/map.html`, `web/ml_analysis.html`):**
   - *Standardized Basin Compact Math:* Reconciled discordant math citations across the site into one unified, legally and physically airtight mathematical ladder:
     - **Modern River Supply (2000–2026):** `12.50 MAF/yr` (historical mean: `15.20 MAF/yr`)
