@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.3.0] - 2026-11-17 – 2026-11-19
 ### Changed
+- **Purge of Chart-Type Technical Jargon & Elimination of Continuous Scroll Redundancy (`web/sankey.html`, `web/index.html`, `web/ml_analysis.html`, `web/map.html`):**
+  - *Elimination of Continuous Scroll:* Removed the redundant `[ ☰ View Both (Continuous Scroll) ]` sub-tab button and `both` mode from `web/sankey.html`. Retained strictly the two crisp toggleable sub-tabs for clean single-view focus.
+  - *Domain Integrity over Technical Chart Jargon:* Replaced generic visualization jargon ("Sankey", "Heatmap", "Bubble") across all user-facing headers, tabs, tooltips, and badges with precise domain descriptions of what the charts actually show:
+    - `Unified Sankey Diagram` $\to$ **`Inflows to Consumptive Depletions`** (`web/sankey.html`).
+    - `Physical Runoff vs. Paper Allocations` $\to$ **`Physical Runoff vs. Statutory Paper Claims`** (`web/sankey.html`).
+    - `← Back to Unified Sankey Flow Diagram` $\to$ **`← Back to Inflows & Consumptive Depletions`** (`web/sankey.html`).
+    - `River Flow Schematic` $\to$ **`River Flow Network`** (`web/index.html` sidebar).
+    - `Monthly Heatmap (All 12 Months)` $\to$ **`12-Month Water Level Matrix`** and `Seasonal Envelope (Clean)` $\to$ **`Seasonal Elevation Envelope`** (`web/index.html`).
+    - `Click any river bubble or curve below to highlight` $\to$ **`Click any tributary or flow curve below to inspect`** (`web/ml_analysis.html`).
+    - `Bubble Size = % of Powell Inflow` $\to$ **`Relative Volume = % of Powell Inflow`** (`web/ml_analysis.html`).
+    - `Open Annual Water Budget Diagram` $\to$ **`Annual Water Budget & Allocations`** (`web/map.html`).
+  - *Automated Verification (`scripts/verify_tabs_and_chart_descriptions.js`):* Validated absence of `subtab-btn-both`, clean rendering of the two sub-tabs, seamless tab toggling, and verified updated domain terminology across all pages; saved verified visual artifact `verified_sankey_clean_tabs_no_continuous_scroll.png`.
 - **Harmonization of Statutory Paper Over-Allocation vs. Active Storage Drawdown (`web/index.html`, `web/sankey.html`):**
   - *Explicit Conceptual Bridge:* Eliminated researcher confusion caused by dual overdraft figures by clearly separating legal paper rights from physical reservoir drawdown across headers and cards:
     - **Full Statutory Paper Over-Allocation:** `+6.60 MAF/yr` ($19.10\text{ MAF paper claims \& system losses} - 12.50\text{ MAF modern river supply}$, or `+5.00 MAF/yr` paper gap without evaporation). Represents the structural deficit if all Upper and Lower Basin paper entitlements are fully exercised.
