@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.0] - 2026-11-17 – 2026-11-19
+### Removed
+- **Redundant OS Fullscreen Toggle & Remote Desktop Spaces Glitch (`web/index.html`):**
+  - Removed the redundant `Toggle Fullscreen` button from the primary sidebar and eliminated `document.documentElement.requestFullscreen()` and `fullscreenchange` event listeners.
+  - Calling the HTML5 Fullscreen API on macOS triggers Quartz WindowServer to spawn a brand-new Mission Control Virtual Space (e.g. Space 2) and horizontally slide the window over, which breaks remote desktop sessions (Apple Screen Sharing, VNC, Chrome Remote Desktop, Microsoft RDP) whose display capture buffer remains pinned to Desktop 1, leaving users stranded staring at Finder or background windows.
+  - Native window maximization is natively supported via the operating system (`Ctrl+Cmd+F`, `F11`, or `Option`-clicking the green macOS window circle to zoom without creating a new Space).
+
 ### Fixed
 - **Chart Label Framing & Zero-Buffer Collision Elimination Across All Cards (`web/ml_analysis.html`, `web/index.html`, `web/sankey.html`):**
   - *Glen Canyon Dam Closes Label Clearance (`web/ml_analysis.html` Card 3):* Resolved zero-buffer collision where `1963: Glen Canyon Dam Closes` was jammed directly against the 25 MAF top gridline and canvas ceiling. Enclosed label in a solid white protective badge pill with a 1px slate border (`#cbd5e1`), centered typography, and an 8px vertical buffer below the 25 MAF gridline. Increased layout padding top from 8px to 16px across Cards 2, 3, and 4 (and 14px in Card 1), ensuring ample buffer above top gridlines and complete separation from HTML legends and card headers.
