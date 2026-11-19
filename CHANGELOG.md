@@ -8,6 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.3.0] - 2026-11-17 – 2026-11-19
 ### Added
+- **Camera Controls Immediate Focus & Interaction (`web/cameraFlight.js`, `web/app.js`, `web/index.html`, `web/map.html`, `web/map_embed.html`):**
+  - Eliminated the requirement to click the map before camera controls respond:
+    - Fixed `isInputElementFocused()` in `cameraFlight.js`: Textbox check now isolates text-entry inputs (`text`, `search`, `password`, `email`, etc.) and no longer treats layer checkboxes (`<input type="checkbox">`), range sliders, or radio buttons as typing fields that lock out keyboard flight controls.
+    - Fixed premature flight cancellation in `cameraFlight.js`: Removed `window.addEventListener('focus', stopFlightOnBlur)` which was incorrectly clearing keys and stopping animation whenever the canvas or window received focus.
+    - Fixed self-cancelling flight loop: Guarded `onPanStart` with `if (CameraStateMachine.getMode() === 'flight') return;` so camera movements produced by keyboard flight do not falsely trigger manual pan aborts via MapLibre's `movestart` event.
+    - Initialized keyboard flight controls and trackball widget synchronously upon map creation in `initMap()` rather than waiting for async vector tile and style download inside `map.on('load')`.
+    - Automated iframe keyboard and focus synchronization in `index.html`: `setTab('map')` immediately focuses the iframe, hovering over `#section-map` focuses the map, and navigation keys (`WASD`, `Arrows`, `QE`, `ZX`) are forwarded into `iframe.contentWindow` seamlessly.
+- **Zero Zoom-Bounce on Map Load & Elimination of Parabolic Flight Curves (`web/cameraFlight.js`, `web/app.js`, `web/index.html`):**
+  - Eliminated the disorienting "zoom bounce" when loading or switching to the System Map:
+    - In `index.html`, `syncMap()` now calls `zoomToPreset('basin', true)` with `instant = true`, instantly placing the camera via `jumpTo` with zero animation delay and zero zoom oscillation.
+    - Added `duration: 0, animate: false` to MapLibre constructor `fitBoundsOptions`.
+    - Replaced parabolic `flyTo` flight curves with direct linear `safeEaseTo` (or instant `jumpTo`) across `safeFlyTo` in `cameraFlight.js`, presets in `app.js`, and station focusing, ensuring smooth, grounded camera motion with zero parabolic ballooning anywhere on the platform.
+- **Automated Anti-Bounce & Responsiveness Verification Suite (`scripts/verify_camera_controls_and_nobounce.js`):**
+  - Automated 4-step Chrome DevTools Protocol verification:
+    1. Zero zoom bounce on load (15 continuous telemetry samples verified with 0.000 fluctuation).
+    2. Instant keyboard flight responsiveness without clicking the map (KeyW tilts pitch immediately from initial state).
+    3. Checkbox isolation (layer checkboxes toggle without locking out WASD/Arrows).
+    4. Direct linear preset easeTo transition (no parabolic zoom dip/bounce).
+    - Verified artifact: `verified_camera_controls_nobounce.png`.
 - **Dynamic Layer-Synchronized Map Legend (`web/map.html`, `web/map_embed.html`, `web/app.js`):**
   - Implemented real-time synchronization between Map Layer checkbox toggles and the Map Legend (`syncLegendToLayerToggles`):
     - When any individual layer is turned off (e.g. dams, tunnels, canals, reservoirs, continental divide, basin boundaries, or river reach tiers), its corresponding legend item is immediately removed (`display: none`).
