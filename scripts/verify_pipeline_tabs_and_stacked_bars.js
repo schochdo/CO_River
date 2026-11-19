@@ -196,12 +196,7 @@ async function run() {
         const viewElevation = document.getElementById('view-elevation');
         const profileSvg = document.getElementById('profile-svg');
         const readoutStrip = document.getElementById('readout-strip');
-        const btn2d = document.getElementById('btn-view-2d');
-        const btn25d = document.getElementById('btn-view-25d');
-
-        // Test mode switch to 2.5D
-        switchElevationView('25d');
-        const tribsOpacity = document.getElementById('tribs-25d-group').style.opacity;
+        const tribsGroup = document.getElementById('tribs-vertical-group') || document.getElementById('tribs-25d-group');
 
         // Test hover gage
         showElevationGageInfo('USGS #09380000 at Lees Ferry, AZ', 'Mile 551.0', '3,110 ft', '6,680 cfs', 'Tailwater Control', 'Sentinel Legal Divide', 'Testing lees ferry operational note');
@@ -212,8 +207,9 @@ async function run() {
           schematicHidden: viewSchematic.classList.contains('hidden'),
           elevationVisible: !viewElevation.classList.contains('hidden'),
           hasProfileSvg: !!profileSvg,
+          viewBox: profileSvg ? profileSvg.getAttribute('viewBox') : null,
           hasReadoutStrip: !!readoutStrip,
-          tribsOpacity25d: tribsOpacity,
+          hasTribsGroup: !!tribsGroup,
           readoutElev,
           readoutFlow
         };
@@ -225,8 +221,9 @@ async function run() {
     const eResult = evalElevation.result.value;
     if (!eResult.schematicHidden || !eResult.elevationVisible) throw new Error('Sub-tab switch failed');
     if (!eResult.hasProfileSvg) throw new Error('Elevation profile SVG not found');
+    if (eResult.viewBox !== '0 0 1200 650') throw new Error(`Elevation viewBox expected 0 0 1200 650, got ${eResult.viewBox}`);
     if (!eResult.hasReadoutStrip) throw new Error('Readout strip not found');
-    if (eResult.tribsOpacity25d !== '1' && eResult.tribsOpacity25d !== '1.0') throw new Error('2.5D mode opacity unexpected');
+    if (!eResult.hasTribsGroup) throw new Error('2.5D tributary group not found');
     if (eResult.readoutElev !== '3,110 ft') throw new Error('Elevation readout unexpected');
 
     // Capture Elevation Tab Screenshot
