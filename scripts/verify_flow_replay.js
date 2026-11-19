@@ -205,34 +205,96 @@ async function verifyFlowReplay() {
     assert(seek30d.lfVal !== '--' && seek30d.lfVal !== '', 'Lees Ferry flow must be populated');
     assert(seek30d.gilaVal !== '--' && seek30d.gilaVal !== '', 'Gila flow must be populated');
 
-    // Assertion 4: Verify MapLibre GeoJSON Dynamic Updates in 30D mode
+    // Assertion 4: Verify MapLibre GeoJSON Dynamic Updates in 30D mode (Gauges and River Reaches Color-Coding)
     const testMapFeaturesRaw = await send('Runtime.evaluate', {
       expression: `
         (() => {
           const map = window.map;
-          const src = map.getSource('streamflow-gauges');
-          const feats = src._data.features;
-          const lfFeat = feats.find(f => f.properties.id === '09380000');
-          const sjFeat = feats.find(f => f.properties.id === '09379500');
+          const gSrc = map.getSource('streamflow-gauges');
+          const rSrc = map.getSource('rivers');
+          const gFeats = gSrc._data.features;
+          const rFeats = rSrc._data.features;
+          
+          const lfGage = gFeats.find(f => f.properties.id === '09380000');
+          const sjGage = gFeats.find(f => f.properties.id === '09379500');
+          const sjReach = rFeats.find(f => f.properties.gauge_id === '09379500');
+          const lfReach = rFeats.find(f => f.properties.gauge_id === '09380000');
+          const paintCoreColor = map.getPaintProperty('rivers-mainstem-core', 'line-color');
 
           return {
-            totalFeatures: feats.length,
-            lfProperties: lfFeat ? lfFeat.properties : null,
-            sjProperties: sjFeat ? sjFeat.properties : null
+            totalGauges: gFeats.length,
+            totalReaches: rFeats.length,
+            paintCoreColor,
+            leesFerryGage: lfGage ? lfGage.properties : null,
+            sanJuanGage: sjGage ? sjGage.properties : null,
+            sanJuanReach: sjReach ? sjReach.properties : null,
+            leesFerryReach: lfReach ? lfReach.properties : null
           };
         })()
       `,
       returnByValue: true
     });
     const testMapFeatures = testMapFeaturesRaw.result.value;
-    console.log('[Assertion 4] MapLibre 30D features at step 180:', {
-      total: testMapFeatures.totalFeatures,
-      leesFerry: testMapFeatures.lfProperties,
-      sanJuan: testMapFeatures.sjProperties
+    console.log('[Assertion 4] MapLibre 30D features at step 180 (Nov 3 Flood Peak):', {
+      totalGauges: testMapFeatures.totalGauges,
+      totalReaches: testMapFeatures.totalReaches,
+      paintCoreColor: testMapFeatures.paintCoreColor,
+      sanJuanReach: {
+        flow_cfs: testMapFeatures.sanJuanReach.flow_cfs,
+        weight: testMapFeatures.sanJuanReach.weight,
+        health_pct: testMapFeatures.sanJuanReach.health_pct,
+        health_color: testMapFeatures.sanJuanReach.health_color
+      },
+      sanJuanGage: {
+        flow_cfs: testMapFeatures.sanJuanGage.flow_cfs,
+        circle_radius: testMapFeatures.sanJuanGage.circle_radius,
+        circle_color: testMapFeatures.sanJuanGage.circle_color
+      },
+      leesFerryReach: {
+        flow_cfs: testMapFeatures.leesFerryReach.flow_cfs,
+        weight: testMapFeatures.leesFerryReach.weight,
+        health_pct: testMapFeatures.leesFerryReach.health_pct,
+        health_color: testMapFeatures.leesFerryReach.health_color
+      }
     });
-    assert(testMapFeatures.lfProperties.flow_cfs > 0, 'Lees Ferry flow_cfs should be positive');
-    assert(testMapFeatures.lfProperties.circle_radius > 0, 'Lees Ferry circle_radius should be calculated');
-    assert(testMapFeatures.sjProperties.flow_cfs > 0, 'San Juan flow_cfs should be positive');
+
+    assert(testMapFeatures.leesFerryGage.flow_cfs > 0, 'Lees Ferry flow_cfs should be positive');
+    assert(testMapFeatures.leesFerryGage.circle_radius > 0, 'Lees Ferry circle_radius should be calculated');
+    assert(testMapFeatures.sanJuanGage.flow_cfs >= 30000, `San Juan flow should reflect flood spike (got ${testMapFeatures.sanJuanGage.flow_cfs})`);
+    
+    // Verify reach color coding at step 180
+    assert.strictEqual(testMapFeatures.sanJuanReach.health_color, '#1d4ed8', 'San Juan reach must be colored Abundant deep blue (#1d4ed8) during surge');
+    assert(testMapFeatures.sanJuanReach.health_pct > 1500, `San Juan health_pct must be >1500% (got ${testMapFeatures.sanJuanReach.health_pct}%)`);
+    assert.strictEqual(testMapFeatures.sanJuanGage.circle_color, '#1d4ed8', 'San Juan gauge must be colored Abundant deep blue (#1d4ed8) during surge');
+    assert.strictEqual(testMapFeatures.leesFerryReach.health_color, '#d97706', 'Lees Ferry reach should be colored Below Normal ochre (#d97706)');
+
+    // Verify dynamic reach color & width transition when seeking to step 0 (baseline Oct 19)
+    console.log('[Browser] Testing dynamic color transition: seeking from step 180 to step 0...');
+    const step0TransitionRaw = await send('Runtime.evaluate', {
+      expression: `
+        (() => {
+          window.FlowReplayEngine.seek(0);
+          const map = window.map;
+          const rSrc = map.getSource('rivers');
+          const sjReach = rSrc._data.features.find(f => f.properties.gauge_id === '09379500');
+          return sjReach ? sjReach.properties : null;
+        })()
+      `,
+      returnByValue: true
+    });
+    const step0Props = step0TransitionRaw.result.value;
+    console.log('[Assertion 4b] San Juan Reach properties at step 0 (Baseline):', {
+      flow_cfs: step0Props.flow_cfs,
+      weight: step0Props.weight,
+      health_pct: step0Props.health_pct,
+      health_color: step0Props.health_color
+    });
+    assert.strictEqual(step0Props.health_color, '#0284c7', 'San Juan reach color must dynamically transition to Normal water blue (#0284c7) at step 0');
+    assert(step0Props.weight < testMapFeatures.sanJuanReach.weight, `Weight must drop from flood width (${testMapFeatures.sanJuanReach.weight}) to baseline (${step0Props.weight})`);
+    assert(step0Props.flow_cfs < 3000, `Flow at step 0 should be baseline (got ${step0Props.flow_cfs})`);
+
+    // Return to step 180 for artifact screenshot
+    await send('Runtime.evaluate', { expression: `window.FlowReplayEngine.seek(180);` });
 
     // Assertion 5: Test 30D Play & Pause Loop
     console.log('[Browser] Testing 30D Play loop at 12 steps/s...');
@@ -300,19 +362,28 @@ async function verifyFlowReplay() {
           window.FlowReplayEngine.close();
           const bar = document.getElementById('flow-replay-bar');
           const toggleBtn = document.getElementById('btn-flow-replay');
+          const rSrc = window.map.getSource('rivers');
+          const gSrc = window.map.getSource('streamflow-gauges');
+          const sjReach = rSrc._data.features.find(f => f.properties.gauge_id === '09379500');
+          const sjGage = gSrc._data.features.find(f => f.properties.id === '09379500');
           return {
             isOpen: window.FlowReplayEngine.isOpen,
             barHidden: bar ? bar.classList.contains('hidden') : false,
-            btnActive: toggleBtn ? toggleBtn.classList.contains('active') : false
+            btnActive: toggleBtn ? toggleBtn.classList.contains('active') : false,
+            restoredReachFlow: sjReach ? sjReach.properties.flow_cfs : null,
+            restoredGageFlow: sjGage ? sjGage.properties.flow_cfs : null
           };
         })()
       `,
       returnByValue: true
     });
     const testClose = testCloseRaw.result.value;
+    console.log('[Assertion 7] Clean restoration result:', testClose);
     assert.strictEqual(testClose.isOpen, false, 'Engine should be closed');
     assert.strictEqual(testClose.barHidden, true, 'Replay bar should be hidden');
     assert.strictEqual(testClose.btnActive, false, 'Button should be inactive');
+    assert(testClose.restoredReachFlow != null, 'Restored reach flow must exist');
+    assert(testClose.restoredGageFlow != null, 'Restored gage flow must exist');
 
     ws.close();
     console.log('\n>>> ALL 7 FLOW REPLAY (7D & 30D) VERIFICATION ASSERTIONS PASSED (100%) <<<\n');
