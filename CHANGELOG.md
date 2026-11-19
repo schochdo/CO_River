@@ -8,6 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.3.0] - 2026-11-17 – 2026-11-19
 ### Added
+- **Systematic Graphics Glitch Elimination & 5-Tier SVG Layer Hierarchy (`web/pipeline.html`, `web/editorial.css`, `scripts/verify_graphics_cleanliness.js`):**
+  - *Root Cause Diagnosis & Structural Framework:* Decomposed graphics glitches across the platform into their four physical root causes in web SVG rendering:
+    1. **DOM Painter's Algorithm Layer Inversion:** SVG has no CSS `z-index`; elements render strictly in document order. River lines drawn later in the file sliced directly on top of earlier label cards and text.
+    2. **Fixed-Width Bounding Box Font Overflow:** Hardcoded box widths (e.g. 90px) paired with dynamic fonts that measured 111px across browser engines, causing text to spill over card edges.
+    3. **Geometric Feature Collision:** Positioning label cards directly on top of the descending thalweg slope rather than in open white-space pockets.
+    4. **ViewBox Margin & Anchor Misalignment:** Labels placed within $<30\text{px}$ of viewBox boundaries with unconstrained anchor offsets, causing drop shadows and text to clip against viewport edges.
+  - *5-Tier SVG Layer Hierarchy Architecture:* Re-architected `#profile-svg` in `web/pipeline.html` into 5 strictly ordered document groups:
+    1. `<g id="layer-grid-and-axes">`: Elevation guides (0 to 14,000 ft) and distance ticks (0 to 1,400 mi).
+    2. `<g id="layer-terrain-fills">`: Mountain slope gradient fill polygon.
+    3. `<g id="layer-flow-vectors">`: Tributary dashed lines and proportional mainstem thalweg paths.
+    4. `<g id="layer-facilities-and-nodes">`: Reservoir pool bathtubs, dam vertical crests, and USGS sentinel gage dots.
+    5. `<g id="layer-labels-and-callouts">`: **Topmost foreground tier** containing all label cards, badges, callout leader lines, and the MAF legend, physically guaranteeing that no vector line or pool can ever slice across text again.
+  - *Lake Granby Fix:* Offset the Lake Granby card into the open white space to the right of the Baker Gulch descent at $x=122, y=234$ with width expanded to 116px (text = 92px, 12px margin on both sides), connected cleanly to the Granby Dam crest at $(113, 271)$ via a subtle blue leader callout line. Replaced the orphaned rectangle with an aligned reservoir pool bathtub at 8,280 ft contour.
+  - *Blue Mesa Dam & Reservoir Fix:* Enclosed `Blue Mesa` inside a dedicated white card badge pill (`width="60" height="18"`) at $x=152, y=295$, safely positioned in the clear pocket between the descending mainstem river ($x \le 145$) and the vertical Gunnison tributary line ($x=226$).
+  - *Flaming Gorge & Navajo Dam Badges:* Enclosed both dam labels in clean white card badges (`width="80"` and `width="74"`) offset safely to the left of their vertical tributary lines.
+  - *Hoover Dam & Lake Mohave Separation:* Repositioned Hoover Dam text to $x=754, y=558$ with `text-anchor="end"`, cleanly separating it from Lake Mohave text centered at $x=785, y=555$ and eliminating label collision above the dam crest.
+  - *Schematic View Margin Protection:* Reduced Colorado River Headwaters card width from 250px to 235px (`width="235"` at $x=1015$, total $x=1250$), establishing a guaranteed 30px right margin within the 1280px viewBox and assigning unique IDs (`card-headwaters`, `card-green-river`).
+  - *Universal Editorial Cartographic Halo Standard (`web/editorial.css`):* Added Section 6 to `editorial.css` enforcing `paint-order: stroke fill; stroke: #ffffff; stroke-width: 3.5px;` and tabular figures across SVG typography site-wide.
+  - *Automated Regression Suite (`scripts/verify_graphics_cleanliness.js`):* Built a Chrome DevTools Protocol test script validating: strict 5-tier layer ordering, 0 text overflows, and Headwaters viewBox boundary clearance (100% pass rate). Verified visual artifacts: `verified_lake_granby_v2.png`, `verified_hoover_mohave.png`, and `verified_full_profile.png`.
 - **Flow Replay Dynamic Line Widths & Pulsing Gage Dots (`web/flowReplay.js`, `web/app.js`):**
   - Enhanced river reach `weight` calculation across all reach categories (Mainstem, Major Tributaries, Canals, and Minor Tributaries) using dynamic $\sqrt{Q}$ scaling ($w = 2.8 + \sqrt{Q} \cdot 0.095$ for mainstem, $2.0 + \sqrt{Q} \cdot 0.085$ for major tributaries, $1.8 + \sqrt{Q} \cdot 0.065$ for canals), producing crisp, hydrologically accurate line width variations across time steps.
   - Mapped USBR Lower Colorado Dam reaches (`USBR-HOOVER`, `USBR-DAVIS`, `USBR-PARKER`) to active dynamic USGS tailwater stations (`09404200` Diamond Creek and `09429100` Palo Verde Dam), ensuring the entire Lower Basin mainstem visibly pulses during flow replay instead of remaining static.
