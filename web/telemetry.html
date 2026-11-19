@@ -169,13 +169,25 @@
           </button>
         </div>
 
-        <!-- View Mode Switcher -->
-        <div class="inline-flex rounded-[2px] bg-slate-100 p-0.5 border border-slate-300">
-          <button onclick="setViewMode('grouped')" id="btn-view-grouped" class="px-3 py-1 text-xs font-bold rounded-[2px] bg-white text-slate-900 transition">
-            Grouped by Reach
+        <!-- View Mode & Database Export Controls -->
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="inline-flex rounded-[2px] bg-slate-100 p-0.5 border border-slate-300">
+            <button onclick="setViewMode('grouped')" id="btn-view-grouped" class="px-3 py-1 text-xs font-bold rounded-[2px] bg-white text-slate-900 transition">
+              Grouped by Reach
+            </button>
+            <button onclick="setViewMode('flat')" id="btn-view-flat" class="px-3 py-1 text-xs font-semibold rounded-[2px] text-slate-600 hover:text-slate-900 transition">
+              Flat Sortable
+            </button>
+          </div>
+          <button onclick="exportDatabaseCsv()" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-[2px] bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 transition" title="Export full 98-facility database to CSV">
+            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span>Export CSV</span>
           </button>
-          <button onclick="setViewMode('flat')" id="btn-view-flat" class="px-3 py-1 text-xs font-semibold rounded-[2px] text-slate-600 hover:text-slate-900 transition">
-            Flat Sortable
+          <button onclick="exportDatabaseJson()" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-[2px] bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 transition" title="Export full 98-facility database to JSON">
+            <span>Export JSON</span>
+          </button>
+          <button onclick="openSchemaModal()" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-[2px] bg-sky-50 text-sky-800 border border-sky-200 hover:bg-sky-100 transition" title="View Data Dictionary & Database Schema">
+            <span>Schema &amp; Dictionary</span>
           </button>
         </div>
       </div>
@@ -1038,6 +1050,59 @@
       }
     }
 
+    function exportDatabaseCsv() {
+      if (!allNodes || allNodes.length === 0) return;
+      const headers = ['Station ID', 'Station Name', 'Type', 'Group / Reach', 'Current Value', 'Normal Flow (cfs)', 'Health Pct (%)', 'Health Status', 'Sentinel Tier Rank', 'Sentinel Tier', 'RBI Score', 'Flashiness Regime', 'Latitude', 'Longitude', 'Official Portal URL'];
+      const rows = allNodes.map(n => {
+        const portal = getPortalInfo(n);
+        return [
+          `"${n.id}"`,
+          `"${(n.name || '').replace(/"/g, '""')}"`,
+          `"${n.type}"`,
+          `"${(n.groupName || '').replace(/"/g, '""')}"`,
+          n.reading_num !== undefined ? n.reading_num : '',
+          n.norm_cfs || '',
+          n.health_pct || '',
+          `"${n.health_status || ''}"`,
+          n.tier_rank || '',
+          `"${n.tier_label || ''}"`,
+          n.rbi !== undefined && n.rbi !== null ? n.rbi : '',
+          `"${n.regime || ''}"`,
+          n.lat !== undefined ? n.lat : '',
+          n.lon !== undefined ? n.lon : '',
+          `"${portal ? portal.url : ''}"`
+        ].join(',');
+      });
+      const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), ...rows].join('\n'));
+      const link = document.createElement('a');
+      link.setAttribute('href', csvContent);
+      link.setAttribute('download', 'colorado_river_basin_facility_database.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function exportDatabaseJson() {
+      if (!allNodes || allNodes.length === 0) return;
+      const jsonContent = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(allNodes, null, 2));
+      const link = document.createElement('a');
+      link.setAttribute('href', jsonContent);
+      link.setAttribute('download', 'colorado_river_basin_facility_database.json');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function openSchemaModal() {
+      const modal = document.getElementById('schema-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeSchemaModal() {
+      const modal = document.getElementById('schema-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
     function goToFlowDiagram(e) {
       if (window.parent && window.parent !== window && typeof window.parent.setTab === 'function') {
         if (e) e.preventDefault();
@@ -1067,5 +1132,112 @@
       if (initialCat) setCategory(initialCat);
     });
   </script>
+  <!-- Data Dictionary & Database Schema Modal -->
+  <div id="schema-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs hidden">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Colorado River Basin Facility Database: Data Dictionary &amp; Schema</h2>
+          <p class="text-xs text-slate-500">Technical entity specifications, measurement units, and authoritative data provenance</p>
+        </div>
+        <button onclick="closeSchemaModal()" class="text-slate-400 hover:text-slate-700 text-lg font-bold p-1">✕</button>
+      </div>
+      <div class="p-6 overflow-y-auto text-xs space-y-4 leading-relaxed">
+        <div>
+          <h3 class="font-bold text-slate-900 text-sm mb-1.5">1. Database Entity Types</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11.5px]">
+            <div class="p-2.5 rounded bg-slate-50 border border-slate-200">
+              <strong class="text-sky-800">Streamflow Gage (79 facilities):</strong> Real-time river reaches monitoring instantaneous discharge rate ($Q$) in cubic feet per second (cfs) via USGS NWIS IV REST service (Parameter <code>00060</code>).
+            </div>
+            <div class="p-2.5 rounded bg-slate-50 border border-slate-200">
+              <strong class="text-red-800">Storage Reservoir (11 impoundments):</strong> Major storage facilities tracking cumulative water volume ($V$) in Acre-Feet (AF) and surface elevation in feet MSL via USBR Upper/Lower Colorado APIs and CDSS.
+            </div>
+            <div class="p-2.5 rounded bg-slate-50 border border-slate-200">
+              <strong class="text-cyan-800">Trans-Mountain Diversion (4 tunnels):</strong> Continental Divide acoustic meters (Adams, Moffat, Roberts, Boustead) exporting water from the Colorado River Basin to Front Range municipal water systems.
+            </div>
+            <div class="p-2.5 rounded bg-slate-50 border border-slate-200">
+              <strong class="text-emerald-800">Conveyance Canal (4 major conduits):</strong> Interstate gravity canals (All-American, Central Arizona Project, Colorado River Aqueduct, Canal Alimentador) routing mainstream Lower Basin deliveries.
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-slate-900 text-sm mb-1.5">2. Field Dictionary &amp; Attribute Definitions</h3>
+          <div class="overflow-x-auto border border-slate-200 rounded">
+            <table class="w-full text-left text-[11px] border-collapse">
+              <thead class="bg-slate-100 text-slate-700 font-bold">
+                <tr>
+                  <th class="p-2 border-b">Field Name</th>
+                  <th class="p-2 border-b">Data Type</th>
+                  <th class="p-2 border-b">Unit</th>
+                  <th class="p-2 border-b">Description &amp; Provenance</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-600 font-mono">
+                <tr>
+                  <td class="p-2 font-bold text-slate-900">station_id</td>
+                  <td class="p-2">string</td>
+                  <td class="p-2">—</td>
+                  <td class="p-2 font-sans">Official 8-digit USGS gage number (e.g. <code>09380000</code>) or state telemetry code.</td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-bold text-slate-900">reading_num</td>
+                  <td class="p-2">float</td>
+                  <td class="p-2">cfs / AF</td>
+                  <td class="p-2 font-sans">Current instantaneous streamflow rate (cfs) or reservoir active storage (AF).</td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-bold text-slate-900">norm_cfs</td>
+                  <td class="p-2">float</td>
+                  <td class="p-2">cfs</td>
+                  <td class="p-2 font-sans">Historical 366-day daily mean streamflow benchmark derived from 50+ year USGS records.</td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-bold text-slate-900">tier_rank</td>
+                  <td class="p-2">integer</td>
+                  <td class="p-2">1 – 6</td>
+                  <td class="p-2 font-sans">Hydrologic Sentinel Tier: 1 (Compact Sentinel), 2 (Basin Sentinel), 3 (Tributary), 4 (Tunnel), 5 (Canal), 6 (Reservoir).</td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-bold text-slate-900">rbi</td>
+                  <td class="p-2">float</td>
+                  <td class="p-2">—</td>
+                  <td class="p-2 font-sans">Richards-Baker Flashiness Index ($\sum |\Delta q| / \sum q$). Quantifies hydrograph volatility.</td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-bold text-slate-900">lat / lon</td>
+                  <td class="p-2">float</td>
+                  <td class="p-2">degrees</td>
+                  <td class="p-2 font-sans">World Geodetic System 1984 (WGS84) geographic coordinates.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="font-bold text-slate-900 text-sm mb-1.5">3. Static Geodatabase Files Available for Research</h3>
+          <p class="text-slate-600 text-xs mb-2">
+            The platform maintains pre-compiled, downsampled JSON matrices for instant static querying without backend database overhead:
+          </p>
+          <ul class="list-disc list-inside space-y-1 text-slate-700 text-xs font-mono ml-1">
+            <li><code>web/data/live_water_data.json</code>: Real-time telemetry snapshot for all 98 facilities.</li>
+            <li><code>web/data/river_network.geojson</code>: 83 continuous river reaches snapped to 0.00m tolerance.</li>
+            <li><code>web/data/station_hierarchy.json</code>: Sentinel classifications, RBI scores, and coordinates.</li>
+            <li><code>web/data/replay_7d.json</code>: 170-hour temporal flow replay matrix (81.9 KB).</li>
+            <li><code>web/data/replay_30d.json</code>: 362-step temporal flow replay matrix (166.4 KB).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <a href="./knowledge.html" class="text-xs text-sky-700 hover:underline font-semibold">
+          Read full System Compendium (Knowledge Base) →
+        </a>
+        <button onclick="closeSchemaModal()" class="px-4 py-1.5 rounded bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

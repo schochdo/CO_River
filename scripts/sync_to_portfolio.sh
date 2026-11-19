@@ -10,9 +10,25 @@ PY="$([ -x .venv/bin/python ] && echo .venv/bin/python || echo python3)"
 
 PORTFOLIO_DIR="$HOME/Documents/Antigravity/Website"
 if [ -d "$PORTFOLIO_DIR" ]; then
-  echo "2. Syncing web assets to portfolio website..."
+  echo "2. Syncing web assets to portfolio website with rsync..."
   mkdir -p "$PORTFOLIO_DIR/public/colorado_river" "$PORTFOLIO_DIR/scripts"
-  cp -r web/* "$PORTFOLIO_DIR/public/colorado_river/"
+  rsync -av --delete --exclude='.cache_usgs*' web/ "$PORTFOLIO_DIR/public/colorado_river/"
   cp src/fetch_water_data.py "$PORTFOLIO_DIR/scripts/fetch_colorado_river.py"
-  echo "Done! Assets synced to $PORTFOLIO_DIR."
+  
+  echo "3. Verifying Astro build in Website..."
+  (cd "$PORTFOLIO_DIR" && npm run build)
+  
+  echo "4. Staging, committing and pushing to schochdo.github.io..."
+  (
+    cd "$PORTFOLIO_DIR"
+    git add -A
+    if git diff --staged --quiet; then
+      echo "Website is already up to date. Nothing to commit."
+    else
+      git commit -m "Deploy Colorado River updates (v2.3.0): 3D flight camera, 7D/30D flow replay, System Compendium & Facility Database"
+      git push origin main
+      echo "✓ Successfully pushed latest build to schochdo.github.io!"
+    fi
+  )
+  echo "Done! Assets synced and pushed to live portfolio."
 fi
