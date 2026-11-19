@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.0] - 2026-11-17 – 2026-11-19
+### Fixed
+- **Chart Label Framing & Zero-Buffer Collision Elimination Across All Cards (`web/ml_analysis.html`, `web/index.html`, `web/sankey.html`):**
+  - *Glen Canyon Dam Closes Label Clearance (`web/ml_analysis.html` Card 3):* Resolved zero-buffer collision where `1963: Glen Canyon Dam Closes` was jammed directly against the 25 MAF top gridline and canvas ceiling. Enclosed label in a solid white protective badge pill with a 1px slate border (`#cbd5e1`), centered typography, and an 8px vertical buffer below the 25 MAF gridline. Increased layout padding top from 8px to 16px across Cards 2, 3, and 4 (and 14px in Card 1), ensuring ample buffer above top gridlines and complete separation from HTML legends and card headers.
+  - *Comparative Stacked Bars Vertical Buffer (`web/sankey.html`):* Restructured Bar 1 and Bar 2 track and marker hierarchies. Re-anchored Lee's Ferry callout markers to dedicated relative wrappers with generous spacing (`mt-2`, `mt-7`, `my-3`), providing 20–25px of clear whitespace around markers and preventing any overlap with the paradox connector bracket or bar titles.
+  - *Universal Horizontal Threshold Top Guard (`web/index.html`):* Updated `horizontalThresholdPlugin` with an automatic top-boundary collision guard (`if (textY - (fontSize / 2) < top + 6) textY = yPos + fontSize + 4;`), guaranteeing at least 6–8px buffer from the top chart border for any threshold lines near the scale ceiling.
+
 ### Changed
 - **Purge of Chart-Type Technical Jargon & Elimination of Continuous Scroll Redundancy (`web/sankey.html`, `web/index.html`, `web/ml_analysis.html`, `web/map.html`):**
   - *Elimination of Continuous Scroll:* Removed the redundant `[ ☰ View Both (Continuous Scroll) ]` sub-tab button and `both` mode from `web/sankey.html`. Retained strictly the two crisp toggleable sub-tabs for clean single-view focus.
