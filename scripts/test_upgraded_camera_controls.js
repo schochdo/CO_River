@@ -32,16 +32,15 @@ async function run() {
   assert.strictEqual(typeof cf.safeEaseTo, 'function', 'safeEaseTo must be exported');
   assert.strictEqual(typeof cf.initKeyboardFlight, 'function', 'initKeyboardFlight must be exported');
 
-  // Progressive pitch ceiling formula test
+  // Pitch ceiling formula test: allows full 3D tilt up to 82° for operational basin zooms (z >= 2.0)
   function getMaxAllowedPitch(z) {
-    return Math.max(0, Math.min(82, (z - 3.5) * 18));
+    return z < 2.0 ? 60 : 82;
   }
-  assert.strictEqual(getMaxAllowedPitch(3.5), 0, 'Zoom 3.5 must have 0° max pitch');
-  assert.strictEqual(getMaxAllowedPitch(2.0), 0, 'Zoom 2.0 must have 0° max pitch');
-  assert.strictEqual(Math.round(getMaxAllowedPitch(5.0)), 27, 'Zoom 5.0 must have 27° max pitch');
-  assert.strictEqual(Math.round(getMaxAllowedPitch(8.0)), 81, 'Zoom 8.0 must have 81° max pitch');
-  assert.strictEqual(getMaxAllowedPitch(12.0), 82, 'Zoom 12.0 must have 82° max pitch');
-  console.log('✓ Continuous Progressive Pitch Ceiling formulas mathematically verified');
+  assert.strictEqual(getMaxAllowedPitch(1.5), 60, 'Zoom 1.5 clamps to 60° max pitch');
+  assert.strictEqual(getMaxAllowedPitch(3.5), 82, 'Zoom 3.5 allows full 82° max pitch');
+  assert.strictEqual(getMaxAllowedPitch(5.0), 82, 'Zoom 5.0 allows full 82° max pitch');
+  assert.strictEqual(getMaxAllowedPitch(12.0), 82, 'Zoom 12.0 allows full 82° max pitch');
+  console.log('✓ Pitch Ceiling allows full 3D terrain tilt across operational basin viewports');
 
   // Speed scaling formula test
   function getSpeedMps(zoom, isShift) {
@@ -140,13 +139,13 @@ async function run() {
           }
           log('Invalid Center Guard Handled Gracefully', !threwOnNaN, 'No unhandled exception thrown on NaN');
 
-          // Test 5: Progressive Pitch Ceiling Enforcement
-          map.setZoom(4.0); // At zoom 4.0, max pitch = (4.0 - 3.5) * 18 = 9 degrees
-          map.setPitch(50);
+          // Test 5: Pitch Ceiling Enforcement allows full 3D tilt at Zoom 4.0
+          map.setZoom(4.0);
+          map.setPitch(60);
           map.fire('moveend');
           await new Promise(r => setTimeout(r, 50));
-          const clampedPitchZ4 = map.getPitch();
-          log('Progressive Pitch Ceiling Clamped at Zoom 4.0', clampedPitchZ4 <= 10, { pitch: clampedPitchZ4 });
+          const pitchZ4 = map.getPitch();
+          log('Pitch Ceiling Allows Full 3D Tilt at Zoom 4.0', pitchZ4 >= 55, { pitch: pitchZ4 });
 
           // Test 6: Pitfall 2: Safari Double-Zoom Prevention (gesturestart / gestureend)
           const canvasContainer = map.getCanvasContainer();
