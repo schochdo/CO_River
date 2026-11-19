@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.3.0] - 2026-11-17 – 2026-11-19
 ### Added
+- **Flow Replay Dynamic Line Widths & Pulsing Gage Dots (`web/flowReplay.js`, `web/app.js`):**
+  - Enhanced river reach `weight` calculation across all reach categories (Mainstem, Major Tributaries, Canals, and Minor Tributaries) using dynamic $\sqrt{Q}$ scaling ($w = 2.8 + \sqrt{Q} \cdot 0.095$ for mainstem, $2.0 + \sqrt{Q} \cdot 0.085$ for major tributaries, $1.8 + \sqrt{Q} \cdot 0.065$ for canals), producing crisp, hydrologically accurate line width variations across time steps.
+  - Mapped USBR Lower Colorado Dam reaches (`USBR-HOOVER`, `USBR-DAVIS`, `USBR-PARKER`) to active dynamic USGS tailwater stations (`09404200` Diamond Creek and `09429100` Palo Verde Dam), ensuring the entire Lower Basin mainstem visibly pulses during flow replay instead of remaining static.
+  - Enabled dynamic `circle_radius` and `circle_color` scaling on `streamflow-gauges-circle` and `streamflow-gauges-casing` via `coalesce` inside MapLibre's top-level zoom interpolation, restoring 60 FPS dot scaling and health color pulsing during temporal replay while preserving crisp baseline dots in live mode.
+  - Added defensive `['coalesce', ['get', 'weight'], fallback]` across all river line layers in `web/app.js`, preventing expression failures from missing properties.
+  - Added an active replay guard in `applyLiveHydrology` so background telemetry sync intervals never overwrite the active temporal replay buffer.
+- **Control Panel Responsive Layout & Unclipped Sentinel Strip (`web/map.html`, `web/map_embed.html`, `web/style.css`):**
+  - Resolved text clipping where "Gila and beyond" was hidden: Split the control panel into three distinct, dedicated rows:
+    1. *Top Row:* Header kicker, 7D/30D period pills, localized Mountain Time timestamp, relative offset, and `✕` close button.
+    2. *Middle Row:* Dedicated hydrologic storytelling strip (`#replay-sentinel-strip`) spanning full container width, cleanly displaying all sentinel facilities (`San Juan` $\to$ `Lake Powell` $\to$ `Lees Ferry` $\to$ `Lake Mead` $\to$ `Gila River`) with units and zero clipping.
+    3. *Bottom Row:* Transport controls (`⏮ -1h`, `▶ Play`, `+1h ⏭`), scrubber slider with time ticks, and speed pills.
+  - Expanded replay bar width from 840px to `min(880px, calc(100vw - 32px))` and made the sentinel strip scrollable on smaller screens (`overflow-x: auto; scrollbar-width: none;`).
+- **Elimination of Confusing LIVE Button (`web/map.html`, `web/map_embed.html`, `web/style.css`):**
+  - Removed the confusing green `[ LIVE ]` button that was situated awkwardly next to speed controls (`1h/s`, `4h/s`, `12h/s`).
+  - Added a clean `Speed:` label to the speed group.
+  - Made the "Live" tick at the right end of the scrubber slider directly clickable (`onclick="FlowReplayEngine.jumpToLive()"`), providing a natural timeline affordance with zero visual ambiguity.
+- **Automated Flow Replay Verification Suite (`scripts/verify_flow_replay_fixes.js`):**
+  - Built an automated Chrome DevTools Protocol verification script running headless Chrome with WebGL.
+  - Verified 100% pass rate: verified absence of `replay-live-btn`, verified all 3 sentinel pills unclipped and fully rendered, verified dynamic river `weight` and gage radius changes across steps, verified 30D matrix switching, verified clean restoration of live GeoJSON baseline on close, and verified 0 MapLibre console errors across both `map.html` and `map_embed.html`.
+  - Visual verification artifact: `verified_flow_replay_active.png`.
 - **Restoration of Streamflow Gage Dots & MapLibre Radius Expression Repair (`web/app.js`):**
   - Diagnosed and resolved the root cause of missing gage dots: `circle-radius` on `streamflow-gauges-casing` and `streamflow-gauges-circle` previously wrapped an `interpolate` zoom expression inside a `coalesce` block with nested dynamic `match` expressions as stop outputs. MapLibre GL JS rejected both layers during `map.addLayer` with `Error: "zoom" expression may only be used as input to a top-level "step" or "interpolate" expression`, completely preventing the gage dots from rendering when flow badges were off.
   - Converted `circle-radius` on both layers to spec-compliant top-level linear zoom interpolation (`[interpolate, [linear], [zoom], 4, 3.5, 7, 5.0, 10, 7.0, 13, 9.0]` for the inner core dot and 1.5px larger for the white outer casing).
