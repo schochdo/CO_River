@@ -146,6 +146,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Mandatory Documentation Rule:** Codified Section 5 in `GEMINI.md` requiring continuous session logging in `CHANGELOG.md` and `AI_LOG.md` for all future tasks.
 
 ### Changed
+- **Proportional Flow Widths on River Conveyance Schematic (`web/pipeline.html`):**
+  - Scaled all mainstem reaches, tributary inflows, trans-mountain diversions, regional aqueducts, and reservoir evaporation plumes on the schematic proportionally to physical annual volume (MAF/yr) using square-root scaling:
+    $w = 2.0 + 5.5 \cdot \sqrt{\text{MAF}}\text{ (px)}$.
+  - Mainstem conduits visibly expand at confluences and contract at diversions, maintaining strict hydrologic mass-balance:
+    - Colorado River Headwaters ($4.00\text{ MAF} \rightarrow 13.0\text{px}$)
+    - Denver / Front Range Tunnels ($0.55\text{ MAF} \rightarrow 6.1\text{px}$)
+    - Upper Mainstem pre-Gunnison ($3.45\text{ MAF} \rightarrow 12.2\text{px}$)
+    - Gunnison River ($2.10\text{ MAF} \rightarrow 10.0\text{px}$)
+    - Upper Mainstem post-Gunnison ($5.55\text{ MAF} \rightarrow 15.0\text{px}$, updated badge to 5.6 MAF)
+    - Upper Green River ($3.60\text{ MAF} \rightarrow 12.4\text{px}$)
+    - Yampa River ($1.30\text{ MAF} \rightarrow 8.3\text{px}$)
+    - Green River post-Yampa ($4.90\text{ MAF} \rightarrow 14.2\text{px}$)
+    - Cataract Canyon combined Green + Mainstem ($10.45\text{ MAF} \rightarrow 19.8\text{px}$)
+    - San Juan River ($2.50\text{ MAF} \rightarrow 10.7\text{px}$)
+    - Lake Powell Pool Reach ($13.90\text{ MAF} \rightarrow 22.5\text{px}$)
+    - Lake Powell Evaporation Plume ($0.38\text{ MAF} \rightarrow 5.4\text{px}$)
+    - Grand Canyon Reach Compact Release ($8.23\text{ MAF} \rightarrow 17.8\text{px}$)
+    - Little Colorado River ($0.25\text{ MAF} \rightarrow 4.8\text{px}$)
+    - Virgin River ($0.18\text{ MAF} \rightarrow 4.3\text{px}$)
+    - Lake Mead Evaporation Plume ($0.65\text{ MAF} \rightarrow 6.4\text{px}$)
+    - SNWA / Las Vegas Intake ($0.30\text{ MAF} \rightarrow 5.0\text{px}$)
+    - Lower Basin Hoover Release ($9.00\text{ MAF} \rightarrow 18.5\text{px}$)
+    - Central Arizona Project ($1.50\text{ MAF} \rightarrow 8.7\text{px}$)
+    - Colorado River Aqueduct ($1.05\text{ MAF} \rightarrow 7.6\text{px}$)
+    - Lower Basin Mid-Reach post-CAP/CRA ($6.45\text{ MAF} \rightarrow 16.0\text{px}$)
+    - Channel Transit & Riparian Loss ($0.55\text{ MAF} \rightarrow 6.1\text{px}$)
+    - River approaching Imperial Dam ($5.50\text{ MAF} \rightarrow 14.9\text{px}$)
+    - All-American Canal ($2.90\text{ MAF} \rightarrow 11.4\text{px}$)
+    - River post-Imperial to Morelos Dam ($2.60\text{ MAF} \rightarrow 10.9\text{px}$)
+    - Mexican Treaty Delivery at Morelos Dam ($1.50\text{ MAF} \rightarrow 8.7\text{px}$)
+    - Dewatered Delta downstream ($0.00\text{ MAF} \rightarrow 3.0\text{px}$ dashed)
+  - Enhanced on-screen Legend Card with explicit formula callout: `Scaling: Width = 2.0 + 5.5 × √MAF (px)` and continuity principle: `Continuity: Downstream = Upstream + Tribs - Divs - Losses`.
+  - Re-verified with 0 text collisions and 0 flowline collisions via `scripts/test_sankey_clearance.js` and confirmed single-screen fit (<883px total view height).
+- **Knowledge Base Conversion to Developer/Session Reference (`KNOWLEDGE_BASE.md`):**
+  - Removed `web/knowledge.html` as a standalone web page to eliminate navigation clutter, redundant content overlap, and client-side search failures.
+  - Re-architected the knowledge base into a structured, persistent Markdown reference (`KNOWLEDGE_BASE.md`) for AI sessions and research lookups, consolidating the Master Rosetta Stone, 6-tributary inflow accounting, reservoir elevations, operational wave dynamics, Law of the River case law, and agency API contracts so future sessions have verified domain truth without needing web searches.
+- **Sidebar View Mode: Dedicated Fullscreen Section (`web/index.html`):**
+  - Separated the "Toggle Fullscreen" control into its own dedicated bottom section with a clear visual border divider (`border-t border-[#e2e8f0] pt-2.5 mt-2`), distinguishing viewing mode controls from reference links and modals.
 - **Purge of "Telemetry" Buzzwords Basin-Wide (`web/`, `notebooks/`):**
   - Swept user-facing HTML, JavaScript, CSS, JSON, and Jupyter notebooks to eliminate the software jargon buzzword "telemetry" per domain integrity and anti-slop principles.
   - Replaced user-facing strings with authentic hydrologic and cartographic terminology: "Gages & Monitoring Facilities", "Streamgage Records", "Hydrologic Monitoring Network", "Live Observations", "Gage & Facility Registry", "Station Offline", "Delayed Feed", and "USBR Records".

@@ -184,6 +184,25 @@ async function run() {
     fs.writeFileSync(shot1Path, Buffer.from(shot1.data, 'base64'));
     console.log(`📸 Saved screenshot: ${shot1Path}`);
 
+    // Capture focused SVG canvas screenshot
+    const canvasClip = await cdp.send('Runtime.evaluate', {
+      expression: `(() => {
+        const el = document.getElementById('canvas');
+        const r = el.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height, scale: 1 };
+      })()`,
+      returnByValue: true
+    });
+    if (canvasClip.result && canvasClip.result.value) {
+      const canvasShot = await cdp.send('Page.captureScreenshot', {
+        format: 'png',
+        clip: canvasClip.result.value
+      });
+      const canvasPath = path.join(ARTIFACT_DIR, 'verified_schematic_canvas_proportional.png');
+      fs.writeFileSync(canvasPath, Buffer.from(canvasShot.data, 'base64'));
+      console.log(`📸 Saved focused canvas screenshot: ${canvasPath}`);
+    }
+
     // 2. SWITCH TO ELEVATION PROFILE TAB
     await cdp.send('Runtime.evaluate', {
       expression: `switchPipelineSubtab('elevation')`
