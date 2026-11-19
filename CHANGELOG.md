@@ -190,6 +190,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Verified 100% topological continuity: 55/55 tributaries, 21/21 mainstem reaches, and 7/7 submerged reservoir centerlines now connect with 0.00m gaps.
   - Verified downstream flow growth at all confluences ($Q_{\text{combined}} = Q_{\text{upstream}} + Q_{\text{tributary}}$) with $\sqrt{Q}$ line weight scaling, submerged reservoir thalweg rendering, and dam flow breaks decoupling pool inflows from tailwater releases. Verified visually with headless Chrome screenshots.
 
+### Documented
+- **Operational Hydrology Knowledge Base (`SYSTEM_GUIDE.md` Section 5.F & 5.G):** Codified permanent domain reference records for dam release hydrodynamics and flood routing to ensure operational insights persist across sessions:
+  - *Diurnal Hydropeaking Wave (Section 5.F):* Documented WAPA electrical peaking grid economics (Glen Canyon 1,320 MW, Hoover 2,080 MW), wholesale spot price cycling (12–8 PM peaks vs 1–5 AM troughs), 1996 ROD and 2016 LTEMP legal ramp rate constraints (4,000 cfs/hr up-ramp, 1,500 cfs/hr down-ramp, 5k–8k cfs daily fluctuation band), kinematic wave dispersion rounding hydrographs into sine waves, downstream re-regulation (Glen Canyon free-flowing Grand Canyon wave taking 36–48h to attenuate to Mead vs Hoover power waves re-regulated by Davis and Parker dams), and summer weekend "Bug Flows."
+  - *Flood Pulse Routing & Reservoir Buffering (Section 5.G):* Documented reservoir slackwater absorption physics (e.g. Nov 3 San Juan River 32,900 cfs spike swallowed by Lake Powell with zero response at Lees Ferry) and geomorphic/elevation decoupling (why Gila River floods at Dome/Yuma at 120 ft MSL are physically hundreds of miles below and thousands of feet lower than Lakes Mead and Powell).
+
 ---
 
 ## [2.2.0] - 2026-11-15

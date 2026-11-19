@@ -11,7 +11,14 @@
 2. [The Basin Math Rosetta Stone](#2-the-basin-math-rosetta-stone)
 3. [System Architecture & Frontend Tech Stack](#3-system-architecture--frontend-tech-stack)
 4. [Data Ingestion Pipeline & Agency APIs](#4-data-ingestion-pipeline--agency-apis)
-5. [Hydrologic Physics & Important Formulas](#5-hydrologic-physics--important-formulas)
+5. [Hydrologic Physics & Operational Rules](#5-hydrologic-physics--operational-rules)
+   - [A. Dimensional Hygiene: Rate vs. Volume](#a-dimensional-hygiene-rate-vs-volume-conversion-bridge)
+   - [B. Confluence Mass-Balance Law](#b-confluence-mass-balance-law)
+   - [C. Richards-Baker Flashiness Index (RBI)](#c-richards-baker-flashiness-index-rbi)
+   - [D. Travel Time to Lake Powell](#d-travel-time-to-lake-powell-lagged-hydrograph-arrival)
+   - [E. Cartographic River Line Weighting](#e-cartographic-river-line-weighting)
+   - [F. Dam Hydrodynamics & The Diurnal Hydropeaking Wave](#f-dam-hydrodynamics--the-diurnal-hydropeaking-wave)
+   - [G. Flood Pulse Routing & Reservoir Buffering Physics](#g-flood-pulse-routing--reservoir-buffering-physics)
 6. [Historical Policy Context & Infrastructure Phases](#6-historical-policy-context--infrastructure-phases)
 7. [Cartographic Engineering & Topological Dilemmas](#7-cartographic-engineering--topological-dilemmas)
 8. [Known Approximations & Data Limitations](#8-known-approximations--data-limitations)
@@ -218,6 +225,48 @@ To calculate physical travel times from Upper Basin sentinel gages to Lake Powel
 ### E. Cartographic River Line Weighting
 To keep river reaches visible against shaded relief terrain without ballooning at high spring flows, MapLibre line widths follow a square-root transformation scaled to discharge:
 $$\text{stroke\_width} = \text{clamp}\left(\text{min\_width},\, \text{max\_width},\, \text{base} + k\sqrt{Q}\right)$$
+
+---
+
+### F. Dam Hydrodynamics & The Diurnal Hydropeaking Wave
+One of the most distinct physical patterns observed in high-frequency USGS streamflow data below major storage dams (most prominently at Lees Ferry below Glen Canyon Dam and below Hoover Dam) is a continuous, daily sinusoidal wave pattern. This is not natural river physics; it is the physical manifestation of **hydropeaking**—the coupling of electrical grid economics with legal environmental operating constraints:
+
+1. **Electrical Grid Peaking Economics (The Driver):**
+   - Unlike thermal (coal/nuclear) or base-load renewables, hydroelectric turbines can spin up or throttle back in seconds. Glen Canyon (1,320 MW) and Hoover (2,080 MW) operate as critical peaking plants for the Western Area Power Administration (WAPA) grid.
+   - Turbines open during peak demand hours (12:00 PM – 8:00 PM) when regional desert air conditioning and commercial loads spike wholesale spot electricity prices.
+   - Turbines throttle down overnight (1:00 AM – 5:00 AM) when power demand collapses, banking water in the reservoir pool.
+   - Weekend industrial demand drops cause noticeable dips in peak amplitudes on Saturdays and Sundays.
+
+2. **Environmental Operating Constraints (Why It Looks Like a Sine Wave):**
+   - If dam gates opened and closed instantly, the hydrograph would be a jagged square step function. Prior to 1991, unconstrained releases swung from 1,000 to 30,000 cfs in minutes, triggering severe bank slumping, sandbar loss, and fish stranding in the Grand Canyon.
+   - The **1996 Record of Decision (ROD)** and the **2016 Long-Term Experimental and Management Plan (LTEMP)** legally cap ramp rates:
+     - **Up-ramp limit:** Capped at 4,000 cfs/hour.
+     - **Down-ramp limit:** Capped at 1,500 cfs/hour (slower to prevent sandbar collapse from bank pore-water pressure).
+     - **Daily fluctuation band:** Capped between 5,000 and 8,000 cfs total daily swing depending on the monthly release volume.
+     - **Minimum floor:** Strict 5,000 cfs night / 8,000 cfs day conservation baseline.
+   - As water travels down the channel, hydrodynamic friction and kinematic wave dispersion naturally round off the rising and falling limbs into a smooth diurnal sine wave.
+
+3. **Downstream Re-Regulation: Glen Canyon vs. Hoover:**
+   - **Glen Canyon Dam $\rightarrow$ Grand Canyon $\rightarrow$ Lake Mead:** Glen Canyon discharges into ~250 miles of free-flowing, unregulated river. The diurnal wave travels the entire length of the Grand Canyon, taking roughly **36 to 48 hours** to attenuate and disperse before entering Lake Mead's slackwater pool.
+   - **Hoover Dam $\rightarrow$ Lake Mohave (Davis Dam) $\rightarrow$ Lake Havasu (Parker Dam):** Hoover hydropeaks for Southern California, Nevada, and Arizona power loads, but you do not see a wild sine wave downstream at Yuma or the canal headings. **Davis Dam** and **Parker Dam** function as **re-regulating reservoirs**, absorbing hourly power pulses into Lake Mohave and Lake Havasu and releasing a flat, steady discharge tailored strictly to downstream agricultural delivery schedules and the 1944 Mexican Treaty obligation.
+
+4. **"Bug Flows" (The Summer Weekend Flatline):**
+   - During summer months (May–August), Reclamation frequently conducts experimental "Bug Flows." On weekends, releases are held at a completely flat, non-fluctuating baseline. This prevents aquatic insect eggs (midges and caddisflies) laid on shoreline cobblestones from drying out when power demand drops, restoring the aquatic food web for native humpback chub and rainbow trout.
+
+---
+
+### G. Flood Pulse Routing & Reservoir Buffering Physics
+When analyzing temporal replay data across the basin, flash floods and seasonal surges reveal critical mass-balance and topological truths that frequently confuse outside observers:
+
+1. **Reservoir Slackwater Absorption (The Lake Powell Buffer):**
+   - *Example:* On November 3, 2026, an intense autumn storm surge drove the San Juan River at Bluff (`09379500`) to **32,900 cfs** (a ~1,500% spike over its 2,100 cfs baseline).
+   - *The Non-Response Downstream:* Lees Ferry (`09380000`), just downstream of Lake Powell, showed zero reaction, holding completely steady at its regulated ~7,000 cfs release.
+   - *Physical Mechanism:* Lake Powell is an immense hydrologic buffer with a surface area over 100,000 acres. An inflow surge of 30,000 cfs sustained for 48 hours delivers $\approx 120,000\text{ AF}$. While massive in a narrow river canyon, $120,000\text{ AF}$ spread across Lake Powell's surface raises the reservoir pool by only a fraction of an inch ($\approx 1.2\text{ ft}$). Glen Canyon Dam releases water based on annual statutory delivery schedules, not incoming instantaneous storm surges.
+
+2. **Topological & Elevation Decoupling (The Gila River Fallacy):**
+   - *The Misconception:* "Why didn't flash flooding on the Gila River help Lake Mead or Lake Powell?"
+   - *Physical Reality:* The Gila River confluence with the Colorado River occurs at **Dome / Yuma, Arizona** (River Mile 0 of the Lower Colorado, elevation $\approx 120\text{ ft}$ MSL), more than **350 river miles downstream** of Hoover Dam (Lake Mead elevation $\approx 1,060\text{ ft}$ MSL) and **650 river miles downstream** of Glen Canyon Dam (Lake Powell elevation $\approx 3,570\text{ ft}$ MSL).
+   - Water flows downhill. A flood on the Gila River can only flow into the Southerly International Boundary toward the Gulf of California or be diverted at Morelos Dam. It is physically separated from Lakes Mead and Powell by hundreds of miles and thousands of feet of elevation.
 
 ---
 
