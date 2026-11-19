@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.3.0] - 2026-11-17 – 2026-11-19
 ### Added
+- **Dynamic Layer-Synchronized Map Legend (`web/map.html`, `web/map_embed.html`, `web/app.js`):**
+  - Implemented real-time synchronization between Map Layer checkbox toggles and the Map Legend (`syncLegendToLayerToggles`):
+    - When any individual layer is turned off (e.g. dams, tunnels, canals, reservoirs, continental divide, basin boundaries, or river reach tiers), its corresponding legend item is immediately removed (`display: none`).
+    - When all items in a category are unchecked (such as all three streamflow tiers or all infrastructure features), the category section header is automatically hidden.
+    - Station grid items (`Streamflow (79)`, `Reservoirs (11)`, `Tunnels (4)`, `Canals (4)`) dynamically reflect active sub-layers and hide entirely if the main `Active Stations` toggle is disabled.
+    - Live Flow Badge (`7,800 cfs`) appears only when the `Flow Data Badges` sub-toggle is active.
+    - Topology diagnostics legend displays only the specific active diagnostic layers (Flow Direction, Confluence Junctions, or Reach Nodes) and hides when all are off.
+    - Displays a clean notice (`All map layers are currently turned off.`) if the user disables every layer, recovering instantly when any layer is re-enabled.
+    - Verified 100% pass rate across all 8 assertions via automated headless Chrome CDP test suite (`scripts/verify_legend_sync.js`).
 - **Water Budget Tab Architecture & Dual Stacked Bars Integration (`web/sankey.html`, `web/pipeline.html`):**
   - Relocated the complete "Physical Water Runoff vs. Legal Paper Allocations" dual stacked bar component into `web/sankey.html`, bringing both macro-annual accounting tools (Sankey Flow Diagram and Runoff vs. Paper Allocations) into a unified home on the Water Budget tab.
   - Added a responsive top view switcher: `[ ⇋ Unified Sankey Diagram ]`, `[ ⫸ Physical Runoff vs. Paper Allocations ]`, and `[ ☰ View Both (Continuous Scroll) ]`, allowing users to either toggle views with zero screen clutter or scroll continuously between them.
