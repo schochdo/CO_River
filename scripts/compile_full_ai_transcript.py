@@ -439,6 +439,7 @@ def main():
         """
 
     total_turns = len(all_dialogues)
+    compiled_str = datetime.now().strftime('%b %d, %Y %I:%M %p')
     
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -980,7 +981,8 @@ def main():
         <span>Sessions 1–8</span> &bull; 
         <span>Sep 27 – Nov 22, 2026</span> &bull; 
         <span>{total_turns} dialogues</span> &bull; 
-        <span>{image_copy_count + len(early_mockups)} screenshots</span>
+        <span>{image_copy_count + len(early_mockups)} screenshots</span> &bull; 
+        <span>Updated {compiled_str}</span>
     </div>
 </header>
 
@@ -1001,6 +1003,10 @@ def main():
                 <option value="f3a97760-d230-4b4e-8463-96f71462f340">Session 7: Architecture Defense (Nov 19-20)</option>
                 <option value="aad5e810-76c0-4f7e-a9c4-9eb2855ee883">Session 8: Corridor Palette & Consolidation (Nov 20-22)</option>
                 <option value="gemini-web-sessions">Gemini Web Sessions (10 PDFs / 84 Turns)</option>
+            </select>
+            <select id="sortOrder" class="filter-select" style="min-width:210px;" onchange="applySortOrder()">
+                <option value="DESC" selected>Sort: Newest First (Nov 22 &rarr; Sep 27)</option>
+                <option value="ASC">Sort: Chronological (#1 Sep 27 &rarr; Nov 22)</option>
             </select>
             <button class="action-btn" onclick="toggleAllResponses(false)">Expand All Answers</button>
             <button class="action-btn" onclick="toggleAllResponses(true)">Collapse All Answers</button>
@@ -1043,6 +1049,32 @@ def main():
             }}
         }});
     }}
+
+    function applySortOrder() {{
+        const stream = document.getElementById('dialogueStream');
+        const orderEl = document.getElementById('sortOrder');
+        if (!stream || !orderEl) return;
+        const order = orderEl.value;
+        const cards = Array.from(stream.querySelectorAll('.audit-card'));
+        cards.sort((a, b) => {{
+            const aGem = a.getAttribute('data-cid') === 'gemini-web-sessions';
+            const bGem = b.getAttribute('data-cid') === 'gemini-web-sessions';
+            const aIdx = parseInt(a.getAttribute('data-idx') || '0', 10);
+            const bIdx = parseInt(b.getAttribute('data-idx') || '0', 10);
+            if (order === 'ASC') {{
+                return aIdx - bIdx;
+            }}
+            // DESC: Dated Antigravity sessions newest-first, followed by Gemini Web PDF turns
+            if (aGem !== bGem) return aGem ? 1 : -1;
+            if (aGem && bGem) return aIdx - bIdx;
+            return bIdx - aIdx;
+        }});
+        cards.forEach(c => stream.appendChild(c));
+    }}
+
+    document.addEventListener('DOMContentLoaded', () => {{
+        applySortOrder();
+    }});
 
     function filterDialogues() {{
         const q = document.getElementById('searchInput').value.toLowerCase().trim();

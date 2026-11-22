@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.3.5] - 2026-11-22
+### Added
+- **Reverse-Chronological Sort & Refresh Timestamp in AI Dialogue Archive (`scripts/compile_full_ai_transcript.py`, `web/ai_complete_prompt_archive.html`):**
+  - Added a `#sortOrder` dropdown (`Sort: Newest First (Nov 22 → Sep 27)` default vs. `Sort: Chronological (#1 Sep 27 → Nov 22)`) and `applySortOrder()` so recent Session 8 turns appear at the top immediately on load while preserving Gemini Web PDF cards (`gemini-web-sessions`) and original `#1..#N` IDs; added live compilation timestamp to `.audit-meta-line`.
+
+### Changed
+- **Full Historical Reservoir Matrix & Timeline Refresh (`src/fetch_historical_portal_data.py`, `web/data/portal_historical.json`, `.github/workflows/update_data.yml`):**
+  - Expanded `src/fetch_historical_portal_data.py` (zero third-party dependencies) to refresh Lake Mead monthly/live elevations (`mead-elv.html`, `levels.html`, USBR HydroData site `921`), Lake Powell water-year storage (`919/csv/17.csv`), Upper Basin monthly elevation matrices (`919` Powell, `917` Flaming Gorge, `920` Navajo, `913` Blue Mesa `49.csv` monthly means), Dillon (`CDWR DILRESCO`), `basin_storage_timeline[2026]` (`17.606 MAF` unified USBR `17.csv` + CDWR snapshot), and USGS Lee's Ferry daily discharge (`09380000` through `2026-11-21`).
+  - Populated `2026 OCT` (`1038.85 ft`) and `2026 NOV` (`1041.41 ft`) on Lake Mead and `2026 NOV` (`3538.29 ft`) on Lake Powell, plus `NOV 2026` on Flaming Gorge, Navajo, Blue Mesa, and Dillon.
+  - Added `python3 src/fetch_historical_portal_data.py` to `.github/workflows/update_data.yml` so historical reservoir heatmaps and timelines update automatically alongside real-time telemetry runs.
+  - Verified via headless Chrome CDP that Lake Mead (`2026 OCT: 1038.8 ft`, `2026 NOV: 1041.4 ft`), Lake Powell (`2026 OCT: 3522.4 ft`, `2026 NOV: 3538.3 ft`), and the recompiled AI archive (`Sort: Newest First`, `Updated Nov 22, 2026`) render accurately (`verified_heatmap_mead_nov2026.png`, `verified_heatmap_powell_nov2026.png`, `verified_archive_sorted.png`).
+
+---
+
 ## [2.3.4] - 2026-11-21
 ### Added
 - **Dedicated Platform Architecture & Methodology Guide (`web/methodology.html`):**
@@ -1105,6 +1119,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### Added
 - **Initial Project Scoping & Sentinel Stations:** Established prototype data pipeline for four sentinel streamflow gages (Dotsero, Cameo, Cisco, Lees Ferry) and four Front Range trans-mountain tunnels (Adams, Moffat, Roberts, Boustead).
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
+
+## [2.3.5] - 2026-11-22
+### Added
+- **Reverse-Chronological Sort & Refresh Timestamp in AI Dialogue Archive (`scripts/compile_full_ai_transcript.py`, `web/ai_complete_prompt_archive.html`):**
+  - Added a `#sortOrder` dropdown (`Sort: Newest First (Nov 22 → Sep 27)` default vs. `Sort: Chronological (#1 Sep 27 → Nov 22)`) and `applySortOrder()` so recent Session 8 turns appear at the top immediately on load while preserving Gemini Web PDF cards (`gemini-web-sessions`) and original `#1..#N` IDs; added live compilation timestamp to `.audit-meta-line`.
+
+### Changed
+- **Full Historical Reservoir Matrix & Timeline Refresh (`src/fetch_historical_portal_data.py`, `web/data/portal_historical.json`, `.github/workflows/update_data.yml`):**
+  - Expanded `src/fetch_historical_portal_data.py` (zero third-party dependencies) to refresh Lake Mead monthly/live elevations (`mead-elv.html`, `levels.html`, USBR HydroData site `921`), Lake Powell water-year storage (`919/csv/17.csv`), Upper Basin monthly elevation matrices (`919` Powell, `917` Flaming Gorge, `920` Navajo, `913` Blue Mesa `49.csv` monthly means), Dillon (`CDWR DILRESCO`), `basin_storage_timeline[2026]` (`17.606 MAF` unified USBR `17.csv` + CDWR snapshot), and USGS Lee's Ferry daily discharge (`09380000` through `2026-11-21`).
+  - Populated `2026 OCT` (`1038.85 ft`) and `2026 NOV` (`1041.41 ft`) on Lake Mead and `2026 NOV` (`3538.29 ft`) on Lake Powell, plus `NOV 2026` on Flaming Gorge, Navajo, Blue Mesa, and Dillon.
+  - Added `python3 src/fetch_historical_portal_data.py` to `.github/workflows/update_data.yml` so historical reservoir heatmaps and timelines update automatically alongside real-time telemetry runs.
+  - Verified via headless Chrome CDP that Lake Mead (`2026 OCT: 1038.8 ft`, `2026 NOV: 1041.4 ft`), Lake Powell (`2026 OCT: 3522.4 ft`, `2026 NOV: 3538.3 ft`), and the recompiled AI archive (`Sort: Newest First`, `Updated Nov 22, 2026`) render accurately (`verified_heatmap_mead_nov2026.png`, `verified_heatmap_powell_nov2026.png`, `verified_archive_sorted.png`).
+
+---
 
 ## [2.3.4] - 2026-11-21
 ### Fixed

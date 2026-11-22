@@ -37,6 +37,10 @@ jobs:
         run: |
           python3 src/fetch_water_data.py
 
+      - name: Refresh Historical Reservoir Matrices & Basin Storage Timeline
+        run: |
+          python3 src/fetch_historical_portal_data.py
+
       - name: Ingest & Downsample 7-Day Flow Replay Matrix
         run: |
           python3 src/fetch_replay_7d.py
