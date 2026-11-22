@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.5] - 2026-11-22
+### Changed (Tributaries & Deficit Direct Click Filtering)
+- **Removed Header Regime Filter Buttons & Added Direct Multi-Line / Category Selection (`web/ml_analysis.html`):**
+  - Removed the 4 top filter buttons (`All Rivers`, `Snowmelt Rivers`, `Dam-Controlled`, `Desert Flash-Flood`) that only scoped the top two charts, replacing them with a subtle clickable inline regime key (`Snowmelt`, `Dam-Regulated`, `Desert Flash` + contextual `Reset` link).
+  - Replaced single-river selection with multi-select `selectedRiverIds` (`Set`), polyline segment hit-testing (`findHitRiverOnChart()` + `pointToSegmentDistance()`), and on-canvas label box hit-testing (`chart._labelBoxes`) across Card 1 (`Tributary Flashiness vs. Volume`) and Card 2 (`Travel Time to Lake Powell`): clicking lines, bubbles, or label pills toggles multiple rivers simultaneously, clicking any regime dot (or Shift-clicking any line/bubble) selects its full category, and clicking empty chart background clears the filter.
+  - Unified hover tooltips on both Card 1 and Card 2 via `formatRiverHoverLines()` + `pointHitRadius: 24` so hovering any bubble or any section of a travel curve displays USGS station ID, regime, annual inflow (`MAF/yr` & `%` Powell share), RBI flashiness, and travel lag/river miles; verified via real mouse events in headless Chrome CDP (`oldButtonsCount: 0`, multi-select `["san_juan_bluff","cameo"]`, snowmelt category `["cameo","yampa"]`, `verified_tributaries_direct_click.png`).
+
 ### Fixed
 - **Fullscreen Sidebar Preservation & Removal of Floating Exit Button (`web/index.html`):**
   - Removed the `body.workspace-fullscreen .sidebar-academic { display: none !important; }` override and deleted `#btn-exit-fullscreen-floating` so entering fullscreen keeps the left navigation sidebar (`256px`) accessible at all times and never overlays a floating button on top of `Basin Overview` or view headers.
@@ -1134,6 +1140,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
 
 ## [2.3.5] - 2026-11-22
+### Changed (Tributaries & Deficit Direct Click Filtering)
+- **Removed Header Regime Filter Buttons & Added Direct Multi-Line / Category Selection (`web/ml_analysis.html`):**
+  - Removed the 4 top filter buttons (`All Rivers`, `Snowmelt Rivers`, `Dam-Controlled`, `Desert Flash-Flood`) that only scoped the top two charts, replacing them with a subtle clickable inline regime key (`Snowmelt`, `Dam-Regulated`, `Desert Flash` + contextual `Reset` link).
+  - Replaced single-river selection with multi-select `selectedRiverIds` (`Set`), polyline segment hit-testing (`findHitRiverOnChart()` + `pointToSegmentDistance()`), and on-canvas label box hit-testing (`chart._labelBoxes`) across Card 1 (`Tributary Flashiness vs. Volume`) and Card 2 (`Travel Time to Lake Powell`): clicking lines, bubbles, or label pills toggles multiple rivers simultaneously, clicking any regime dot (or Shift-clicking any line/bubble) selects its full category, and clicking empty chart background clears the filter.
+  - Unified hover tooltips on both Card 1 and Card 2 via `formatRiverHoverLines()` + `pointHitRadius: 24` so hovering any bubble or any section of a travel curve displays USGS station ID, regime, annual inflow (`MAF/yr` & `%` Powell share), RBI flashiness, and travel lag/river miles; verified via real mouse events in headless Chrome CDP (`oldButtonsCount: 0`, multi-select `["san_juan_bluff","cameo"]`, snowmelt category `["cameo","yampa"]`, `verified_tributaries_direct_click.png`).
+
 ### Fixed
 - **Fullscreen Sidebar Preservation & Removal of Floating Exit Button (`web/index.html`):**
   - Removed the `body.workspace-fullscreen .sidebar-academic { display: none !important; }` override and deleted `#btn-exit-fullscreen-floating` so entering fullscreen keeps the left navigation sidebar (`256px`) accessible at all times and never overlays a floating button on top of `Basin Overview` or view headers.
