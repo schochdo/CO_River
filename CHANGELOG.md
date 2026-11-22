@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Re-exported all 5 notebooks to HTML in `web/notebooks/` and synced `.ipynb` files.
 
 ### Changed
+- **Small-Screen Sidebar Section Separation (`web/index.html`):**
+  - Added explicit `mt-4` clearance, a `1.5px solid #b8ae9c` divider, and a `Reference & Code` category header above `#sidebar-bottom-utilities` (plus `pt-2.5 mt-2.5 border-t-[1.5px] border-[#b8ae9c]` above `#btn-fullscreen`) so the reference/utility links maintain crisp separation from `Decadal & Regimes` even when vertical `justify-between` slack collapses on compact viewports; verified at `1280×680` via CDP (`gapAboveDivider: 16`, `gapToLaw: 54.25`, invariant `30px` link height, `verified_sidebar_small_screen_division.png`).
 - **Gemini Web Meta-Prompting PDFs Archived & Parsed into AI Dialogue Archive (`scripts/compile_full_ai_transcript.py`, `scripts/build_unified_notebook.py`, `mockups/gemini_sessions/*.pdf`):**
   - *Full PDF Extraction & Hosting (`web/ai_complete_prompt_archive.html`):* Parsed all 10 exported Gemini Argon PDFs in `mockups/gemini_sessions/` via macOS `PDFKit` into `84` filterable dialogue cards (`gemini-web-sessions` filter option, `759` total dialogues across `189` screenshots, `5.90 MB`), and staged all 10 source PDFs into `web/audit_assets/gemini_session_*.pdf` with direct links.
   - *Two-Model Meta-Prompting Documentation (`notebooks/colorado_river_analysis.ipynb`):* Documented how Gemini Argon sessions were used to audit water law/hydrology and draft structured anti-drift prompts for Gemini 3.8 Flash in Section 8, and verified `10` archived PDFs in Cell 16.
