@@ -469,7 +469,7 @@ def render_notebook(ipynb_path, output_html_path):
 
   <!-- Footer -->
   <footer class="bg-stone-100 border-t border-stone-200 py-6 text-center text-xs text-stone-500 mt-12">
-    <p>Colorado River Basin • Douglas Schoch • Open Hydrologic Science</p>
+    <p>Colorado River Basin • DAT1001 • Douglas Schoch • Fall 2026</p>
   </footer>
 
 </body>

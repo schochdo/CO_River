@@ -24,6 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Re-exported all 5 notebooks to HTML in `web/notebooks/` and synced `.ipynb` files.
 
 ### Changed
+- **Planning-Mode Plans in AI Archive & Attribution Footers (`scripts/compile_full_ai_transcript.py`, `scripts/export_notebooks_to_html.py`, `web/methodology.html`, `web/data_sources.html`):**
+  - *Full Planning-Mode Output Extraction:* Updated `scripts/compile_full_ai_transcript.py` to include full `exit_plan_mode` plans (`Planning Mode Plan`), `enter_plan_mode` status reports (`Plan Review Status Report`), `implementation_plan.md` / `walkthrough.md` drafts, and fallback diagnostic reasoning blocks for interrupted turns (`667` total dialogues, `30` plans, `20` review reports, `65` diagnostic reasoning blocks).
+  - *Page Attribution Footers:* Updated bottom footers on `web/methodology.html`, `web/data_sources.html`, `web/notebooks/colorado_river_analysis.html` (via `export_notebooks_to_html.py`), and `web/ai_complete_prompt_archive.html` to include `Colorado River Basin • DAT1001 • Douglas Schoch • Fall 2026`.
 - **AI Transcript Archive Session 8 & GitHub / Portfolio Deployment (`scripts/compile_full_ai_transcript.py`, `web/ai_complete_prompt_archive.html`):**
   - Added Session 8 (`aad5e810-76c0-4f7e-a9c4-9eb2855ee883`, Nov 20–22) plus Sept 22 Gemini HTML prototype (`mockups/gemini-code-1790119779253.html`) and `.pdf` ingestion support to `scripts/compile_full_ai_transcript.py`, recompiling `666` dialogues and `185` staged screenshots into `web/ai_complete_prompt_archive.html`.
   - Committed and pushed updates to `origin main` (`schochdo/CO_River`) and deployed `web/` assets (including `ai_complete_prompt_archive.html`, `audit_assets/`, and `notebooks/colorado_river_analysis.html`) via `scripts/sync_to_portfolio.sh` to `schochdo.github.io/colorado_river/`.

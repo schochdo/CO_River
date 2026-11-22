@@ -184,8 +184,9 @@ def main():
                             'mime_type': m.get('mime_type', 'image/png')
                         })
                         
-                # Look ahead for assistant responses and actions
+                # Look ahead for assistant responses, planning-mode plans, and actions
                 assistant_replies = []
+                thinking_blocks = []
                 tools_used = []
                 for j in range(i + 1, len(lines)):
                     next_step = json.loads(lines[j])
@@ -195,11 +196,31 @@ def main():
                         c = next_step.get('content')
                         if c and c.strip():
                             assistant_replies.append(c.strip())
+                        th = next_step.get('thinking')
+                        if th and th.strip():
+                            thinking_blocks.append(th.strip())
                         for tc in next_step.get('tool_calls', []):
+                            tool_name = tc.get('name') or tc.get('tool') or ''
                             args = tc.get('args', {})
-                            summary = args.get('toolSummary') or tc.get('tool')
+                            if not isinstance(args, dict):
+                                args = {}
+                            if tool_name == 'exit_plan_mode' and args.get('plan'):
+                                assistant_replies.append(f"### Planning Mode Plan\n\n{args['plan'].strip()}")
+                            elif tool_name == 'enter_plan_mode' and args.get('reason'):
+                                assistant_replies.append(f"### Plan Review Status Report\n\n{args['reason'].strip()}")
+                            elif tool_name in ('write_file', 'write_to_file') and any(
+                                k in str(args.get('Path') or args.get('TargetFile') or '')
+                                for k in ('implementation_plan.md', 'walkthrough.md')
+                            ):
+                                body = (args.get('Content') or args.get('CodeContent') or '').strip()
+                                if body:
+                                    assistant_replies.append(body)
+                            summary = args.get('toolSummary') or tool_name
                             if summary and summary not in tools_used:
                                 tools_used.append(summary)
+
+                if not assistant_replies and thinking_blocks:
+                    assistant_replies.append("### Planning Mode Diagnostic Reasoning\n\n" + "\n\n".join(thinking_blocks))
                                 
                 all_dialogues.append({
                     'session_id': cid,
@@ -963,6 +984,10 @@ def main():
         }});
     }}
 </script>
+
+<footer style="max-width:1200px;margin:2rem auto 0;padding:1rem 2rem;border-top:1px solid #cbd5e1;font-size:12px;color:#64748b;">
+    Colorado River Basin • DAT1001 • Douglas Schoch • Fall 2026
+</footer>
 
 </body>
 </html>
