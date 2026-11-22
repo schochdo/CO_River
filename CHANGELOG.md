@@ -24,6 +24,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Re-exported all 5 notebooks to HTML in `web/notebooks/` and synced `.ipynb` files.
 
 ### Changed
+- **Warm Sandstone Corridor Theme for Map Popups & Tooltips (`web/editorial.css`, `web/map_embed.html`, `web/map.html`, `web/app.js`, `web/index.html`):**
+  - *Popup Shell & Tip Overrides (`web/editorial.css`, `web/map_embed.html`):* Styled `.maplibregl-popup-content` (`#faf8f4`, `1.5px solid #b8ae9c`, `2px` radius), `.maplibregl-popup-close-button`, popup anchor tips (`#b8ae9c`), and `.map-hover-tooltip` (`#faf8f4` / `#b8ae9c`).
+  - *Inline Popup Templates (`web/app.js`):* Updated 133 popup/tooltip template lines across `switchPopupTab()`, `formatTabbedPopup()`, `openReachPopup()`, `formatGaugePopup()`, `formatReservoirStationPopup()`, `formatCanalPopupHtml()`, dam popups, and hover tooltips from cold blue-gray (`#f8fafc`, `#f1f5f9`, `#f0f9ff`, `#e0f2fe`, `#1d4ed8`, `#0284c7`) to warm sandstone corridor tones (`#f2ede2`, `#ebe4d6`, `#cfc8ba`, `#b8ae9c`, `#2b5c8f`); bumped cache-busters (`?v=20261122e`).
+  - *Automated CDP Verification:* Rendered Marble Canyon reach popup in `#iframe-map` (`bg: rgb(250, 248, 244)`, `border: rgb(184, 174, 156)`, `hasColdColors: false`, `0` JS errors; `verified_map_popup_warm_corridor.png`).
 - **Hybrid Workspace + Native Fullscreen Toggle (`web/index.html`):**
   - *Brave / macOS Fullscreen Resilience:* Updated `toggleFullScreen()` and `syncFullscreenUI()` to combine a `body.workspace-fullscreen` layout mode (hiding `.sidebar-academic`, expanding main viewport/map to 100% width with `triggerViewportResize()`, and showing `#btn-exit-fullscreen-floating` + `Escape` support) alongside `requestFullscreen()` / `webkitRequestFullscreen()`, plus added `allow="fullscreen" allowfullscreen` on all 6 child `<iframe>` elements.
   - *Automated CDP Verification:* Confirmed `#btn-fullscreen` expands main viewport to `1440px` (`sidebarW: 0`) and `#btn-exit-fullscreen-floating` restores `sidebarW: 256` cleanly (`verified_workspace_fullscreen.png`).
