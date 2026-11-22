@@ -20,6 +20,7 @@ import json
 import re
 import shutil
 import html
+import subprocess
 from datetime import datetime
 
 CO_SESSIONS = [
@@ -41,8 +42,54 @@ SESSION_LABELS = {
     '58cfdbf8-91b4-4263-ad4e-596d29fac1a2': 'Session 5: ML Richards-Baker Flashiness & Legal Accounting (Nov 08-19)',
     '0fedef31-6991-497d-9a19-33180dfdcf02': 'Session 6: Workspace & Codebase Audit Verification (Nov 19)',
     'f3a97760-d230-4b4e-8463-96f71462f340': 'Session 7: Deep Architecture Defense & Academic Disclosure (Nov 19-20)',
-    'aad5e810-76c0-4f7e-a9c4-9eb2855ee883': 'Session 8: Corridor Palette Unification, Sankey Brackets & Single Notebook Consolidation (Nov 20-22)'
+    'aad5e810-76c0-4f7e-a9c4-9eb2855ee883': 'Session 8: Corridor Palette Unification, Sankey Brackets & Single Notebook Consolidation (Nov 20-22)',
+    'gemini-web-sessions': 'Gemini Web Sessions (10 PDFs): Architecture & Meta-Prompting for 3.8 Flash'
 }
+
+def extract_gemini_web_pdf_turns(pdf_path, dest_rel_src):
+    """Extract User prompt / Response turns from a Gemini Web exported PDF via macOS PDFKit."""
+    swift_code = '''
+import Foundation
+import PDFKit
+let url = URL(fileURLWithPath: CommandLine.arguments[1])
+if let doc = PDFDocument(url: url), let s = doc.string {
+    print(s)
+}
+'''
+    res = subprocess.run(['/usr/bin/swift', '-e', swift_code, pdf_path], capture_output=True, text=True)
+    raw = res.stdout or ''
+    if not raw.strip():
+        return []
+    # Strip Chrome print header/footer noise
+    cleaned_lines = []
+    for line in raw.splitlines():
+        s = line.strip()
+        if re.match(r'^\d{1,2}/\d{1,2}/\d{2,4},\s+\d{1,2}:\d{2}\s+[AP]M\s+', s):
+            continue
+        if re.match(r'^https://gemini\.google\.com/app/[a-z0-9]+(?:\s+\d+/\d+)?$', s):
+            continue
+        cleaned_lines.append(line)
+    cleaned = '\n'.join(cleaned_lines)
+    # Split on "User prompt:" markers
+    chunks = re.split(r'(?:^|\n)\s*User prompt:\s*', cleaned)
+    turns = []
+    pdf_title = os.path.splitext(os.path.basename(pdf_path))[0]
+    for ch in chunks[1:]:
+        parts = re.split(r'\n\s*Response:\s*', ch, maxsplit=1)
+        prompt = parts[0].strip()
+        resp = parts[1].strip() if len(parts) > 1 else ''
+        if prompt:
+            turns.append({
+                'session_id': 'gemini-web-sessions',
+                'created_at': f'{pdf_title} (Gemini Argon PDF)',
+                'prompt': prompt,
+                'media': [],
+                'assistant_text': resp if resp else None,
+                'tools_used': [f'Source PDF: {pdf_title}.pdf'],
+                'pdf_src': dest_rel_src,
+                'pdf_name': os.path.basename(pdf_path)
+            })
+    return turns
 
 def clean_markdown_to_html(text):
     if not text:
@@ -123,7 +170,20 @@ def main():
                 dest_fn = f"gemini_doc_{mf}"
                 shutil.copy2(src_file, os.path.join(assets_dir, dest_fn))
                 early_docs.append({'src': f"audit_assets/{dest_fn}", 'name': mf})
-    print(f"Copied {len(early_mockups)} early mockups and {len(early_docs)} Gemini HTML/PDF docs into audit_assets/")
+    gemini_sessions_dir = os.path.join(mockups_src, 'gemini_sessions')
+    gemini_pdf_docs = []
+    gemini_web_turns = []
+    if os.path.exists(gemini_sessions_dir):
+        for pf in sorted(os.listdir(gemini_sessions_dir)):
+            if pf.lower().endswith('.pdf'):
+                slug = re.sub(r'[^a-z0-9]+', '_', os.path.splitext(pf)[0].lower()).strip('_')
+                dest_fn = f"gemini_session_{slug}.pdf"
+                src_pdf = os.path.join(gemini_sessions_dir, pf)
+                shutil.copy2(src_pdf, os.path.join(assets_dir, dest_fn))
+                rel_src = f"audit_assets/{dest_fn}"
+                gemini_pdf_docs.append({'src': rel_src, 'name': pf})
+                gemini_web_turns.extend(extract_gemini_web_pdf_turns(src_pdf, rel_src))
+    print(f"Copied {len(early_mockups)} early mockups, {len(early_docs)} docs, and {len(gemini_pdf_docs)} Gemini Web PDFs ({len(gemini_web_turns)} turns)")
     
     # 2. Extract dialogue turns from authentic Colorado River sessions
     all_dialogues = []
@@ -243,6 +303,7 @@ def main():
         return datetime.min
 
     all_dialogues.sort(key=parse_time)
+    all_dialogues.extend(gemini_web_turns)
     print(f"Total authentic Colorado River dialogues compiled: {len(all_dialogues)}")
     print(f"Total user-uploaded images verified and staged: {image_copy_count}")
 
@@ -313,11 +374,16 @@ def main():
             """
 
         sess_label = SESSION_LABELS.get(cid, f"Session {cid[:8]}")
+        pdf_btn = (
+            f'<a href="{item["pdf_src"]}" target="_blank" rel="noopener noreferrer" class="tool-pill" style="text-decoration:none;">Source PDF ↗</a>'
+            if item.get('pdf_src') else ''
+        )
         card = f"""
         <article class="audit-card" data-idx="{idx}" data-cid="{cid}" data-ts="{ts}">
             <div class="card-meta">
                 <span class="badge-idx">#{idx}</span>
                 <span class="badge-session">{html.escape(sess_label)}</span>
+                {pdf_btn}
                 <time class="meta-time">{html.escape(ts)}</time>
             </div>
             <div class="user-prompt-wrap">
@@ -330,9 +396,9 @@ def main():
         """
         dialogue_html.append(card)
 
-    # Mockups HTML
+    # Mockups & Gemini Sessions HTML
     mockup_gallery_html = ""
-    if early_mockups or early_docs:
+    if early_mockups or early_docs or gemini_pdf_docs:
         m_items = []
         for m in early_mockups:
             m_items.append(f"""
@@ -348,15 +414,27 @@ def main():
             f'<a href="{d["src"]}" target="_blank" rel="noopener noreferrer" class="tool-pill" style="text-decoration:none;margin-right:6px;">{html.escape(d["name"])} ↗</a>'
             for d in early_docs
         )
-        doc_row = f'<div style="margin-top:12px;font-size:12px;"><strong>Early Gemini Prototype / PDF Exports:</strong> {doc_links}</div>' if doc_links else ""
+        doc_row = f'<div style="margin-top:12px;font-size:12px;"><strong>Early Gemini Prototype:</strong> {doc_links}</div>' if doc_links else ""
+        pdf_list_html = "".join(
+            f'<li><a href="{p["src"]}" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">{html.escape(p["name"])} ↗</a></li>'
+            for p in gemini_pdf_docs
+        )
+        gemini_pdfs_box = f"""
+        <div style="margin-top:16px;padding:12px 16px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;">
+            <strong style="display:block;font-size:13px;color:#0f172a;margin-bottom:4px;">Gemini Argon Meta-Prompting &amp; Architecture Sessions ({len(gemini_pdf_docs)} PDFs, {len(gemini_web_turns)} Turns Extracted Below)</strong>
+            <p style="font-size:12px;color:#475569;margin-bottom:8px;">When Gemini 3.8 Flash drifted inside Antigravity, Gemini Argon sessions were used to sanity-check water law/hydrology and author structured anti-drift prompts. All 10 exported PDFs are archived below and indexed as filterable cards in the dialogue stream.</p>
+            <ul style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:4px 16px;font-size:12px;list-style:disc;padding-left:18px;margin:0;">{pdf_list_html}</ul>
+        </div>
+        """ if gemini_pdf_docs else ""
         mockup_gallery_html = f"""
         <section class="mockup-section">
-            <h2 class="section-title">Pre-Development Artifacts: Early Gemini Concept Mockups (Sep 2026)</h2>
-            <p class="section-desc">Before development began in Antigravity on September 27, early user flows and aesthetic layouts were brainstormed with Gemini. These artifacts guided the initial wireframes.</p>
+            <h2 class="section-title">Pre-Development Artifacts &amp; Gemini Web Meta-Prompting Sessions</h2>
+            <p class="section-desc">Early Gemini wireframes (Sep 22, 2026) and exported Gemini Argon PDF sessions used for domain validation and meta-prompting Gemini 3.8 Flash.</p>
             <div class="mockup-grid">
                 {''.join(m_items)}
             </div>
             {doc_row}
+            {gemini_pdfs_box}
         </section>
         """
 
@@ -913,7 +991,7 @@ def main():
         </div>
         <div class="filter-controls">
             <select id="sessionFilter" class="filter-select" onchange="filterDialogues()">
-                <option value="ALL">All 7 Sessions (Chronological)</option>
+                <option value="ALL">All Sessions + Gemini Web PDFs</option>
                 <option value="020c8971-5c78-4eba-8811-cea3997b058e">Session 1: Architecture & Planning (Sep 27)</option>
                 <option value="bbab402d-c7b9-479d-b2e0-9fb8404a0e69">Session 2: Hydrology Pipelines (Oct 15)</option>
                 <option value="4435b62e-8fe9-444c-a9e1-fde4adac282d">Session 3: Basin Cartography (Oct 23)</option>
@@ -921,6 +999,8 @@ def main():
                 <option value="58cfdbf8-91b4-4263-ad4e-596d29fac1a2">Session 5: ML & Legal Accounting (Nov 08-19)</option>
                 <option value="0fedef31-6991-497d-9a19-33180dfdcf02">Session 6: Workspace Audit Verification (Nov 19)</option>
                 <option value="f3a97760-d230-4b4e-8463-96f71462f340">Session 7: Architecture Defense (Nov 19-20)</option>
+                <option value="aad5e810-76c0-4f7e-a9c4-9eb2855ee883">Session 8: Corridor Palette & Consolidation (Nov 20-22)</option>
+                <option value="gemini-web-sessions">Gemini Web Sessions (10 PDFs / 84 Turns)</option>
             </select>
             <button class="action-btn" onclick="toggleAllResponses(false)">Expand All Answers</button>
             <button class="action-btn" onclick="toggleAllResponses(true)">Collapse All Answers</button>
