@@ -50,8 +50,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          # Stage updated JSON data files
-          git add web/data/*.json data/*.json 2>/dev/null || true
+          # Stage updated SQLite database and JSON data files
+          git add data/colorado_river_basin.db web/data/*.json data/*.json 2>/dev/null || true
 
           # Check if there are unstaged or staged data updates
           if git diff --staged --quiet; then

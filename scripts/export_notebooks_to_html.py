@@ -65,16 +65,49 @@ def markdown_to_html(md_text, toc_entries=None):
             table_lines = []
 
     def inline_format(text):
-        # Code: `code`
-        text = re.sub(r'`([^`]+)`', r'<code class="inline-code">\1</code>', text)
-        # Bold: **text** or __text__
+        placeholders = []
+
+        def hold(html_frag):
+            idx = len(placeholders)
+            placeholders.append(html_frag)
+            return f"\x00PH{idx}\x00"
+
+        # 1. Protect inline code `...` first so underscores/asterisks inside stay untouched
+        text = re.sub(r'`([^`]+)`', lambda m: hold(f'<code class="inline-code">{html.escape(m.group(1))}</code>'), text)
+        # 2. Protect LaTeX $...$ spans so underscores stay untouched
+        text = re.sub(r'\$([^$]+)\$', lambda m: hold(m.group(0)), text)
+        # 3. Extract markdown links [text](url) before italicizing underscores in URLs
+        def fmt_link(m):
+            lbl = m.group(1).replace('\x00', '')
+            lbl = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', lbl)
+            href = html.escape(m.group(2), quote=True)
+            # Restore any protected inline code inside link label
+            for i, ph in enumerate(placeholders):
+                lbl = lbl.replace(f"PH{i}", ph)
+            return hold(f'<a href="{href}" target="_blank" rel="noopener noreferrer" class="notebook-link">{lbl} ↗</a>')
+
+        # Build links safely by formatting inline placeholders after
+        links_raw = []
+        def hold_link(m):
+            idx = len(links_raw)
+            links_raw.append((m.group(1), m.group(2)))
+            return f"\x01LK{idx}\x01"
+        text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', hold_link, text)
+
+        # 4. Bold and word-boundary italic (ignore underscores inside identifiers/paths)
         text = re.sub(r'\*\*([^*]+)\*\*', r'<strong>\1</strong>', text)
         text = re.sub(r'__([^_]+)__', r'<strong>\1</strong>', text)
-        # Italic: *text* or _text_
         text = re.sub(r'\*([^*]+)\*', r'<em>\1</em>', text)
-        text = re.sub(r'_([^_]+)_', r'<em>\1</em>', text)
-        # Links: [text](url)
-        text = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', r'<a href="\2" target="_blank" rel="noopener noreferrer" class="notebook-link">\1 ↗</a>', text)
+        text = re.sub(r'(?<![\w/])_([^_]+)_(?![\w/])', r'<em>\1</em>', text)
+
+        # 5. Restore links and inline placeholders
+        for idx, (lbl, url) in enumerate(links_raw):
+            for i, ph in enumerate(placeholders):
+                lbl = lbl.replace(f"\x00PH{i}\x00", ph)
+            href = html.escape(url, quote=True)
+            text = text.replace(f"\x01LK{idx}\x01", f'<a href="{href}" target="_blank" rel="noopener noreferrer" class="notebook-link">{lbl} ↗</a>')
+        for i, ph in enumerate(placeholders):
+            text = text.replace(f"\x00PH{i}\x00", ph)
         return text
 
     i = 0
@@ -429,15 +462,6 @@ def render_notebook(ipynb_path, output_html_path):
         <nav class="space-y-0.5 max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
           {toc_rendered}
         </nav>
-        
-        <div class="mt-6 pt-4 border-t border-stone-200">
-          <div class="text-[11px] font-bold text-stone-700 mb-1.5">Research Files:</div>
-          <ul class="text-xs space-y-1 text-sky-700">
-            <li><a href="01_build_river_network.html" class="hover:underline">01. Geospatial Topology</a></li>
-            <li><a href="02_analyze_flow_and_export.html" class="hover:underline">02. Flow & Metric Engine</a></li>
-            <li><a href="03_tributary_ml_analysis.html" class="hover:underline">03. Tributary ML & Regimes</a></li>
-          </ul>
-        </div>
       </div>
     </aside>
 
@@ -445,7 +469,7 @@ def render_notebook(ipynb_path, output_html_path):
 
   <!-- Footer -->
   <footer class="bg-stone-100 border-t border-stone-200 py-6 text-center text-xs text-stone-500 mt-12">
-    <p>Colorado River Basin Data Portal • Research Notebooks • Open Hydrologic Science</p>
+    <p>Colorado River Basin • Douglas Schoch • Open Hydrologic Science</p>
   </footer>
 
 </body>

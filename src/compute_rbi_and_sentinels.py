@@ -39,9 +39,9 @@ BASIN_SENTINEL_IDS = {
     "09180000",  # Dolores River near Cisco
     "09379500",  # San Juan River near Bluff
     # Lower Basin Regulated Deliveries & Dams
-    "09421500", "USBR_HOOVER", "USBR-HOOVER",
-    "09423000", "USBR_DAVIS", "USBR-DAVIS",
-    "09427520", "USBR_PARKER", "USBR-PARKER",
+    "USBR-HOOVER", "USBR_HOOVER", "09421500",
+    "USBR-DAVIS", "USBR_DAVIS", "09423000",
+    "USBR-PARKER", "USBR_PARKER", "09427520",
     "09429100",  # Below Palo Verde Dam
     "09429500",  # Below Imperial Dam
 }

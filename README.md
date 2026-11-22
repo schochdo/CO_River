@@ -108,12 +108,10 @@ python3 src/fetch_water_data.py
 
 ---
 
-## 🔬 Reproducible Research Notebooks
+## 🔬 Reproducible Research Notebook
 
-The data science pipeline is fully reproducible via three Jupyter notebooks in `notebooks/`:
-1. **`01_build_river_network.ipynb`:** Geospatial topology builder, NHD flowline extraction, and Lake Powell bathymetric slicing.
-2. **`02_analyze_flow_and_export.ipynb`:** Live streamflow & reservoir telemetry query engine, reach deltas, and JSON exporter.
-3. **`03_tributary_ml_analysis.ipynb`:** Machine learning classification of river regimes, K-Means clustering, Richards-Baker Flashiness index, and lagged travel times to Lake Powell.
+All hydrologic accounting, topological inspection, SQLite queries, tributary travel times, and flow regime clustering are consolidated in a single executable Jupyter notebook:
+- **`notebooks/colorado_river_analysis.ipynb`**: End-to-end analysis against USGS NWIS, `data/colorado_river_basin.db`, and `web/data/*.json` (rendered copy at `web/notebooks/colorado_river_analysis.html`).
 
 ---
 

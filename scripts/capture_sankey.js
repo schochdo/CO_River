@@ -5,7 +5,7 @@ const fs = require('fs');
 const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const DEBUG_PORT = 9231;
 const TARGET_URL = 'http://localhost:8088/sankey.html';
-const ARTIFACT_DIR = '/Users/macstudio/.gemini/antigravity/brain/bbab402d-c7b9-479d-b2e0-9fb8404a0e69';
+const ARTIFACT_DIR = '/Users/macstudio/.gemini/antigravity/brain/aad5e810-76c0-4f7e-a9c4-9eb2855ee883';
 
 async function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
