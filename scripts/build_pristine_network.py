@@ -108,7 +108,7 @@ def run():
             "flow_cfs": 660,
             "weight": 4.1,
             "gauge_id": "09070500",
-            "notes": "Glenwood Canyon corridor below Eagle River confluence with Shoshone Hydroelectric Plant."
+            "notes": "Glenwood Canyon corridor below Eagle River confluence; administered at USGS #09070500 (Dotsero) for the Shoshone Hydroelectric Plant 1902 senior right (1,250 cfs senior / 1,408 cfs total non-consumptive call)."
         },
         "geometry": orig_by_reach['colorado_glenwood_canyon']['geometry']
     })

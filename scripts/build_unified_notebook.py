@@ -108,6 +108,8 @@ def build_notebook():
             "## 3. Live USGS NWIS Telemetry & Sequential Reach Deltas",
             "",
             "Queries live discharge (`00060`) at Lees Ferry (`09380000`) with automatic offline fallback, then computes sequential reach gains/losses (`cfs`) from the cached station snapshot (`web/data/latest_metrics.json`).",
+            "",
+            "- **Shoshone Hydroelectric Plant Senior Call (`USGS #09070500` Dotsero):** Entering Glenwood Canyon, the Shoshone Power Plant's **1902 senior non-consumptive water right (`1,250 cfs` senior / `1,408 cfs` total)** predates all major Front Range trans-mountain tunnels and legally compels upstream diverters to bypass native flows down the Colorado River mainstem.",
         ]),
         code([
             "def fetch_lees_ferry_live():",

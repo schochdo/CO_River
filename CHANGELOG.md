@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.3.5] - 2026-11-22
 ### Added
+- **Shoshone Hydroelectric Plant Senior Water Rights (`1,250 cfs` 1902 Call) & USGS `#09070500` Integration (`src/fetch_water_data.py`, `web/data/station_hierarchy.json`, `web/data/river_network.json`, `web/telemetry.html`, `web/app.js`, `web/pipeline.html`, `web/index.html`, `scripts/build_unified_notebook.py`):**
+  - Attributed **USGS `#09070500` (`Colorado River near Dotsero, CO`)** across `fetch_water_data.py` (`reach_audit_configs`), `station_hierarchy.json`, `river_network.json` / `river_network.geojson` / `build_pristine_network.py`, and `web/telemetry.html` (`Administers 1902 Shoshone Hydroelectric Plant call (1,250 cfs senior / 1,408 cfs total non-consumptive right) at Glenwood Canyon entrance`, plus `09085100` below Shoshone tailrace & Roaring Fork).
+  - Added a `1902 Shoshone Call (1,250 cfs)` badge and explanatory water-right callout to `formatGaugePopup()` (`web/app.js?v=20261122h`) and updated the Elevation Profile / Flow Schematic tooltips in `web/pipeline.html`.
+  - Documented the 1902 Shoshone Call (`1,250 cfs` senior / `1,408 cfs` total, predating Moffat 1921, Adams/C-BT 1935, and Roberts 1946 tunnels, supporting Cameo & the 15-Mile Reach) in **Law of the River Chapter 2 (`#law-sec-ch2`)** in `web/index.html` and Section 3 of `notebooks/colorado_river_analysis.ipynb` (re-executed via `nbclient` & exported to `web/notebooks/colorado_river_analysis.html`).
+  - Verified via headless Chrome CDP that searching `"Shoshone"` in `telemetry.html` matches `#09070500` & `#09085100`, `#law-sec-ch2` renders the Shoshone Call writeup, and `formatGaugePopup('09070500')` emits both badge and callout (`verified_shoshone_gage_telemetry.png`, `verified_shoshone_law_writeup.png`).
 - **Reverse-Chronological Sort & Refresh Timestamp in AI Dialogue Archive (`scripts/compile_full_ai_transcript.py`, `web/ai_complete_prompt_archive.html`):**
   - Added a `#sortOrder` dropdown (`Sort: Newest First (Nov 22 → Sep 27)` default vs. `Sort: Chronological (#1 Sep 27 → Nov 22)`) and `applySortOrder()` so recent Session 8 turns appear at the top immediately on load while preserving Gemini Web PDF cards (`gemini-web-sessions`) and original `#1..#N` IDs; added live compilation timestamp to `.audit-meta-line`.
 
@@ -1125,6 +1130,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.3.5] - 2026-11-22
 ### Added
+- **Shoshone Hydroelectric Plant Senior Water Rights (`1,250 cfs` 1902 Call) & USGS `#09070500` Integration (`src/fetch_water_data.py`, `web/data/station_hierarchy.json`, `web/data/river_network.json`, `web/telemetry.html`, `web/app.js`, `web/pipeline.html`, `web/index.html`, `scripts/build_unified_notebook.py`):**
+  - Attributed **USGS `#09070500` (`Colorado River near Dotsero, CO`)** across `fetch_water_data.py` (`reach_audit_configs`), `station_hierarchy.json`, `river_network.json` / `river_network.geojson` / `build_pristine_network.py`, and `web/telemetry.html` (`Administers 1902 Shoshone Hydroelectric Plant call (1,250 cfs senior / 1,408 cfs total non-consumptive right) at Glenwood Canyon entrance`, plus `09085100` below Shoshone tailrace & Roaring Fork).
+  - Added a `1902 Shoshone Call (1,250 cfs)` badge and explanatory water-right callout to `formatGaugePopup()` (`web/app.js?v=20261122h`) and updated the Elevation Profile / Flow Schematic tooltips in `web/pipeline.html`.
+  - Documented the 1902 Shoshone Call (`1,250 cfs` senior / `1,408 cfs` total, predating Moffat 1921, Adams/C-BT 1935, and Roberts 1946 tunnels, supporting Cameo & the 15-Mile Reach) in **Law of the River Chapter 2 (`#law-sec-ch2`)** in `web/index.html` and Section 3 of `notebooks/colorado_river_analysis.ipynb` (re-executed via `nbclient` & exported to `web/notebooks/colorado_river_analysis.html`).
+  - Verified via headless Chrome CDP that searching `"Shoshone"` in `telemetry.html` matches `#09070500` & `#09085100`, `#law-sec-ch2` renders the Shoshone Call writeup, and `formatGaugePopup('09070500')` emits both badge and callout (`verified_shoshone_gage_telemetry.png`, `verified_shoshone_law_writeup.png`).
 - **Reverse-Chronological Sort & Refresh Timestamp in AI Dialogue Archive (`scripts/compile_full_ai_transcript.py`, `web/ai_complete_prompt_archive.html`):**
   - Added a `#sortOrder` dropdown (`Sort: Newest First (Nov 22 → Sep 27)` default vs. `Sort: Chronological (#1 Sep 27 → Nov 22)`) and `applySortOrder()` so recent Session 8 turns appear at the top immediately on load while preserving Gemini Web PDF cards (`gemini-web-sessions`) and original `#1..#N` IDs; added live compilation timestamp to `.audit-meta-line`.
 
