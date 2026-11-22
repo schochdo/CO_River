@@ -24,6 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Re-exported all 5 notebooks to HTML in `web/notebooks/` and synced `.ipynb` files.
 
 ### Changed
+- **Consistent Sandstone Brown Tray Controls & Clean Title Header (`web/index.html`, `web/editorial.css`, `web/map_embed.html`, `web/map.html`):**
+  - *Basin Metrics Popout & Map Handles:* Changed `.sidebar-expand-tab`, `.map-menu-btn`, and `.tray-handle-bar` from blue hover/active states (`#2b5c8f`) to a consistent light-sandstone (`#ede6d8`) → solid warm brown (`#6b5744`, border `#4f3f30`, `#faf8f4` ink) transition.
+  - *Clean Sidebar Title Block (`web/index.html`):* Removed the top `border-t-[3px] border-t-[#2b5c8f]` rule from `#sidebar-brand-header`; bumped cache-busters (`?v=20261122g`) and verified via CDP (`restBg: rgb(237, 230, 216)`, `activeBg: rgb(107, 87, 68)`, `hdrBorderTop: 0px`, `verified_brown_tray_no_blue_line.png`).
 - **Unobstructed `Copy` Button in Map Popup `API / Python` Tab (`web/app.js`, `web/map_embed.html`, `web/map.html`, `web/index.html`):**
   - Moved the `Copy` button from `position:absolute` inside `.popup-code-box` into the `.popup-pane-code` header row beside `${codeTitle}` and updated `copyPopupCode()` container lookup (`btn.closest('.popup-pane-code')`), eliminating overlap with the vertical brown scrollbar; bumped cache-busters (`?v=20261122f`) and verified via CDP (`copyBottom: 221.33 < preTop: 256`, `noOverlap: true`, `verified_popup_code_copy_clean.png`).
 - **Centered Stacked Column Headings Over Bar Tracks (`web/sankey.html`):**
