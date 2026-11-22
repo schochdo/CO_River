@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Re-exported all 5 notebooks to HTML in `web/notebooks/` and synced `.ipynb` files.
 
 ### Changed
+- **Unified Reservoir Elevation Filter Bar (`web/index.html`):**
+  - Standardized `#reservoir-filter-bar` (`Reservoir:` + `View:` segmented controls) on a single aligned row using warm sandstone pills (`bg-[#ece8df]`, `border-[#cfc8ba]`), matching square `26px` active/inactive button classes (`resFilterActiveCls` / `resFilterInactiveCls`, `border-[#b8ae9c]`), and `#reservoir-filter-bar button:focus/:focus-visible { outline: none !important; }` to suppress browser blue focus rings; verified at `1280×760` via CDP (`sameRow1280: true`, uniform `26px` heights, `outlineStyle: none`, `verified_reservoir_filters_clean.png`).
 - **Small-Screen Sidebar Section Separation (`web/index.html`):**
   - Added explicit `mt-4` clearance, a `1.5px solid #b8ae9c` divider, and a `Reference & Code` category header above `#sidebar-bottom-utilities` (plus `pt-2.5 mt-2.5 border-t-[1.5px] border-[#b8ae9c]` above `#btn-fullscreen`) so the reference/utility links maintain crisp separation from `Decadal & Regimes` even when vertical `justify-between` slack collapses on compact viewports; verified at `1280×680` via CDP (`gapAboveDivider: 16`, `gapToLaw: 54.25`, invariant `30px` link height, `verified_sidebar_small_screen_division.png`).
 - **Gemini Web Meta-Prompting PDFs Archived & Parsed into AI Dialogue Archive (`scripts/compile_full_ai_transcript.py`, `scripts/build_unified_notebook.py`, `mockups/gemini_sessions/*.pdf`):**
