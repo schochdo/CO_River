@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.5] - 2026-11-22
+### Changed (Hover Tooltip Tightening & Viewport Clamping)
+- **Pipeline Hover Cards & Viewport Edge Clamping ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):**
+  - Constrained `#flow-tooltip` with `width: max-content; max-width: min(300px, calc(100vw - 24px)); box-sizing: border-box; overflow-wrap: break-word; padding: 9px 11px;` and updated `updateTooltipPos(e)` to clamp against `tooltip.offsetWidth` / `offsetHeight` so cards on right-hand elements never clip past the viewport edge.
+  - Replaced narrative comparison-card prose and duplicated `Dead Pool` / `Tier 1` footnotes inside `renderComparisonCard()` (`flowComparisonBox`, `combinedInflowBox`, `canalComparisonBox`, `tunnelComparisonBox`, `reservoirStorageBox`) with two compact tabular rows (`Active Storage`, `Pool Elevation`), tightened all schematic hover entries in `setupTooltips()` to two concise spec lines, and compacted Elevation Profile marker notes and `showElevationTooltip()` padding.
+- **Sankey, Stacked Bar & Overview Tooltip Tightening ([web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Bounded `#sankey-tooltip` and `#stacked-tooltip` CSS (`max-width: min(300px, calc(100vw - 24px)); box-sizing: border-box;`), added symmetric viewport clamping in `updateTooltip()` and `positionStackedTooltip()`, removed redundant `${sourceName} → ${targetName}` and `Water Budget Accounting • 1 MAF/yr ≈ 1,381 cfs` lines from `formatSankeyLinkCard()`, and condensed all 85 `NODE_META` `summary` strings and all 19 `inspectStackedSegment()` `desc` strings to `<= 75` characters.
+  - Shortened Overview Card 2 (`renderSeasonalEngineChart()`) `afterBody` balance summary and Card 4 (`initOverviewCharts()`) `Consumptive Use` label in `web/index.html`.
+  - Verified via headless Chrome CDP against `http://localhost:8088` (`0` runtime JS errors; `#dam-hoover` `#flow-tooltip` rendered at `300x199px`, `scrollWidth <= clientWidth`, `rectRight: 933 <= 1280`; `#dam-glencanyon` `offsetHeight: 199px`; `#sankey-tooltip` `offsetHeight: 138px`, `rectRight: 950 <= 1280`; `#stacked-tooltip` `offsetHeight: 120px`; visual inspection of `verified_pipeline_hoover_tooltip_tight.png` and `verified_sankey_tooltip_tight.png`).
+
 ### Changed (Tributaries & Deficit Direct Click Filtering)
 - **Removed Header Regime Filter Buttons & Added Direct Multi-Line / Category Selection (`web/ml_analysis.html`):**
   - Removed the 4 top filter buttons (`All Rivers`, `Snowmelt Rivers`, `Dam-Controlled`, `Desert Flash-Flood`) that only scoped the top two charts, replacing them with a subtle clickable inline regime key (`Snowmelt`, `Dam-Regulated`, `Desert Flash` + contextual `Reset` link).
@@ -1140,6 +1149,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
 
 ## [2.3.5] - 2026-11-22
+### Changed (Hover Tooltip Tightening & Viewport Clamping)
+- **Pipeline Hover Cards & Viewport Edge Clamping ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):**
+  - Constrained `#flow-tooltip` with `width: max-content; max-width: min(300px, calc(100vw - 24px)); box-sizing: border-box; overflow-wrap: break-word; padding: 9px 11px;` and updated `updateTooltipPos(e)` to clamp against `tooltip.offsetWidth` / `offsetHeight` so cards on right-hand elements never clip past the viewport edge.
+  - Replaced narrative comparison-card prose and duplicated `Dead Pool` / `Tier 1` footnotes inside `renderComparisonCard()` (`flowComparisonBox`, `combinedInflowBox`, `canalComparisonBox`, `tunnelComparisonBox`, `reservoirStorageBox`) with two compact tabular rows (`Active Storage`, `Pool Elevation`), tightened all schematic hover entries in `setupTooltips()` to two concise spec lines, and compacted Elevation Profile marker notes and `showElevationTooltip()` padding.
+- **Sankey, Stacked Bar & Overview Tooltip Tightening ([web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Bounded `#sankey-tooltip` and `#stacked-tooltip` CSS (`max-width: min(300px, calc(100vw - 24px)); box-sizing: border-box;`), added symmetric viewport clamping in `updateTooltip()` and `positionStackedTooltip()`, removed redundant `${sourceName} → ${targetName}` and `Water Budget Accounting • 1 MAF/yr ≈ 1,381 cfs` lines from `formatSankeyLinkCard()`, and condensed all 85 `NODE_META` `summary` strings and all 19 `inspectStackedSegment()` `desc` strings to `<= 75` characters.
+  - Shortened Overview Card 2 (`renderSeasonalEngineChart()`) `afterBody` balance summary and Card 4 (`initOverviewCharts()`) `Consumptive Use` label in `web/index.html`.
+  - Verified via headless Chrome CDP against `http://localhost:8088` (`0` runtime JS errors; `#dam-hoover` `#flow-tooltip` rendered at `300x199px`, `scrollWidth <= clientWidth`, `rectRight: 933 <= 1280`; `#dam-glencanyon` `offsetHeight: 199px`; `#sankey-tooltip` `offsetHeight: 138px`, `rectRight: 950 <= 1280`; `#stacked-tooltip` `offsetHeight: 120px`; visual inspection of `verified_pipeline_hoover_tooltip_tight.png` and `verified_sankey_tooltip_tight.png`).
+
 ### Changed (Tributaries & Deficit Direct Click Filtering)
 - **Removed Header Regime Filter Buttons & Added Direct Multi-Line / Category Selection (`web/ml_analysis.html`):**
   - Removed the 4 top filter buttons (`All Rivers`, `Snowmelt Rivers`, `Dam-Controlled`, `Desert Flash-Flood`) that only scoped the top two charts, replacing them with a subtle clickable inline regime key (`Snowmelt`, `Dam-Regulated`, `Desert Flash` + contextual `Reset` link).
