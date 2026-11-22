@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Re-exported all 5 notebooks to HTML in `web/notebooks/` and synced `.ipynb` files.
 
 ### Changed
+- **Unobstructed `Copy` Button in Map Popup `API / Python` Tab (`web/app.js`, `web/map_embed.html`, `web/map.html`, `web/index.html`):**
+  - Moved the `Copy` button from `position:absolute` inside `.popup-code-box` into the `.popup-pane-code` header row beside `${codeTitle}` and updated `copyPopupCode()` container lookup (`btn.closest('.popup-pane-code')`), eliminating overlap with the vertical brown scrollbar; bumped cache-busters (`?v=20261122f`) and verified via CDP (`copyBottom: 221.33 < preTop: 256`, `noOverlap: true`, `verified_popup_code_copy_clean.png`).
 - **Centered Stacked Column Headings Over Bar Tracks (`web/sankey.html`):**
   - Wrapped `#stacked-heading-supply` / `#stacked-bar-supply` and `#stacked-heading-demand` / `#stacked-bar-demand` inside `max-w-[230px]` flex columns beside their side-bracket SVGs so both column titles center directly above their bar tracks rather than spanning the bracket width (`supplyDelta: 0`, `demandDelta: 0` verified via CDP in `verified_stacked_headings_centered.png`).
 - **Warm Sandstone Corridor Theme for Map Popups & Tooltips (`web/editorial.css`, `web/map_embed.html`, `web/map.html`, `web/app.js`, `web/index.html`):**
