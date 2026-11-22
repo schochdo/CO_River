@@ -24,6 +24,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Re-exported all 5 notebooks to HTML in `web/notebooks/` and synced `.ipynb` files.
 
 ### Changed
+- **Hybrid Workspace + Native Fullscreen Toggle (`web/index.html`):**
+  - *Brave / macOS Fullscreen Resilience:* Updated `toggleFullScreen()` and `syncFullscreenUI()` to combine a `body.workspace-fullscreen` layout mode (hiding `.sidebar-academic`, expanding main viewport/map to 100% width with `triggerViewportResize()`, and showing `#btn-exit-fullscreen-floating` + `Escape` support) alongside `requestFullscreen()` / `webkitRequestFullscreen()`, plus added `allow="fullscreen" allowfullscreen` on all 6 child `<iframe>` elements.
+  - *Automated CDP Verification:* Confirmed `#btn-fullscreen` expands main viewport to `1440px` (`sidebarW: 0`) and `#btn-exit-fullscreen-floating` restores `sidebarW: 256` cleanly (`verified_workspace_fullscreen.png`).
 - **Planning-Mode Plans in AI Archive & Attribution Footers (`scripts/compile_full_ai_transcript.py`, `scripts/export_notebooks_to_html.py`, `web/methodology.html`, `web/data_sources.html`):**
   - *Full Planning-Mode Output Extraction:* Updated `scripts/compile_full_ai_transcript.py` to include full `exit_plan_mode` plans (`Planning Mode Plan`), `enter_plan_mode` status reports (`Plan Review Status Report`), `implementation_plan.md` / `walkthrough.md` drafts, and fallback diagnostic reasoning blocks for interrupted turns (`667` total dialogues, `30` plans, `20` review reports, `65` diagnostic reasoning blocks).
   - *Page Attribution Footers:* Updated bottom footers on `web/methodology.html`, `web/data_sources.html`, `web/notebooks/colorado_river_analysis.html` (via `export_notebooks_to_html.py`), and `web/ai_complete_prompt_archive.html` to include `Colorado River Basin • DAT1001 • Douglas Schoch • Fall 2026`.
