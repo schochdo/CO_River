@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.5] - 2026-11-22
+### Fixed
+- **Fullscreen Sidebar Preservation & Removal of Floating Exit Button (`web/index.html`):**
+  - Removed the `body.workspace-fullscreen .sidebar-academic { display: none !important; }` override and deleted `#btn-exit-fullscreen-floating` so entering fullscreen keeps the left navigation sidebar (`256px`) accessible at all times and never overlays a floating button on top of `Basin Overview` or view headers.
+  - Kept `syncFullscreenUI()` and `toggleFullScreen()` updating `#btn-fullscreen` cleanly between `Fullscreen` and `Exit Fullscreen` alongside native `requestFullscreen()` / `webkitRequestFullscreen()` and `Escape` key handling; verified via headless Chrome CDP (`sidebarWidth: 256`, `floatingBtnExists: false`, `fullscreenLabel: 'Exit Fullscreen'`, `verified_fullscreen_sidebar_intact.png`).
+
 ### Added
 - **Shoshone Hydroelectric Plant Senior Water Rights (`1,250 cfs` 1902 Call) & USGS `#09070500` Integration (`src/fetch_water_data.py`, `web/data/station_hierarchy.json`, `web/data/river_network.json`, `web/telemetry.html`, `web/app.js`, `web/pipeline.html`, `web/index.html`, `scripts/build_unified_notebook.py`):**
   - Attributed **USGS `#09070500` (`Colorado River near Dotsero, CO`)** across `fetch_water_data.py` (`reach_audit_configs`), `station_hierarchy.json`, `river_network.json` / `river_network.geojson` / `build_pristine_network.py`, and `web/telemetry.html` (`Administers 1902 Shoshone Hydroelectric Plant call (1,250 cfs senior / 1,408 cfs total non-consumptive right) at Glenwood Canyon entrance`, plus `09085100` below Shoshone tailrace & Roaring Fork).
@@ -1129,6 +1134,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
 
 ## [2.3.5] - 2026-11-22
+### Fixed
+- **Fullscreen Sidebar Preservation & Removal of Floating Exit Button (`web/index.html`):**
+  - Removed the `body.workspace-fullscreen .sidebar-academic { display: none !important; }` override and deleted `#btn-exit-fullscreen-floating` so entering fullscreen keeps the left navigation sidebar (`256px`) accessible at all times and never overlays a floating button on top of `Basin Overview` or view headers.
+  - Kept `syncFullscreenUI()` and `toggleFullScreen()` updating `#btn-fullscreen` cleanly between `Fullscreen` and `Exit Fullscreen` alongside native `requestFullscreen()` / `webkitRequestFullscreen()` and `Escape` key handling; verified via headless Chrome CDP (`sidebarWidth: 256`, `floatingBtnExists: false`, `fullscreenLabel: 'Exit Fullscreen'`, `verified_fullscreen_sidebar_intact.png`).
+
 ### Added
 - **Shoshone Hydroelectric Plant Senior Water Rights (`1,250 cfs` 1902 Call) & USGS `#09070500` Integration (`src/fetch_water_data.py`, `web/data/station_hierarchy.json`, `web/data/river_network.json`, `web/telemetry.html`, `web/app.js`, `web/pipeline.html`, `web/index.html`, `scripts/build_unified_notebook.py`):**
   - Attributed **USGS `#09070500` (`Colorado River near Dotsero, CO`)** across `fetch_water_data.py` (`reach_audit_configs`), `station_hierarchy.json`, `river_network.json` / `river_network.geojson` / `build_pristine_network.py`, and `web/telemetry.html` (`Administers 1902 Shoshone Hydroelectric Plant call (1,250 cfs senior / 1,408 cfs total non-consumptive right) at Glenwood Canyon entrance`, plus `09085100` below Shoshone tailrace & Roaring Fork).
