@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.5] - 2026-11-22
+### Changed (Sidebar Brand Metadata Line Cleanup)
+- **3-Line Sidebar Attribution Formatting ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html#L209-L216)):**
+  - Unified `#sidebar-brand-header` attribution lines below `COLORADO RIVER BASIN` into three even `11px` regular-weight (`font-normal`, `text-stone-600`) single-line rows (`Douglas Schoch`, `Colorado Mountain College`, `DAT1001 • Fall 2026`), eliminating the awkward wrap that left a trailing bullet after `DAT1001 •`.
+  - Verified via headless Chrome CDP (`1280×800`, `0` runtime exceptions): all 3 metadata rows measure `15px` height (`lineHeight: 15px`, `wrapped: false`, `verified_sidebar_brand_clean.png`).
+
 ### Added (System Map Standard Editorial Header)
 - **Unified System Map Header Strip ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
   - Wrapped `#section-map` contents in a flex column container and added a warm sandstone editorial `<header>` (`bg-[#f5f2eb] border-b border-stone-300 px-4 md:px-6 py-2.5`) titled `System Map` matching `#academic-top-header` (`Basin Overview`) and every peer view, while keeping `#iframe-map` cleanly sized below (`flex-1 min-h-0`) and bumped to `./map_embed.html?v=20261122i`.
@@ -1189,6 +1194,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
 
 ## [2.3.5] - 2026-11-22
+### Changed (Sidebar Brand Metadata Line Cleanup)
+- **3-Line Sidebar Attribution Formatting ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html#L209-L216)):**
+  - Unified `#sidebar-brand-header` attribution lines below `COLORADO RIVER BASIN` into three even `11px` regular-weight (`font-normal`, `text-stone-600`) single-line rows (`Douglas Schoch`, `Colorado Mountain College`, `DAT1001 • Fall 2026`), eliminating the awkward wrap that left a trailing bullet after `DAT1001 •`.
+  - Verified via headless Chrome CDP (`1280×800`, `0` runtime exceptions): all 3 metadata rows measure `15px` height (`lineHeight: 15px`, `wrapped: false`, `verified_sidebar_brand_clean.png`).
+
 ### Added (System Map Standard Editorial Header)
 - **Unified System Map Header Strip ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
   - Wrapped `#section-map` contents in a flex column container and added a warm sandstone editorial `<header>` (`bg-[#f5f2eb] border-b border-stone-300 px-4 md:px-6 py-2.5`) titled `System Map` matching `#academic-top-header` (`Basin Overview`) and every peer view, while keeping `#iframe-map` cleanly sized below (`flex-1 min-h-0`) and bumped to `./map_embed.html?v=20261122i`.
