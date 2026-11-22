@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Re-exported all 5 notebooks to HTML in `web/notebooks/` and synced `.ipynb` files.
 
 ### Changed
+- **Centered Stacked Column Headings Over Bar Tracks (`web/sankey.html`):**
+  - Wrapped `#stacked-heading-supply` / `#stacked-bar-supply` and `#stacked-heading-demand` / `#stacked-bar-demand` inside `max-w-[230px]` flex columns beside their side-bracket SVGs so both column titles center directly above their bar tracks rather than spanning the bracket width (`supplyDelta: 0`, `demandDelta: 0` verified via CDP in `verified_stacked_headings_centered.png`).
 - **Warm Sandstone Corridor Theme for Map Popups & Tooltips (`web/editorial.css`, `web/map_embed.html`, `web/map.html`, `web/app.js`, `web/index.html`):**
   - *Popup Shell & Tip Overrides (`web/editorial.css`, `web/map_embed.html`):* Styled `.maplibregl-popup-content` (`#faf8f4`, `1.5px solid #b8ae9c`, `2px` radius), `.maplibregl-popup-close-button`, popup anchor tips (`#b8ae9c`), and `.map-hover-tooltip` (`#faf8f4` / `#b8ae9c`).
   - *Inline Popup Templates (`web/app.js`):* Updated 133 popup/tooltip template lines across `switchPopupTab()`, `formatTabbedPopup()`, `openReachPopup()`, `formatGaugePopup()`, `formatReservoirStationPopup()`, `formatCanalPopupHtml()`, dam popups, and hover tooltips from cold blue-gray (`#f8fafc`, `#f1f5f9`, `#f0f9ff`, `#e0f2fe`, `#1d4ed8`, `#0284c7`) to warm sandstone corridor tones (`#f2ede2`, `#ebe4d6`, `#cfc8ba`, `#b8ae9c`, `#2b5c8f`); bumped cache-busters (`?v=20261122e`).
