@@ -35,7 +35,7 @@ const newMeta = `
         summary: "Atmospheric evaporation from Lake Mead and Lake Powell water surfaces (~0.90 MAF) plus riparian evapotranspiration and channel seepage (~0.50 MAF).",
         stationId: "lake_powell",
         stationLabel: "USBR LC Operations",
-        portalUrl: "https://www.usbr.gov/lc/region/g4000/hourly/hourly.html",
+        portalUrl: "https://www.usbr.gov/lc/region/g4000/riverops/hourly7.html",
         flowCfs: null,
         pctMean: null
       },
@@ -109,7 +109,7 @@ const newMeta = `
         summary: "Senior run-of-the-river irrigation producing ~90% of US winter leafy greens in Yuma, Wellton-Mohawk, and Parker (~52% of AZ use).",
         stationId: "USBR-PARKER",
         stationLabel: "USBR Parker Dam Operations",
-        portalUrl: "https://www.usbr.gov/lc/region/g4000/hourly/hourly.html",
+        portalUrl: "https://www.usbr.gov/lc/region/g4000/riverops/hourly7.html",
         flowCfs: 1620,
         pctMean: "94%"
       },

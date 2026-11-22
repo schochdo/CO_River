@@ -145,7 +145,7 @@ const nodeMetaInsert = `      "Upper Basin Allocations": {
         summary: "Annual lower system losses: 1.40 MAF/yr (Lake Mead & lower reservoir surface evaporation: 0.90 MAF • River channel transit seepage and phreatophyte uptake: 0.50 MAF).",
         stationId: "lake_mead",
         stationLabel: "USBR Lower Colorado",
-        portalUrl: "https://www.usbr.gov/lc/region/g4000/hourly/hourly.html",
+        portalUrl: "https://www.usbr.gov/lc/region/g4000/riverops/hourly7.html",
         flowCfs: null,
         pctMean: null
       },`;
