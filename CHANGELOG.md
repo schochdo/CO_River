@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.5] - 2026-11-22
+### Added (System Map Standard Editorial Header)
+- **Unified System Map Header Strip ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Wrapped `#section-map` contents in a flex column container and added a warm sandstone editorial `<header>` (`bg-[#f5f2eb] border-b border-stone-300 px-4 md:px-6 py-2.5`) titled `System Map` matching `#academic-top-header` (`Basin Overview`) and every peer view, while keeping `#iframe-map` cleanly sized below (`flex-1 min-h-0`) and bumped to `./map_embed.html?v=20261122i`.
+  - Verified via headless Chrome CDP (`1360×860`, `0` runtime exceptions): `System Map` header renders at `49px` height with `rgb(245, 242, 235)` (`#f5f2eb`) fill, `#iframe-map` sits directly below (`top: 49`, `height: 811`, `scrollH: 860 <= winH: 860`), and bottom `Gages & Monitoring Facilities` bar and compass controls remain completely unclipped (`verified_system_map_header.png`).
+
 ### Fixed (Chart Tick & SVG Label Overlap Remediation)
 - **Tributaries X-Axis Tick & Bubble Pill De-Overlap ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):**
   - Replaced parenthetical Card 1 x-axis tick labels (`0.00 (Steady Dam)`, `0.40 (Snowmelt)`, `0.80 (Desert Flash)`) that collided with adjacent ticks on compact laptop screens with uniform 2-decimal ticks (`0.00`–`1.00`, `stepSize: 0.2`).
@@ -1184,6 +1189,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
 
 ## [2.3.5] - 2026-11-22
+### Added (System Map Standard Editorial Header)
+- **Unified System Map Header Strip ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Wrapped `#section-map` contents in a flex column container and added a warm sandstone editorial `<header>` (`bg-[#f5f2eb] border-b border-stone-300 px-4 md:px-6 py-2.5`) titled `System Map` matching `#academic-top-header` (`Basin Overview`) and every peer view, while keeping `#iframe-map` cleanly sized below (`flex-1 min-h-0`) and bumped to `./map_embed.html?v=20261122i`.
+  - Verified via headless Chrome CDP (`1360×860`, `0` runtime exceptions): `System Map` header renders at `49px` height with `rgb(245, 242, 235)` (`#f5f2eb`) fill, `#iframe-map` sits directly below (`top: 49`, `height: 811`, `scrollH: 860 <= winH: 860`), and bottom `Gages & Monitoring Facilities` bar and compass controls remain completely unclipped (`verified_system_map_header.png`).
+
 ### Fixed (Chart Tick & SVG Label Overlap Remediation)
 - **Tributaries X-Axis Tick & Bubble Pill De-Overlap ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):**
   - Replaced parenthetical Card 1 x-axis tick labels (`0.00 (Steady Dam)`, `0.40 (Snowmelt)`, `0.80 (Desert Flash)`) that collided with adjacent ticks on compact laptop screens with uniform 2-decimal ticks (`0.00`–`1.00`, `stepSize: 0.2`).
