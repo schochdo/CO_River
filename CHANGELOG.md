@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.5] - 2026-11-22
+### Added (Lake Mead SNWA Intake No. 3 / "Third Straw" Reference Line)
+- **Las Vegas Deep Intake Threshold & Benchmark Card ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Added left-aligned `position: 'start'` pill placement support in `horizontalThresholdPlugin` (`line 2504`), added `{ value: 860.0, label: 'SNWA Intake No. 3 ("Third Straw")', color: '#6d28d9', dash: [3, 3], position: 'start' }` to `renderMeadHistoricalCharts()`, and extended the Lake Mead elevation chart y-axis floor from `880` to `830` ft (`860 ft` sits cleanly above the x-axis and separated horizontally from `Dead Pool (895 ft)`).
+  - Expanded Lake Mead's operational benchmark strip from 4 to 5 cards (`grid-cols-2 sm:grid-cols-5`) to include **SNWA Intake No. 3 (`860.0 ft` — Las Vegas "Third Straw" (L3PS))**.
+  - Verified via headless Chrome CDP (`1360×860`, `0` runtime exceptions): `y.min === 830`, `5` threshold lines active, `860.0 ft` pill renders cleanly on the left above the x-axis alongside all 5 benchmark cards (`verified_mead_third_straw_line.png`).
+
 ### Changed (Sidebar Brand Metadata Line Cleanup)
 - **3-Line Sidebar Attribution Formatting ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html#L209-L216)):**
   - Unified `#sidebar-brand-header` attribution lines below `COLORADO RIVER BASIN` into three even `11px` regular-weight (`font-normal`, `text-stone-600`) single-line rows (`Douglas Schoch`, `Colorado Mountain College`, `DAT1001 • Fall 2026`), eliminating the awkward wrap that left a trailing bullet after `DAT1001 •`.
@@ -1194,6 +1200,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
 
 ## [2.3.5] - 2026-11-22
+### Added (Lake Mead SNWA Intake No. 3 / "Third Straw" Reference Line)
+- **Las Vegas Deep Intake Threshold & Benchmark Card ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Added left-aligned `position: 'start'` pill placement support in `horizontalThresholdPlugin` (`line 2504`), added `{ value: 860.0, label: 'SNWA Intake No. 3 ("Third Straw")', color: '#6d28d9', dash: [3, 3], position: 'start' }` to `renderMeadHistoricalCharts()`, and extended the Lake Mead elevation chart y-axis floor from `880` to `830` ft (`860 ft` sits cleanly above the x-axis and separated horizontally from `Dead Pool (895 ft)`).
+  - Expanded Lake Mead's operational benchmark strip from 4 to 5 cards (`grid-cols-2 sm:grid-cols-5`) to include **SNWA Intake No. 3 (`860.0 ft` — Las Vegas "Third Straw" (L3PS))**.
+  - Verified via headless Chrome CDP (`1360×860`, `0` runtime exceptions): `y.min === 830`, `5` threshold lines active, `860.0 ft` pill renders cleanly on the left above the x-axis alongside all 5 benchmark cards (`verified_mead_third_straw_line.png`).
+
 ### Changed (Sidebar Brand Metadata Line Cleanup)
 - **3-Line Sidebar Attribution Formatting ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html#L209-L216)):**
   - Unified `#sidebar-brand-header` attribution lines below `COLORADO RIVER BASIN` into three even `11px` regular-weight (`font-normal`, `text-stone-600`) single-line rows (`Douglas Schoch`, `Colorado Mountain College`, `DAT1001 • Fall 2026`), eliminating the awkward wrap that left a trailing bullet after `DAT1001 •`.
