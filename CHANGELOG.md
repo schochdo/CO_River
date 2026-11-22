@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.5] - 2026-11-22
+### Removed (Excessive UI Instruction & Hover-Hint Copy)
+- **Trimmed Redundant Instructional Microcopy ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html), [web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):**
+  - Deleted `• Click lines/bubbles to compare (Shift-click for category)` from the Tributaries & Deficit header (`web/ml_analysis.html`).
+  - Deleted `Hover any cell to inspect exact monthly elevation` from both the Lake Mead and Lake Powell elevation heatmap matrix footers (`web/index.html`).
+  - Trimmed `Hover any band for details.` from the Physical Runoff vs. Paper Allocations subtitle (`web/sankey.html`).
+  - Removed `Click any feature to inspect live operational data ↗` from the Flow Schematic SVG Legend and tightened its background rectangle height from `182px` to `164px` (`web/pipeline.html`).
+  - Verified zero remaining occurrences across target files and `0` runtime exceptions in headless Chrome CDP (`verified_ml_no_hint_slop.png`, `#legend-box` height `164`).
+
 ### Changed (Warm Sandstone UI Chrome Unification)
 - **Harmonized Remaining Cool-Gray UI Chrome to Warm Sandstone ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html), [web/telemetry.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/telemetry.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/data_sources.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/data_sources.html), [web/law.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/law.html), [web/methodology.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/methodology.html), [web/editorial.css](file:///Users/macstudio/Documents/Antigravity/CO_River/web/editorial.css)):**
   - Replaced cool blue-gray (`slate-*`, `#e2e8f0`, `#f1f5f9`, `#cbd5e1`, `#f8fafc`) segmented sub-tab bars, toolbars, category pills, borders, table headers, headers/footers, and code/quote boxes with warm `stone-*` and sandstone (`#ebe4d6`, `#f5f2eb`, `#f7f4ee`, `#cfc8ba`, `#dfd9ce`, `#ede8df`) tokens matching [web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html) and the warm parchment canvas (`#f4f1ea`), while preserving semantic data/heatmap band colors in `web/index.html`.
@@ -1168,6 +1176,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
 
 ## [2.3.5] - 2026-11-22
+### Removed (Excessive UI Instruction & Hover-Hint Copy)
+- **Trimmed Redundant Instructional Microcopy ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html), [web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):**
+  - Deleted `• Click lines/bubbles to compare (Shift-click for category)` from the Tributaries & Deficit header (`web/ml_analysis.html`).
+  - Deleted `Hover any cell to inspect exact monthly elevation` from both the Lake Mead and Lake Powell elevation heatmap matrix footers (`web/index.html`).
+  - Trimmed `Hover any band for details.` from the Physical Runoff vs. Paper Allocations subtitle (`web/sankey.html`).
+  - Removed `Click any feature to inspect live operational data ↗` from the Flow Schematic SVG Legend and tightened its background rectangle height from `182px` to `164px` (`web/pipeline.html`).
+  - Verified zero remaining occurrences across target files and `0` runtime exceptions in headless Chrome CDP (`verified_ml_no_hint_slop.png`, `#legend-box` height `164`).
+
 ### Changed (Warm Sandstone UI Chrome Unification)
 - **Harmonized Remaining Cool-Gray UI Chrome to Warm Sandstone ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html), [web/telemetry.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/telemetry.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/data_sources.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/data_sources.html), [web/law.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/law.html), [web/methodology.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/methodology.html), [web/editorial.css](file:///Users/macstudio/Documents/Antigravity/CO_River/web/editorial.css)):**
   - Replaced cool blue-gray (`slate-*`, `#e2e8f0`, `#f1f5f9`, `#cbd5e1`, `#f8fafc`) segmented sub-tab bars, toolbars, category pills, borders, table headers, headers/footers, and code/quote boxes with warm `stone-*` and sandstone (`#ebe4d6`, `#f5f2eb`, `#f7f4ee`, `#cfc8ba`, `#dfd9ce`, `#ede8df`) tokens matching [web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html) and the warm parchment canvas (`#f4f1ea`), while preserving semantic data/heatmap band colors in `web/index.html`.
