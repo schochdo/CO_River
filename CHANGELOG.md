@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.5] - 2026-11-22
+### Fixed (Chart Annotation & Data-Line De-Overlap Sweep)
+- **Annotation Pills & Threshold Labels Moved Out of Plotted Data ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Moved Card 3 `glenCanyonDamMarkerPlugin` pill (`1963: Glen Canyon Dam Closes`) to `chartArea.top + 2` (clamped horizontally inside `chartArea`) and raised `chart-compact-100yr` `scales.y.max` from `25` to `30` MAF (`web/ml_analysis.html`) so the pill sits cleanly in open headroom above the `24.3 MAF` 1984 peak bar.
+  - Added `position: 'center'` horizontal placement to `horizontalThresholdPlugin` (`web/index.html`) and centered `Tier 1 Shortage (1,075 ft)` in the empty `1970–1991` mid-chart band on `chart-mead-history`.
+  - Extended top y-axis headroom on Overview Card 3 (`chart-macro-overview-timeline`: `y.max: 65 → 70`, `yAdjust: -8`), Lake Mead (`chart-mead-history`: `y.max: 1240 → 1270`), and Lake Powell (`chart-powell-elevation-history`: `y.max: 3720 → 3750`) so `Full System Capacity (~60.0 MAF)`, `Spillway Crest (1,221.4 ft)`, and `Spillway / Full Pool (3,700 ft)` sit cleanly above their dashed lines and plotted traces.
+  - Verified across all 4 updated charts via headless Chrome CDP (`1360×860`, `0` runtime exceptions) and visual screenshot inspection (`verified_ml_card3_no_overlap.png`, `verified_overview_storage_no_overlap.png`, `verified_mead_no_overlap.png`, `verified_powell_no_overlap.png`).
+
 ### Added (Lake Mead SNWA Intake No. 3 / "Third Straw" Reference Line)
 - **Las Vegas Deep Intake Threshold & Benchmark Card ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
   - Added left-aligned `position: 'start'` pill placement support in `horizontalThresholdPlugin` (`line 2504`), added `{ value: 860.0, label: 'SNWA Intake No. 3 ("Third Straw")', color: '#6d28d9', dash: [3, 3], position: 'start' }` to `renderMeadHistoricalCharts()`, and extended the Lake Mead elevation chart y-axis floor from `880` to `830` ft (`860 ft` sits cleanly above the x-axis and separated horizontally from `Dead Pool (895 ft)`).
@@ -1200,6 +1207,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
 
 ## [2.3.5] - 2026-11-22
+### Fixed (Chart Annotation & Data-Line De-Overlap Sweep)
+- **Annotation Pills & Threshold Labels Moved Out of Plotted Data ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Moved Card 3 `glenCanyonDamMarkerPlugin` pill (`1963: Glen Canyon Dam Closes`) to `chartArea.top + 2` (clamped horizontally inside `chartArea`) and raised `chart-compact-100yr` `scales.y.max` from `25` to `30` MAF (`web/ml_analysis.html`) so the pill sits cleanly in open headroom above the `24.3 MAF` 1984 peak bar.
+  - Added `position: 'center'` horizontal placement to `horizontalThresholdPlugin` (`web/index.html`) and centered `Tier 1 Shortage (1,075 ft)` in the empty `1970–1991` mid-chart band on `chart-mead-history`.
+  - Extended top y-axis headroom on Overview Card 3 (`chart-macro-overview-timeline`: `y.max: 65 → 70`, `yAdjust: -8`), Lake Mead (`chart-mead-history`: `y.max: 1240 → 1270`), and Lake Powell (`chart-powell-elevation-history`: `y.max: 3720 → 3750`) so `Full System Capacity (~60.0 MAF)`, `Spillway Crest (1,221.4 ft)`, and `Spillway / Full Pool (3,700 ft)` sit cleanly above their dashed lines and plotted traces.
+  - Verified across all 4 updated charts via headless Chrome CDP (`1360×860`, `0` runtime exceptions) and visual screenshot inspection (`verified_ml_card3_no_overlap.png`, `verified_overview_storage_no_overlap.png`, `verified_mead_no_overlap.png`, `verified_powell_no_overlap.png`).
+
 ### Added (Lake Mead SNWA Intake No. 3 / "Third Straw" Reference Line)
 - **Las Vegas Deep Intake Threshold & Benchmark Card ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
   - Added left-aligned `position: 'start'` pill placement support in `horizontalThresholdPlugin` (`line 2504`), added `{ value: 860.0, label: 'SNWA Intake No. 3 ("Third Straw")', color: '#6d28d9', dash: [3, 3], position: 'start' }` to `renderMeadHistoricalCharts()`, and extended the Lake Mead elevation chart y-axis floor from `880` to `830` ft (`860 ft` sits cleanly above the x-axis and separated horizontally from `Dead Pool (895 ft)`).
