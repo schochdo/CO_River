@@ -7,6 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.5] - 2026-11-22
+### Fixed (Chart Tick & SVG Label Overlap Remediation)
+- **Tributaries X-Axis Tick & Bubble Pill De-Overlap ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):**
+  - Replaced parenthetical Card 1 x-axis tick labels (`0.00 (Steady Dam)`, `0.40 (Snowmelt)`, `0.80 (Desert Flash)`) that collided with adjacent ticks on compact laptop screens with uniform 2-decimal ticks (`0.00`–`1.00`, `stepSize: 0.2`).
+  - Upgraded `card1BubbleLabelsPlugin` to clamp candidate label pills inside `chartArea` bounds and run an iterative vertical de-overlap pass across placed label boxes so closely clustered bubbles (`Dirty Devil` / `Escalante`, `Flaming Gorge` / `Gunnison`) never overlap at narrow viewports.
+- **Sankey Thin-Node Column Label De-Overlap ([web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html)):**
+  - Added a per-column vertical spacing pass inside `renderSankey()` sorting node text groups top-to-bottom by `d.y0` and nudging any label whose bounding box sits within `3px` of the label above it, separating `Front Range Municipal Tunnels (CO)` (`0.48 MAF/yr`) and `Wasatch Front Municipal Tunnels (UT / CUP)` (`0.12 MAF/yr`).
+  - Verified via headless Chrome CDP (`0` runtime exceptions; `0` Chart.js x-tick or label-box collisions on `ml_analysis.html` at both `860×680` and `1360×860` and `index.html?tab=overview`/`reservoirs` at `1120×720`; `0` SVG `<text>` overlaps or viewBox clips on `sankey.html` and `pipeline.html` at `1024×740`; visual confirmation in `verified_ml_zero_overlaps_compact.png` and `verified_sankey_zero_overlaps.png`).
+
 ### Removed (Excessive UI Instruction & Hover-Hint Copy)
 - **Trimmed Redundant Instructional Microcopy ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html), [web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):**
   - Deleted `• Click lines/bubbles to compare (Shift-click for category)` from the Tributaries & Deficit header (`web/ml_analysis.html`).
@@ -1176,6 +1184,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
 
 ## [2.3.5] - 2026-11-22
+### Fixed (Chart Tick & SVG Label Overlap Remediation)
+- **Tributaries X-Axis Tick & Bubble Pill De-Overlap ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):**
+  - Replaced parenthetical Card 1 x-axis tick labels (`0.00 (Steady Dam)`, `0.40 (Snowmelt)`, `0.80 (Desert Flash)`) that collided with adjacent ticks on compact laptop screens with uniform 2-decimal ticks (`0.00`–`1.00`, `stepSize: 0.2`).
+  - Upgraded `card1BubbleLabelsPlugin` to clamp candidate label pills inside `chartArea` bounds and run an iterative vertical de-overlap pass across placed label boxes so closely clustered bubbles (`Dirty Devil` / `Escalante`, `Flaming Gorge` / `Gunnison`) never overlap at narrow viewports.
+- **Sankey Thin-Node Column Label De-Overlap ([web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html)):**
+  - Added a per-column vertical spacing pass inside `renderSankey()` sorting node text groups top-to-bottom by `d.y0` and nudging any label whose bounding box sits within `3px` of the label above it, separating `Front Range Municipal Tunnels (CO)` (`0.48 MAF/yr`) and `Wasatch Front Municipal Tunnels (UT / CUP)` (`0.12 MAF/yr`).
+  - Verified via headless Chrome CDP (`0` runtime exceptions; `0` Chart.js x-tick or label-box collisions on `ml_analysis.html` at both `860×680` and `1360×860` and `index.html?tab=overview`/`reservoirs` at `1120×720`; `0` SVG `<text>` overlaps or viewBox clips on `sankey.html` and `pipeline.html` at `1024×740`; visual confirmation in `verified_ml_zero_overlaps_compact.png` and `verified_sankey_zero_overlaps.png`).
+
 ### Removed (Excessive UI Instruction & Hover-Hint Copy)
 - **Trimmed Redundant Instructional Microcopy ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html), [web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):**
   - Deleted `• Click lines/bubbles to compare (Shift-click for category)` from the Tributaries & Deficit header (`web/ml_analysis.html`).
