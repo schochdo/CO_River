@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.5] - 2026-11-22
+### Added (Argon → Flash Cross-Reference Tagging in AI Dialogue Archive)
+- **Bidirectional Argon → Flash Prompt Matching & Filter ([scripts/compile_full_ai_transcript.py](file:///Users/macstudio/Documents/Antigravity/CO_River/scripts/compile_full_ai_transcript.py), [web/ai_complete_prompt_archive.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ai_complete_prompt_archive.html)):**
+  - Added 6-word normalized shingle matching (`_norm_shingles()`, `>= 25` overlapping shingles and `>= 15%` prompt coverage) across all compiled Antigravity prompts and the 84 extracted turns in the 10 undated Gemini Web PDFs (`mockups/gemini_sessions/*.pdf`), accurately matching `25` Argon-authored meta-prompts without synthesizing artificial timestamps.
+  - Added clickable `.badge-argon` pills (`Argon → Flash • #idx (PDF Title)`) on matched Antigravity prompt cards and reciprocal `.badge-argon-used` (`Used in Flash: #idx`) jump links on the originating Gemini PDF turn cards via `jumpToTurn()`, plus an `ARGON_TO_FLASH` option (`Argon → Flash Prompts (25 Matched)`) in `#sessionFilter` and total match count in `.audit-meta-line`.
+  - Verified via headless Chrome CDP against `http://localhost:8088/ai_complete_prompt_archive.html` (`0` runtime exceptions; selecting `ARGON_TO_FLASH` filters to `25` matching cards all bearing `.badge-argon`, and clicking `#turn-674`'s badge resets the filter to `ALL` and jumps cleanly to Gemini Web card `#turn-722` bearing `.badge-argon-used`, captured in `verified_archive_argon_flash_tags.png`).
+
 ### Changed (Hover Tooltip Tightening & Viewport Clamping)
 - **Pipeline Hover Cards & Viewport Edge Clamping ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):**
   - Constrained `#flow-tooltip` with `width: max-content; max-width: min(300px, calc(100vw - 24px)); box-sizing: border-box; overflow-wrap: break-word; padding: 9px 11px;` and updated `updateTooltipPos(e)` to clamp against `tooltip.offsetWidth` / `offsetHeight` so cards on right-hand elements never clip past the viewport edge.
@@ -1149,6 +1155,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Core GIS Vector Basemap:** Leaflet/MapLibre map with USGS NHD flowlines, Continental Divide boundary, and initial reservoir footprints.
 
 ## [2.3.5] - 2026-11-22
+### Added (Argon → Flash Cross-Reference Tagging in AI Dialogue Archive)
+- **Bidirectional Argon → Flash Prompt Matching & Filter ([scripts/compile_full_ai_transcript.py](file:///Users/macstudio/Documents/Antigravity/CO_River/scripts/compile_full_ai_transcript.py), [web/ai_complete_prompt_archive.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ai_complete_prompt_archive.html)):**
+  - Added 6-word normalized shingle matching (`_norm_shingles()`, `>= 25` overlapping shingles and `>= 15%` prompt coverage) across all compiled Antigravity prompts and the 84 extracted turns in the 10 undated Gemini Web PDFs (`mockups/gemini_sessions/*.pdf`), accurately matching `25` Argon-authored meta-prompts without synthesizing artificial timestamps.
+  - Added clickable `.badge-argon` pills (`Argon → Flash • #idx (PDF Title)`) on matched Antigravity prompt cards and reciprocal `.badge-argon-used` (`Used in Flash: #idx`) jump links on the originating Gemini PDF turn cards via `jumpToTurn()`, plus an `ARGON_TO_FLASH` option (`Argon → Flash Prompts (25 Matched)`) in `#sessionFilter` and total match count in `.audit-meta-line`.
+  - Verified via headless Chrome CDP against `http://localhost:8088/ai_complete_prompt_archive.html` (`0` runtime exceptions; selecting `ARGON_TO_FLASH` filters to `25` matching cards all bearing `.badge-argon`, and clicking `#turn-674`'s badge resets the filter to `ALL` and jumps cleanly to Gemini Web card `#turn-722` bearing `.badge-argon-used`, captured in `verified_archive_argon_flash_tags.png`).
+
 ### Changed (Hover Tooltip Tightening & Viewport Clamping)
 - **Pipeline Hover Cards & Viewport Edge Clamping ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):**
   - Constrained `#flow-tooltip` with `width: max-content; max-width: min(300px, calc(100vw - 24px)); box-sizing: border-box; overflow-wrap: break-word; padding: 9px 11px;` and updated `updateTooltipPos(e)` to clamp against `tooltip.offsetWidth` / `offsetHeight` so cards on right-hand elements never clip past the viewport edge.

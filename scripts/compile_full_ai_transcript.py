@@ -87,7 +87,8 @@ if let doc = PDFDocument(url: url), let s = doc.string {
                 'assistant_text': resp if resp else None,
                 'tools_used': [f'Source PDF: {pdf_title}.pdf'],
                 'pdf_src': dest_rel_src,
-                'pdf_name': os.path.basename(pdf_path)
+                'pdf_name': os.path.basename(pdf_path),
+                'pdf_title': pdf_title
             })
     return turns
 
@@ -304,8 +305,56 @@ def main():
 
     all_dialogues.sort(key=parse_time)
     all_dialogues.extend(gemini_web_turns)
+
+    def _norm_shingles(text, n=6):
+        cleaned = re.sub(r'[^a-z0-9\s]', ' ', (text or '').lower())
+        words = cleaned.split()
+        if len(words) < 10:
+            return set()
+        return {' '.join(words[k:k+n]) for k in range(len(words) - n + 1)}
+
+    gemini_indexed = []
+    for idx, item in enumerate(all_dialogues, 1):
+        item['_idx'] = idx
+        if item.get('session_id') == 'gemini-web-sessions':
+            if not item.get('pdf_title'):
+                item['pdf_title'] = os.path.splitext(item.get('pdf_name', ''))[0]
+            item['used_in_turns'] = []
+            shingles = _norm_shingles(item.get('assistant_text') or '')
+            if shingles:
+                gemini_indexed.append((idx, item, shingles))
+
+    argon_match_count = 0
+    for idx, item in enumerate(all_dialogues, 1):
+        if item.get('session_id') == 'gemini-web-sessions':
+            continue
+        psh = _norm_shingles(item.get('prompt') or '')
+        if not psh:
+            continue
+        best = None
+        for gt_idx, gt_item, gt_sh in gemini_indexed:
+            overlap = len(psh & gt_sh)
+            ratio = overlap / max(1, len(psh))
+            if overlap >= 25 and ratio >= 0.15:
+                if not best or overlap > best[0]:
+                    best = (overlap, ratio, gt_idx, gt_item)
+        if best:
+            overlap, ratio, gt_idx, gt_item = best
+            item['argon_source'] = {
+                'idx': gt_idx,
+                'pdf_title': gt_item['pdf_title'],
+                'pdf_src': gt_item.get('pdf_src', ''),
+                'overlap_pct': int(round(100 * ratio))
+            }
+            gt_item['used_in_turns'].append({
+                'idx': idx,
+                'ts': (item.get('created_at') or '')[:10]
+            })
+            argon_match_count += 1
+
     print(f"Total authentic Colorado River dialogues compiled: {len(all_dialogues)}")
     print(f"Total user-uploaded images verified and staged: {image_copy_count}")
+    print(f"Matched Argon -> Flash prompts: {argon_match_count}")
 
     # Generate Dialogue HTML Cards
     dialogue_html = []
@@ -378,12 +427,32 @@ def main():
             f'<a href="{item["pdf_src"]}" target="_blank" rel="noopener noreferrer" class="tool-pill" style="text-decoration:none;">Source PDF ↗</a>'
             if item.get('pdf_src') else ''
         )
+        argon_badge_html = ""
+        if item.get('argon_source'):
+            src = item['argon_source']
+            title_txt = src['pdf_title']
+            short_title = (title_txt[:31] + '...') if len(title_txt) > 34 else title_txt
+            argon_badge_html = (
+                f'<button type="button" class="badge-argon" onclick="jumpToTurn({src["idx"]})" '
+                f'title="Matched {src["overlap_pct"]}% overlap with Gemini Argon PDF: {html.escape(title_txt)}">'
+                f'Argon &rarr; Flash &bull; #{src["idx"]} ({html.escape(short_title)})</button>'
+            )
+        elif item.get('used_in_turns'):
+            links = ''.join(
+                f'<a href="#turn-{u["idx"]}" onclick="event.preventDefault(); jumpToTurn({u["idx"]});" '
+                f'title="Executed on {html.escape(u["ts"])}" '
+                f'style="color:inherit;font-weight:700;text-decoration:underline;margin-left:4px;">#{u["idx"]}</a>'
+                for u in item['used_in_turns']
+            )
+            argon_badge_html = f'<span class="badge-argon-used">Used in Flash:{links}</span>'
+        argon_flag = '1' if item.get('argon_source') else '0'
         card = f"""
-        <article class="audit-card" data-idx="{idx}" data-cid="{cid}" data-ts="{ts}">
+        <article class="audit-card" id="turn-{idx}" data-idx="{idx}" data-cid="{cid}" data-ts="{ts}" data-argon="{argon_flag}">
             <div class="card-meta">
                 <span class="badge-idx">#{idx}</span>
                 <span class="badge-session">{html.escape(sess_label)}</span>
                 {pdf_btn}
+                {argon_badge_html}
                 <time class="meta-time">{html.escape(ts)}</time>
             </div>
             <div class="user-prompt-wrap">
@@ -727,8 +796,9 @@ def main():
             border-bottom: 1px solid var(--hairline);
             padding: 0.75rem 1.25rem;
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.65rem;
             font-size: 0.8rem;
         }}
         
@@ -745,6 +815,39 @@ def main():
         .badge-session {{
             color: var(--ink-heading);
             font-weight: 600;
+        }}
+
+        .badge-argon {{
+            font-family: 'JetBrains Mono', monospace;
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }}
+        .badge-argon:hover {{
+            background: #fde68a;
+        }}
+
+        .badge-argon-used {{
+            font-family: 'JetBrains Mono', monospace;
+            background: #e0f2fe;
+            border: 1px solid #38bdf8;
+            color: #075985;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+        }}
+
+        .audit-card.jump-highlight {{
+            outline: 2px solid #d97706;
+            outline-offset: 2px;
+            transition: outline-color 0.4s ease;
         }}
         
         .meta-time {{
@@ -982,6 +1085,7 @@ def main():
         <span>Sep 27 – Nov 22, 2026</span> &bull; 
         <span>{total_turns} dialogues</span> &bull; 
         <span>{image_copy_count + len(early_mockups)} screenshots</span> &bull; 
+        <span>{argon_match_count} Argon &rarr; Flash prompts</span> &bull; 
         <span>Updated {compiled_str}</span>
     </div>
 </header>
@@ -994,6 +1098,7 @@ def main():
         <div class="filter-controls">
             <select id="sessionFilter" class="filter-select" onchange="filterDialogues()">
                 <option value="ALL">All Sessions + Gemini Web PDFs</option>
+                <option value="ARGON_TO_FLASH">Argon &rarr; Flash Prompts ({argon_match_count} Matched)</option>
                 <option value="020c8971-5c78-4eba-8811-cea3997b058e">Session 1: Architecture & Planning (Sep 27)</option>
                 <option value="bbab402d-c7b9-479d-b2e0-9fb8404a0e69">Session 2: Hydrology Pipelines (Oct 15)</option>
                 <option value="4435b62e-8fe9-444c-a9e1-fde4adac282d">Session 3: Basin Cartography (Oct 23)</option>
@@ -1076,6 +1181,21 @@ def main():
         applySortOrder();
     }});
 
+    function jumpToTurn(targetIdx) {{
+        const el = document.getElementById('turn-' + targetIdx);
+        if (!el) return;
+        if (el.style.display === 'none') {{
+            const sf = document.getElementById('sessionFilter');
+            const si = document.getElementById('searchInput');
+            if (sf) sf.value = 'ALL';
+            if (si) si.value = '';
+            filterDialogues();
+        }}
+        el.scrollIntoView({{ behavior: 'smooth', block: 'center' }});
+        el.classList.add('jump-highlight');
+        setTimeout(() => el.classList.remove('jump-highlight'), 2200);
+    }}
+
     function filterDialogues() {{
         const q = document.getElementById('searchInput').value.toLowerCase().trim();
         const selectedSession = document.getElementById('sessionFilter').value;
@@ -1085,7 +1205,7 @@ def main():
             const cid = card.getAttribute('data-cid');
             const text = card.textContent.toLowerCase();
             
-            const matchesSession = (selectedSession === 'ALL' || cid === selectedSession);
+            const matchesSession = (selectedSession === 'ALL' || (selectedSession === 'ARGON_TO_FLASH' ? card.getAttribute('data-argon') === '1' : cid === selectedSession));
             const matchesQuery = (!q || text.includes(q));
 
             if (matchesSession && matchesQuery) {{
