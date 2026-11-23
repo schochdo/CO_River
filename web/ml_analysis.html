@@ -823,7 +823,7 @@
               suggestedMax: 5.5,
               title: {
                 display: true,
-                text: 'Annual Water Volume (Million Acre-Feet / yr)',
+                text: 'Annual Volume (MAF/yr)',
                 font: { size: 10, weight: 600 },
                 color: '#475569'
               },
@@ -1070,7 +1070,7 @@
               max: 0.90,
               title: {
                 display: true,
-                text: 'Wave Arrival Strength at Reservoir',
+                text: 'Wave Arrival Strength',
                 font: { size: 10, weight: 600 },
                 color: '#475569'
               },
@@ -1295,9 +1295,8 @@
                 maxRotation: 0,
                 minRotation: 0,
                 callback: function(val, idx) {
-                  const yr = String(labels[idx]);
-                  const milestones = ['1922', '1940', '1960', '1980', '2000', '2020', '2026'];
-                  return milestones.includes(yr) ? yr : null;
+                  const yr = Number(labels[idx]);
+                  return yr % 20 === 0 ? String(yr) : null;
                 },
                 font: { size: 9.5, weight: '600' },
                 color: '#64748b'
@@ -1309,7 +1308,7 @@
               max: 30,
               title: {
                 display: true,
-                text: 'Annual Volume (Million Acre-Feet)',
+                text: 'Annual Volume (MAF)',
                 font: { size: 10, weight: 600 },
                 color: '#475569'
               },
@@ -1394,7 +1393,7 @@
           },
           scales: {
             x: { title: { display: true, text: 'Seasonal Timeline (January through December)', font: { size: 10, weight: 600 }, color: '#475569' }, ticks: { callback: monthStartTick, autoSkip: false, font: { size: 9.5, weight: '600' }, color: '#64748b' }, grid: { display: false } },
-            y: { min: 0, max: 1.05, title: { display: true, text: 'Normalized Flow Regime Share', font: { size: 10, weight: 600 }, color: '#475569' }, ticks: { stepSize: 0.25, callback: (v) => `${Math.round(v * 100)}%`, font: { size: 9.5 }, color: '#64748b' }, grid: { color: '#e2e8f0', lineWidth: 1 } }
+            y: { min: 0, max: 1.05, title: { display: true, text: 'Flow Regime Share', font: { size: 10, weight: 600 }, color: '#475569' }, ticks: { stepSize: 0.25, callback: (v) => `${Math.round(v * 100)}%`, font: { size: 9.5 }, color: '#64748b' }, grid: { color: '#e2e8f0', lineWidth: 1 } }
           }
         }
       });
@@ -1497,7 +1496,7 @@
               max: 52000,
               title: {
                 display: true,
-                text: 'Daily River Flow Rate (cfs)',
+                text: 'Daily Flow (cfs)',
                 font: { size: 10, weight: 600 },
                 color: '#475569'
               },

@@ -6,6 +6,7 @@ These rules are permanent constraints to prevent generic AI UI patterns, unneces
 - **No Fake Versions or Build Tags:** Never display software version numbers (e.g. `v24.0`, `v1.2 Stable`, `Build 894`) on user-facing UI unless explicitly requested by the user.
 - **No Vanity Status Pills:** Never add decorative green pulsing dots, "Live Telemetry Connected", "System Status: Optimal", or generic server health badges.
 - **No Tech Jargon Padding:** Every word and label on screen must communicate verifiable domain facts. Never add fluff text or software engineering buzzwords just to fill screen real estate.
+- **No Unverified Superlatives or Marketing Copy:** Ban promotional engineering hyperbole in all UI text and documentation (e.g., `100% uptime`, `infinite scaling`, `zero-failure`, `never crashes`, `sub-50ms`, `0 KB bundle`, `seamless`, `enterprise-grade`). Every quantitative claim in prose (latency, counts, sizes, percentages) must be directly measured or verified in this repo.
 - **Layout Authenticity (Edward Tufte / Editorial Standard):** Do not default to the generic B2B SaaS template ("top navbar + left collapsible sidebar + metric card grid"). Match the interface architecture strictly to the domain (e.g. cartographic full-bleed, Swiss transit schematic, editorial data journalism).
 
 ## 2. Dimensional & Temporal Rigor

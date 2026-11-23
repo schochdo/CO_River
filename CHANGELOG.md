@@ -7,6 +7,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ---
 
 ## [2.3.6] - 2026-11-23
+### Changed (Archiving & Code Deduplication)
+- **Archived Legacy Mockups & Scratch Files (`archive/mockups/`, `archive/scratch/`):** Moved `web/test_proposal1.html`, `web/profile_mockup.html`, `upper_basin_mockup.html`, `scratch.py`, `get_lake_bounds.py`, and `01_usgs_data_exploration.ipynb` out of active directories without deleting them.
+- **Deduplicated Chart Axis & Filter Button State ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):** Replaced 4 copy-pasted decade x-axis tick blocks with a single `makeDecadeXAxis(fontSize)` helper, and replaced duplicated Tailwind class strings (`resFilterActiveCls`/`resFilterInactiveCls`) with `.res-filter-btn` / `.is-active` CSS state classes.
+
+- **Extracted Dashboard JS Module ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/dashboard.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/dashboard.js)):** Extracted `1,494` lines of inline dashboard/Chart.js logic out of `web/index.html` into `web/dashboard.js` (`web/index.html` reduced from `3,006` to `1,504` lines). Verified with `npm test` (`9 pages x 2 viewports`, `0` overflow, `0` runtime errors).
+
+### Added (Unified Desktop + Mobile Smoke Test)
+- **Single-Command Regression & Anti-Slop Gate ([scripts/smoke_test.js](file:///Users/macstudio/Documents/Antigravity/CO_River/scripts/smoke_test.js), [package.json](file:///Users/macstudio/Documents/Antigravity/CO_River/package.json)):**
+  - Wired `npm test` to `scripts/smoke_test.js`, which serves `web/` on an ephemeral localhost port and runs headless Chrome CDP across all `9` pages at both mobile (`390×844`) and desktop (`1360×860`), asserting `0` horizontal overflow, `0` uncaught runtime exceptions, and `0` banned promotional/slop phrases. Verified passing (`9 pages x 2 viewports`).
+
+### Fixed (Reservoir Storage Mobile Filter Bar Overflow)
+- **Responsive Wrapping for Reservoir Storage Filter Controls ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Replaced `shrink-0` and unconditional `whitespace-nowrap` on `#reservoir-filter-left`, `#reservoir-filter-right`, their button group wrappers, and JS-toggled classes (`resFilterActiveCls` / `resFilterInactiveCls`) with `flex-wrap`, `w-full sm:w-auto min-w-0`, `flex-1 sm:flex-none`, and `sm:whitespace-nowrap` so the Reservoir (`Lake Mead` / `Lake Powell`) and View (`Seasonal Elevation Envelope` / `12-Month Water Level Matrix`) controls stay inside the viewport width on mobile instead of overflowing to the right.
+  - Added `flex-wrap max-w-full` to the Reservoir Storage header sub-tab bar and `flex-wrap gap-2` to the Lake Mead and Lake Powell envelope chart source footers.
+
+- **Compact Vertical Axis Labels on Hydrologic Analysis Charts ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):**
+  - Shortened all 5 Chart.js y-axis titles so they no longer clip at the top/bottom of compact mobile canvases: `'Annual Water Volume (Million Acre-Feet / yr)'` → `'Annual Volume (MAF/yr)'`, `'Annual Volume (Million Acre-Feet)'` → `'Annual Volume (MAF)'`, `'Wave Arrival Strength at Reservoir'` → `'Wave Arrival Strength'`, `'Normalized Flow Regime Share'` → `'Flow Regime Share'`, and `'Daily River Flow Rate (cfs)'` → `'Daily Flow (cfs)'`.
+
+- **Standard Axis Divisions on Macro Basin Storage Timelines ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Replaced arbitrary `max: 65` / `max: 70` y-axis ceilings with `max: 60` (`stepSize: 10` on `chart-macro-timeline` → `0, 10, 20, 30, 40, 50, 60 MAF`; `stepSize: 15` on `chart-macro-overview-timeline` → `0, 15, 30, 45, 60 MAF`) and positioned the `Full System Capacity (~60.0 MAF)` label cleanly below the `60 MAF` dashed line (`yAdjust: 14` / `12`).
+  - Replaced `maxTicksLimit` category-stride x-axis ticks (which produced uneven years like `1949`, `1956`) with explicit decade ticks (`yr % 10 === 0` → `1940, 1950, …, 2020`) across `chart-macro-timeline`, `chart-macro-overview-timeline`, `chart-mead-history` (also standardized y-axis to `850–1250 ft`, `stepSize: 50`), and `chart-powell-elevation-history` (`3350–3750 ft`, `stepSize: 50`), and updated `chart-compact-100yr` ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)) to standard 20-year ticks (`yr % 20 === 0` → `1940, 1960, 1980, 2000, 2020`) to eliminate the `20202026` label collision.
+
+- **Methodology Copy & Logical Accuracy Sweep ([web/methodology.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/methodology.html)):**
+  - Corrected Section 4 (`Tier 2: Static Snapshot Fallback`) to state that `latest_metrics.json` handles upstream USGS NWIS API outages/rate-limiting (or local clones without external API access), removing the inaccurate claim that it works when a hosted web visitor is offline.
+  - Fixed Section 2's "four severe engineering failure modes" intro that only listed 3 items, fixed Section 3's arithmetic mismatch (`79 + 4 + 4 + 11 = 98` vs `92` stations), replaced "Bundle Size: 0 KB" with "Build Step: None", and toned down hyperbolic claims ("100% uptime", "Infinite Scaling", "zero-failure").
+
+  - Added an explicit **No Unverified Superlatives or Marketing Copy** rule to [GEMINI.md](file:///Users/macstudio/Documents/Antigravity/CO_River/GEMINI.md) and verified [web/data_sources.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/data_sources.html) and [web/law.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/law.html) had zero matching hype claims.
+
 ### Improved (Mobile Responsive Layout Pass for Water Budget, Flow Schematic & Map Overlays)
 - **Full-Scale Horizontal Touch-Scroll & Compact Mobile Map Controls (< 768px) ([web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html), [web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html), [web/map_embed.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/map_embed.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
   - **Water Budget (`web/sankey.html`):** Wrapped the 4-tier column header grid and `#sankey-container` inside `#sankey-scroll-viewport` / `#sankey-scroll-inner` (`min-w-[920px] md:min-w-0`) so the D3 Sankey diagram stays full height (`920×474px`) and pans smoothly left-to-right on phones instead of shrinking to `167px` tall; wrapped the View 2 dual stacked-bar columns in an `overflow-x-auto` track (`min-w-[540px] sm:min-w-0`) to prevent column compression below `540px`.
