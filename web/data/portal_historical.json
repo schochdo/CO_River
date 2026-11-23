@@ -1924,7 +1924,7 @@
         "AUG": 1038.83,
         "SEP": 1037.8,
         "OCT": 1038.85,
-        "NOV": 1041.41
+        "NOV": 1041.33
       },
       "min": 1037.8,
       "max": 1066.14,
@@ -6557,6 +6557,10 @@
     {
       "date": "2026-11-21",
       "cfs": 6500
+    },
+    {
+      "date": "2026-11-22",
+      "cfs": 6540
     }
   ],
   "swe_history": [
@@ -9212,14 +9216,14 @@
     },
     {
       "year": 2026,
-      "mead_maf": 7.075,
+      "mead_maf": 7.07,
       "powell_maf": 6.488,
       "flaming_gorge_maf": 2.378,
       "navajo_maf": 1.479,
       "blue_mesa_maf": 0.186,
-      "dillon_maf": 0.152,
-      "granby_maf": 0.253,
-      "total_major_storage_maf": 17.606
+      "dillon_maf": 0.151,
+      "granby_maf": 0.251,
+      "total_major_storage_maf": 17.601
     }
   ],
   "flaming_gorge_elevation_historical": [
@@ -14030,13 +14034,13 @@
         "AUG": 8991.51,
         "SEP": 8985.23,
         "OCT": 8980.47,
-        "NOV": 8977.4,
+        "NOV": 8977.34,
         "DEC": null
       },
-      "min": 8977.4,
+      "min": 8977.3,
       "max": 8998.9,
       "mean": 8992.1,
-      "range": 21.5
+      "range": 21.6
     }
   ]
 }
