@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.3.6] - 2026-11-23
+### Fixed (Mobile Navigation Drawer & Viewport Allocation)
+- **Collapsible Mobile Navigation Header & Auto-Close Tab Switching ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Fixed the mobile flex layout bug below `768px` (`@media (max-width: 767px)`) where `.sidebar-academic`'s unconditional `height: 100dvh; max-height: 100dvh;` rule consumed `100%` of the viewport height and crushed `<main>` to `0px`, preventing clicked menu items from ever displaying a page on mobile.
+  - Wrapped `<nav>` and `#sidebar-bottom-utilities` in `#sidebar-nav-collapsible` (`flex-1 flex flex-col justify-between pt-3 md:pt-4`), added `#mobile-menu-toggle` (`☰ Menu` / `✕ Close`, `md:hidden`) and active-section label `#mobile-active-section-label` inside `#sidebar-brand-header`, and updated `setTab(tabId)` to automatically collapse the mobile menu (`toggleMobileMenu(false)`), update the mobile section label, reveal `<main>` (`flex: 1 1 0%; min-height: 0`), and dispatch a layout `resize` event for MapLibre and Chart.js views while keeping the `256px` desktop sidebar (`>= 768px`) completely unchanged.
+  - Verified across all `10` navigation views on mobile (`390×844`: `<main>` height `787.25px`, `menuOpen` opens all `11` nav buttons and auto-closes to `false` on click, `0` runtime errors, `verified_mobile_menu_open.png`, `verified_mobile_nav_page_open.png`) and desktop (`1360×860`: `asideWidth: 256`, `asideHeight: 860`, `toggleDisplay: none`, `verified_desktop_nav_intact.png`).
+
+---
+
 ## [2.3.5] - 2026-11-22
 ### Fixed (Chart Annotation & Data-Line De-Overlap Sweep)
 - **Annotation Pills & Threshold Labels Moved Out of Plotted Data ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
