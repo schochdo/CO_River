@@ -14,6 +14,8 @@ if [ -d "$PORTFOLIO_DIR" ]; then
   mkdir -p "$PORTFOLIO_DIR/public/colorado_river" "$PORTFOLIO_DIR/scripts"
   rsync -av --delete --exclude='.cache_usgs*' web/ "$PORTFOLIO_DIR/public/colorado_river/"
   cp src/fetch_water_data.py "$PORTFOLIO_DIR/scripts/fetch_colorado_river.py"
+  cp src/fetch_replay_7d.py "$PORTFOLIO_DIR/scripts/fetch_replay_7d.py"
+  cp src/fetch_replay_30d.py "$PORTFOLIO_DIR/scripts/fetch_replay_30d.py"
   
   echo "3. Verifying Astro build in Website..."
   (cd "$PORTFOLIO_DIR" && npm run build)
@@ -25,7 +27,7 @@ if [ -d "$PORTFOLIO_DIR" ]; then
     if git diff --staged --quiet; then
       echo "Website is already up to date. Nothing to commit."
     else
-      git commit -m "Deploy Colorado River updates (v2.3.0): 3D flight camera, 7D/30D flow replay, System Compendium & Facility Database"
+      git commit -m "Deploy Colorado River updates (v2.3.7): real API code boxes, 6h replay sync, monthly canal reporting, and UI polish"
       git push origin main
       echo "✓ Successfully pushed latest build to schochdo.github.io!"
     fi

@@ -76,9 +76,9 @@ def run_analysis():
 
     df_inflows = pd.DataFrame(inflow_series).interpolate(limit=3).fillna(0)
     df_inflows["total_inflow_cfs"] = (
-        df_inflows.get("cisco_cfs", 0) +
-        df_inflows.get("green_river_cfs", 0) +
-        df_inflows.get("san_juan_cfs", 0)
+        df_inflows.get("cisco", 0) +
+        df_inflows.get("green_river", 0) +
+        df_inflows.get("san_juan", 0)
     )
 
     # Calculate Water Year

@@ -21,29 +21,29 @@ import re
 import shutil
 import html
 import subprocess
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+
+LOCAL_TZ = ZoneInfo('America/Denver')
 
 CO_SESSIONS = [
     '020c8971-5c78-4eba-8811-cea3997b058e',
-    '0fedef31-6991-497d-9a19-33180dfdcf02',
-    '2f11e2b7-7ffb-48a6-9f23-da3993acea64',
-    '4435b62e-8fe9-444c-a9e1-fde4adac282d',
-    '58cfdbf8-91b4-4263-ad4e-596d29fac1a2',
     'bbab402d-c7b9-479d-b2e0-9fb8404a0e69',
+    '4435b62e-8fe9-444c-a9e1-fde4adac282d',
+    '2f11e2b7-7ffb-48a6-9f23-da3993acea64',
+    '58cfdbf8-91b4-4263-ad4e-596d29fac1a2',
     'f3a97760-d230-4b4e-8463-96f71462f340',
-    'aad5e810-76c0-4f7e-a9c4-9eb2855ee883'
+    'aad5e810-76c0-4f7e-a9c4-9eb2855ee883',
 ]
 
-SESSION_LABELS = {
-    '020c8971-5c78-4eba-8811-cea3997b058e': 'Session 1: Initial Architecture & Planning Interview (Sep 27)',
-    'bbab402d-c7b9-479d-b2e0-9fb8404a0e69': 'Session 2: Hydrology Pipelines & Live USGS Automation (Oct 15)',
-    '4435b62e-8fe9-444c-a9e1-fde4adac282d': 'Session 3: Basin Cartography & Visual Flow Balance (Oct 23)',
-    '2f11e2b7-7ffb-48a6-9f23-da3993acea64': 'Session 4: Reservoir Dynamics & Minard Flow Replay (Nov 03)',
-    '58cfdbf8-91b4-4263-ad4e-596d29fac1a2': 'Session 5: ML Richards-Baker Flashiness & Legal Accounting (Nov 08-19)',
-    '0fedef31-6991-497d-9a19-33180dfdcf02': 'Session 6: Workspace & Codebase Audit Verification (Nov 19)',
-    'f3a97760-d230-4b4e-8463-96f71462f340': 'Session 7: Deep Architecture Defense & Academic Disclosure (Nov 19-20)',
-    'aad5e810-76c0-4f7e-a9c4-9eb2855ee883': 'Session 8: Corridor Palette Unification, Sankey Brackets & Single Notebook Consolidation (Nov 20-22)',
-    'gemini-web-sessions': 'Gemini Web Sessions (10 PDFs): Architecture & Meta-Prompting for 3.8 Flash'
+SESSION_BASE_TITLES = {
+    '020c8971-5c78-4eba-8811-cea3997b058e': 'Session 1: Initial Architecture & Planning Interview',
+    'bbab402d-c7b9-479d-b2e0-9fb8404a0e69': 'Session 2: Hydrology Pipelines & Live USGS Automation',
+    '4435b62e-8fe9-444c-a9e1-fde4adac282d': 'Session 3: Basin Cartography & Visual Flow Balance',
+    '2f11e2b7-7ffb-48a6-9f23-da3993acea64': 'Session 4: Reservoir Dynamics & Minard Flow Replay',
+    '58cfdbf8-91b4-4263-ad4e-596d29fac1a2': 'Session 5: ML Richards-Baker Flashiness & Legal Accounting',
+    'f3a97760-d230-4b4e-8463-96f71462f340': 'Session 6: Deep Architecture Defense & Academic Disclosure',
+    'aad5e810-76c0-4f7e-a9c4-9eb2855ee883': 'Session 7: Corridor Palette Unification, Sankey Brackets & Single Notebook Consolidation',
 }
 
 def extract_gemini_web_pdf_turns(pdf_path, dest_rel_src):
@@ -292,18 +292,69 @@ def main():
                     'tools_used': tools_used
                 })
 
-    # Sort strictly chronologically
+    # Sort strictly chronologically using timezone-aware UTC datetimes
+    def parse_utc_dt(ts):
+        if not ts:
+            return None
+        try:
+            clean_ts = ts.strip()
+            if clean_ts.endswith('Z'):
+                clean_ts = clean_ts[:-1] + '+00:00'
+            else:
+                clean_ts = re.sub(r'([+-]\d{2}):(\d{2})$', r'\1:\2', clean_ts)
+            dt = datetime.fromisoformat(clean_ts)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
+        except Exception:
+            return None
+
     def parse_time(item):
-        ts = item.get('created_at', '')
-        if ts:
-            try:
-                clean_ts = re.sub(r'([+-]\d{2}):(\d{2})$', r'\1\2', ts)
-                return datetime.fromisoformat(clean_ts)
-            except Exception:
-                pass
-        return datetime.min
+        dt = parse_utc_dt(item.get('created_at', ''))
+        return dt if dt is not None else datetime.min.replace(tzinfo=timezone.utc)
 
     all_dialogues.sort(key=parse_time)
+
+    # Convert Antigravity UTC timestamps to local Mountain Time and derive session date ranges
+    session_bounds = {}
+    all_local_dts = []
+    for item in all_dialogues:
+        utc_dt = parse_utc_dt(item.get('created_at', ''))
+        if utc_dt is not None:
+            local_dt = utc_dt.astimezone(LOCAL_TZ)
+            item['local_dt'] = local_dt
+            item['display_ts'] = local_dt.strftime('%Y-%m-%d %H:%M %Z')
+            all_local_dts.append(local_dt)
+            cid = item['session_id']
+            if cid not in session_bounds:
+                session_bounds[cid] = [local_dt, local_dt]
+            else:
+                if local_dt < session_bounds[cid][0]:
+                    session_bounds[cid][0] = local_dt
+                if local_dt > session_bounds[cid][1]:
+                    session_bounds[cid][1] = local_dt
+
+    def format_date_span(start_dt, end_dt):
+        s_date = start_dt.date()
+        e_date = end_dt.date()
+        if s_date == e_date:
+            return start_dt.strftime('%b %d')
+        if s_date.year == e_date.year and s_date.month == e_date.month:
+            return f"{start_dt.strftime('%b %d')}–{end_dt.strftime('%d')}"
+        return f"{start_dt.strftime('%b %d')} – {end_dt.strftime('%b %d')}"
+
+    session_labels = {}
+    for cid in CO_SESSIONS:
+        base_title = SESSION_BASE_TITLES.get(cid, f"Session {cid[:8]}")
+        if cid in session_bounds:
+            span = format_date_span(*session_bounds[cid])
+            session_labels[cid] = f"{base_title} ({span})"
+        else:
+            session_labels[cid] = base_title
+    session_labels['gemini-web-sessions'] = (
+        f"Gemini Web Sessions ({len(gemini_pdf_docs)} PDFs): Architecture & Meta-Prompting for 3.8 Flash"
+    )
+
     all_dialogues.extend(gemini_web_turns)
 
     def _norm_shingles(text, n=6):
@@ -346,9 +397,11 @@ def main():
                 'pdf_src': gt_item.get('pdf_src', ''),
                 'overlap_pct': int(round(100 * ratio))
             }
+            local_dt = item.get('local_dt')
+            local_date_str = local_dt.strftime('%Y-%m-%d') if local_dt else (item.get('created_at') or '')[:10]
             gt_item['used_in_turns'].append({
                 'idx': idx,
-                'ts': (item.get('created_at') or '')[:10]
+                'ts': local_date_str
             })
             argon_match_count += 1
 
@@ -422,7 +475,9 @@ def main():
             </div>
             """
 
-        sess_label = SESSION_LABELS.get(cid, f"Session {cid[:8]}")
+        sess_label = session_labels.get(cid, f"Session {cid[:8]}")
+        display_ts = item.get('display_ts') or ts
+        time_title_attr = f' title="UTC: {html.escape(ts)}"' if item.get('display_ts') and ts else ''
         pdf_btn = (
             f'<a href="{item["pdf_src"]}" target="_blank" rel="noopener noreferrer" class="tool-pill" style="text-decoration:none;">Source PDF ↗</a>'
             if item.get('pdf_src') else ''
@@ -447,13 +502,13 @@ def main():
             argon_badge_html = f'<span class="badge-argon-used">Used in Flash:{links}</span>'
         argon_flag = '1' if item.get('argon_source') else '0'
         card = f"""
-        <article class="audit-card" id="turn-{idx}" data-idx="{idx}" data-cid="{cid}" data-ts="{ts}" data-argon="{argon_flag}">
+        <article class="audit-card" id="turn-{idx}" data-idx="{idx}" data-cid="{html.escape(cid)}" data-ts="{html.escape(ts)}" data-argon="{argon_flag}">
             <div class="card-meta">
                 <span class="badge-idx">#{idx}</span>
                 <span class="badge-session">{html.escape(sess_label)}</span>
                 {pdf_btn}
                 {argon_badge_html}
-                <time class="meta-time">{html.escape(ts)}</time>
+                <time class="meta-time"{time_title_attr}>{html.escape(display_ts)}</time>
             </div>
             <div class="user-prompt-wrap">
                 <div class="speaker-tag user">USER PROMPT</div>
@@ -509,6 +564,22 @@ def main():
 
     total_turns = len(all_dialogues)
     compiled_str = datetime.now().strftime('%b %d, %Y %I:%M %p')
+    if all_local_dts:
+        first_local = min(all_local_dts)
+        last_local = max(all_local_dts)
+        header_date_span = f"{first_local.strftime('%b %d')} – {last_local.strftime('%b %d, %Y')}"
+        sort_start_label = first_local.strftime('%b %d')
+        sort_end_label = last_local.strftime('%b %d')
+    else:
+        header_date_span = ""
+        sort_start_label = "Start"
+        sort_end_label = "End"
+
+    session_options_html = "\n".join(
+        f'                <option value="{html.escape(cid)}">{html.escape(session_labels[cid])}</option>'
+        for cid in CO_SESSIONS
+    )
+    gemini_web_option_label = f"Gemini Web Sessions ({len(gemini_pdf_docs)} PDFs / {len(gemini_web_turns)} Turns)"
     
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -1081,8 +1152,8 @@ def main():
 <header class="audit-header">
     <h1 class="audit-title">Colorado River Basin Platform — AI Dialogue Archive</h1>
     <div class="audit-meta-line">
-        <span>Sessions 1–8</span> &bull; 
-        <span>Sep 27 – Nov 22, 2026</span> &bull; 
+        <span>Sessions 1–{len(CO_SESSIONS)}</span> &bull; 
+        <span>{html.escape(header_date_span)}</span> &bull; 
         <span>{total_turns} dialogues</span> &bull; 
         <span>{image_copy_count + len(early_mockups)} screenshots</span> &bull; 
         <span>{argon_match_count} Argon &rarr; Flash prompts</span> &bull; 
@@ -1099,19 +1170,12 @@ def main():
             <select id="sessionFilter" class="filter-select" onchange="filterDialogues()">
                 <option value="ALL">All Sessions + Gemini Web PDFs</option>
                 <option value="ARGON_TO_FLASH">Argon &rarr; Flash Prompts ({argon_match_count} Matched)</option>
-                <option value="020c8971-5c78-4eba-8811-cea3997b058e">Session 1: Architecture & Planning (Sep 27)</option>
-                <option value="bbab402d-c7b9-479d-b2e0-9fb8404a0e69">Session 2: Hydrology Pipelines (Oct 15)</option>
-                <option value="4435b62e-8fe9-444c-a9e1-fde4adac282d">Session 3: Basin Cartography (Oct 23)</option>
-                <option value="2f11e2b7-7ffb-48a6-9f23-da3993acea64">Session 4: Minard Flow Replay (Nov 03)</option>
-                <option value="58cfdbf8-91b4-4263-ad4e-596d29fac1a2">Session 5: ML & Legal Accounting (Nov 08-19)</option>
-                <option value="0fedef31-6991-497d-9a19-33180dfdcf02">Session 6: Workspace Audit Verification (Nov 19)</option>
-                <option value="f3a97760-d230-4b4e-8463-96f71462f340">Session 7: Architecture Defense (Nov 19-20)</option>
-                <option value="aad5e810-76c0-4f7e-a9c4-9eb2855ee883">Session 8: Corridor Palette & Consolidation (Nov 20-22)</option>
-                <option value="gemini-web-sessions">Gemini Web Sessions (10 PDFs / 84 Turns)</option>
+{session_options_html}
+                <option value="gemini-web-sessions">{html.escape(gemini_web_option_label)}</option>
             </select>
             <select id="sortOrder" class="filter-select" style="min-width:210px;" onchange="applySortOrder()">
-                <option value="DESC" selected>Sort: Newest First (Nov 22 &rarr; Sep 27)</option>
-                <option value="ASC">Sort: Chronological (#1 Sep 27 &rarr; Nov 22)</option>
+                <option value="DESC" selected>Sort: Newest First ({html.escape(sort_end_label)} &rarr; {html.escape(sort_start_label)})</option>
+                <option value="ASC">Sort: Chronological (#1 {html.escape(sort_start_label)} &rarr; {html.escape(sort_end_label)})</option>
             </select>
             <button class="action-btn" onclick="toggleAllResponses(false)">Expand All Answers</button>
             <button class="action-btn" onclick="toggleAllResponses(true)">Collapse All Answers</button>

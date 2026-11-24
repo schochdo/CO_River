@@ -6,8 +6,68 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.3.7] - 2026-11-24
+### Fixed (Data Provenance, Monthly Canal Reporting, 6-Hour Replay Sync & Zero Fake Placeholders)
+- **Eliminated Hardcoded Reservoir Placeholders & Linear Lake Mead Approximation ([src/fetch_water_data.py](file:///Users/macstudio/Documents/Antigravity/CO_River/src/fetch_water_data.py)):**
+  - Added USBR HydroData CSVs (`921/csv/17.csv`, `921/csv/49.csv`, `919/csv/49.csv`) so Lake Mead reports official USBR active storage (`7,070,908 AF`, `27.1%`) instead of the linear elevation formula (`~8.83M AF`, which overstated Lake Mead by `~1.76 MAF`).
+  - Removed all hardcoded reservoir fallback values (`fr_baselines`, static AF/elevation literals) and `datetime.now()` fallbacks; failed fetches now fall back strictly to the last verified snapshot with its true original timestamp or `None` / `"offline"`.
+  - Fixed `fetch_usgs_daily()` fallback path (with 3-attempt retry) to preserve the 60-day (`1440 h`) monthly-reporting allowance for CAP (`09426650`, `1,020 cfs`, `2026-10-31`) and Canal Alimentador Central (`09522000`, `1,830 cfs`, `2026-10-31`) so transient USGS timeouts no longer wipe them to `offline`.
+- **Honest Delayed/Discontinued Labeling & Replay Integrity ([web/app.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/app.js), [web/telemetry.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/telemetry.html), [web/flowReplay.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/flowReplay.js), [src/fetch_replay_7d.py](file:///Users/macstudio/Documents/Antigravity/CO_River/src/fetch_replay_7d.py), [src/fetch_replay_30d.py](file:///Users/macstudio/Documents/Antigravity/CO_River/src/fetch_replay_30d.py)):**
+  - Updated `resolveStation()`, `updateSidebar()`, `populateTelemetryTable()`, and `web/telemetry.html` so monthly USGS stations stay `delayed` within 60 days and display their exact last-published date (`Monthly · Oct 31`), reserving `Discontinued (2022)` strictly for `09424150` (Colorado River Aqueduct).
+  - Removed silent upstream/downstream USGS proxy substitutions (`09404200` for Hoover, `09429100` for Davis) in `web/flowReplay.js`.
+  - Fixed a 7-hour UTC timestamp bug in `src/fetch_replay_7d.py` and `src/fetch_replay_30d.py` (now converting local `-07:00` USGS ISO strings accurately to UTC via `astimezone(timezone.utc)`), made both scripts auto-detect `public/colorado_river/data` in the portfolio repo, and bypassed local cache in CI / `--no-cache`.
+- **Unified 6-Hour Refresh Schedule & Docs ([.github/workflows/update_data.yml](file:///Users/macstudio/Documents/Antigravity/CO_River/.github/workflows/update_data.yml), [scripts/sync_to_portfolio.sh](file:///Users/macstudio/Documents/Antigravity/CO_River/scripts/sync_to_portfolio.sh), [web/methodology.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/methodology.html), [web/data_sources.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/data_sources.html), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Aligned both `CO_River/.github/workflows/update_data.yml` and `Website/.github/workflows/deploy.yml` to `cron: '0 */6 * * *'` (`00:00, 06:00, 12:00, 18:00 UTC`), synced `fetch_replay_7d.py` and `fetch_replay_30d.py` into `Website/scripts/` so `schochdo.github.io` refreshes replay matrices every 6 hours, and updated Methodology / Data Sources copy to match.
+  - Refreshed `latest_metrics.json`, `replay_7d.json` (`169` hourly UTC steps through `2026-11-24T19:00Z`), and `replay_30d.json` (`361` 2-hour UTC steps through `2026-11-24T18:00Z`), bumped `?v=20261124e`, and verified `npm test` (`9 pages x 2 viewports`, `0` overflow, `0` runtime errors, `0` slop hits).
+
+### Changed (Law of the River Chapter 2 Chronology & Copy Tightening)
+- **Reordered & Condensed Priority Hierarchy Cards ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/law.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/law.html)):**
+  - Ordered `#law-sec-ch2` cards chronologically (`1901` California → `1902` Shoshone Call → `1968` CAP Subordination) to match prior appropriation ("first in time, first in right") and condensed the Shoshone Call / Upper Basin headwaters block to two concise sentences.
+  - Aligned standalone `web/law.html` `#ch2` cards chronologically (`1901` → `1902` → `1908` → `1948` → `1968`) and verified `npm test` (`9 pages x 2 viewports`, `0` overflow, `0` runtime errors, `0` slop hits).
+
+### Fixed (Reservoir & Gage Popup Badge Palette Harmonization)
+- **Removed Off-Palette Red, Mint & Orange Popup Badges ([web/app.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/app.js)):**
+  - Replaced the alarm-red `Major Storage Reservoir Station` pill (`#dc2626` / `#fee2e2` / `#fecaca`) in `formatReservoirStationPopup()` with the standard warm-sandstone / river-blue `Major Storage Reservoir` badge (`#2b5c8f` / `#ebe4d6` / `#cfc8ba`).
+  - Changed the reservoir hover tooltip kicker and percentage readout (`streamflow-gauges-hit-buffer` `mousemove`) from `#dc2626` to `#2b5c8f` so normal storage reservoirs do not display in alarm red on hover.
+  - Harmonized `USBR Dam Release` (`#2f5744` / `#eaece6` / `#9cb0a4`) and `CDSS Diversion Tunnel` (`#8a4b1f` / `#f2ede2` / `#cfc8ba`) badges in `formatGaugePopup()`, bumped `app.js?v=20261124d` / `map_embed.html?v=20261124d`, and verified `PALETTE_AUDIT_OK` + `npm test` (`9 pages x 2 viewports`, `0` overflow, `0` runtime errors, `0` slop hits).
+
+### Fixed (Duplicate Portal Link Removal Across Map Popups)
+- **Eliminated Redundant Portal Links ([web/app.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/app.js)):**
+  - Removed the duplicate `Authoritative Source:` footer block from `formatGaugePopup()` (keeping the `Station ID: #... ↗` link with a hover `title` for agency attribution).
+  - Removed the duplicate title `↗` link next to the reservoir name in `formatReservoirStationPopup()` (keeping the bottom `Data Portal:` link via `formatPortalHtml(portal, '#2b5c8f')`, consistent with `lakes-fill` and `formatReservoirDetailPopup()`).
+  - Audited all remaining popups, sidebar/tray rows, `web/telemetry.html`, and `web/sankey.html` (confirming one portal link per item), bumped `app.js?v=20261124c` / `map_embed.html?v=20261124c`, and verified `npm test` (`9 pages x 2 viewports`, `0` overflow, `0` runtime errors, `0` slop hits).
+
+### Fixed (Real Executable Python & Endpoints in Map Popup `API / Python` Tabs)
+- **Replaced Fake/Stub Popup Snippets with Shared Live-Verified API Builders ([web/app.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/app.js), [web/map.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/map.html)):**
+  - Added shared builders in `web/app.js`: `buildUsbrHourlyApiSpec()`, `buildReservoirApiSpec()`, `buildCdwrTunnelApiSpec()`, `buildUsgsFlowApiSpec()`, and `buildDamApiSpec()`, plus `endpointLabel` support in `formatTabbedPopup()`.
+  - Fixed Lake Mead & system reservoirs (`USBR HydroData CSV` `17.csv`/`49.csv` for Powell `919`, Mead `921`, Flaming Gorge `917`, Navajo `920`, Blue Mesa `913`; `USGS 00054` for Mohave `09422500` and Havasu `09427500`), Front Range reservoirs (`CDWR` `GRARESCO`, `DILRESCO`, `GRERESCO`, `HOMRESCO` with `parameter=STORAGE`), USBR hourly dams (`Hoover`, `Davis`, `Parker` parsing `hourly.html`), CDWR tunnels (`measDate` field), active USGS gages/canals (`09527700` IV, `09522000` & `09426650` DV), and `Morelos Dam`.
+  - Hid the `API / Python` tab (`pythonCode: null`) on features without a direct live API endpoint (unmapped dams, discontinued `09424150` canal, generic NHD shoreline polygons, and unmonitored mass-balance reaches).
+  - Fixed `GRMRESCO` → `GRERESCO` in `web/map.html`, bumped `app.js?v=20261124b` / `map_embed.html?v=20261124b`, executed all `23` generated Python snippets live via `.venv/bin/python` against USGS/USBR/CDWR (`23/23` printed live values), and verified `npm test` (`9 pages x 2 viewports`, `0` overflow, `0` runtime errors, `0` slop hits).
+
+### Removed & Changed (Vanity Tag Sweep & Copy Button Palette Alignment)
+- **Removed Vanity / Buzzword Badges Across Map Popups & Reference Pages ([web/app.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/app.js), [web/data_sources.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/data_sources.html), [web/methodology.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/methodology.html)):**
+  - Deleted the cyan `Waterbody Isolated & Highlighted` pill (and its dot) from reservoir map popups in `web/app.js` while keeping `highlightSelectedReservoir()` map highlighting active.
+  - Removed decorative buzzword badges from `web/data_sources.html` (`Authoritative Provenance`) and `web/methodology.html` (`100% Vanilla`, `Multi-Engine`, `Python + SQLite`, `End-to-End Python`, `Unified Notebook`) while preserving domain labels and quantitative database record counts (`92 Records`, `11 Facilities`, `104 Years`).
+- **Harmonized API Code `Copy` Feedback State ([web/app.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/app.js), [web/editorial.css](file:///Users/macstudio/Documents/Antigravity/CO_River/web/editorial.css), [web/dashboard.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/dashboard.js)):**
+  - Replaced bright Tailwind green (`#15803d` / `#f0fdf4` / `#86efac`, `✓ Copied!`) and `text-emerald-400` (`Copied!`) feedback states with the muted riparian-sage & warm-sandstone palette (`Copied`, `#2f5744` text, `#eaece6` background, `#9cb0a4` border via `.is-copied` and inline styles).
+  - Bumped asset cache-busters (`app.js?v=20261124a`, `editorial.css?v=20261124a`, `map_embed.html?v=20261124a`) in `web/map.html`, `web/map_embed.html`, and `web/index.html`, and verified with `npm test` (`9 pages x 2 viewports`, `0` overflow, `0` runtime errors, `0` slop hits).
+
+### Fixed (AI Dialogue Archive Session Labels & Timezone Alignment)
+- **Removed Mislabeled Subagent Entry & Derived True Mountain Time Session Spans ([scripts/compile_full_ai_transcript.py](file:///Users/macstudio/Documents/Antigravity/CO_River/scripts/compile_full_ai_transcript.py), [web/ai_complete_prompt_archive.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ai_complete_prompt_archive.html)):**
+  - Removed `0fedef31-6991-497d-9a19-33180dfdcf02` (a single-turn internal `research` subagent spawned by Session 1 on `2026-09-27`) from `CO_SESSIONS`, renumbering the real user sessions cleanly to `Sessions 1–7`.
+  - Converted ISO-8601 UTC transcript timestamps to `America/Denver` (`MDT`/`MST`) for card display (`YYYY-MM-DD HH:MM TZ`, retaining raw UTC in `title` and `data-ts`), eliminating evening date rollovers into the next UTC calendar day.
+  - Replaced hardcoded session date labels and filter dropdown options with dynamically computed local date bounds (`Session 1` `Sep 27 – Oct 14` through `Session 7` `Nov 20–23`).
+  - Recompiled `web/ai_complete_prompt_archive.html` (`782` dialogues across `7` contiguous Antigravity sessions totaling `698` turns + `84` Gemini Web PDF turns, `198` staged images, `25` Argon→Flash matches, `6,316,016` bytes) and verified zero `0fedef31` references, zero interleaving across all `7` sessions, and strict local-date alignment on every card.
+
+---
+
 ## [2.3.6] - 2026-11-23
 ### Changed (Archiving & Code Deduplication)
+- **Reorganized Historical Analysis Navigation & Chart Placement ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/dashboard.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/dashboard.js), [web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):**
+  - Renamed sidebar group `Decadal & Regimes` → `Historical Analysis` and `Tributaries & Deficit` → `Tributary Hydrology`.
+  - Moved `Natural Flow vs. Compact Promises (1922–2026)` into `Reservoir Storage` (`#view-res-timeline`) directly below `Macro Basin Storage Timeline (1935–Present)` to pair the structural deficit cause with the post-2000 storage drawdown.
+  - Reconfigured `Tributary Hydrology` (`web/ml_analysis.html`) from a 2×2 grid to a 2-over-1 layout (`Flashiness vs. Volume` and `Travel Time to Lake Powell` side-by-side on top; `Seasonal Supply vs. Demand / 5 Flow Regimes` full-width across the bottom).
+
 - **Archived Legacy Mockups & Scratch Files (`archive/mockups/`, `archive/scratch/`):** Moved `web/test_proposal1.html`, `web/profile_mockup.html`, `upper_basin_mockup.html`, `scratch.py`, `get_lake_bounds.py`, and `01_usgs_data_exploration.ipynb` out of active directories without deleting them.
 - **Deduplicated Chart Axis & Filter Button State ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):** Replaced 4 copy-pasted decade x-axis tick blocks with a single `makeDecadeXAxis(fontSize)` helper, and replaced duplicated Tailwind class strings (`resFilterActiveCls`/`resFilterInactiveCls`) with `.res-filter-btn` / `.is-active` CSS state classes.
 
@@ -18,6 +78,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Wired `npm test` to `scripts/smoke_test.js`, which serves `web/` on an ephemeral localhost port and runs headless Chrome CDP across all `9` pages at both mobile (`390×844`) and desktop (`1360×860`), asserting `0` horizontal overflow, `0` uncaught runtime exceptions, and `0` banned promotional/slop phrases. Verified passing (`9 pages x 2 viewports`).
 
 ### Fixed (Reservoir Storage Mobile Filter Bar Overflow)
+- **Map Legend Title Color & 3D Flight Controls Card ([web/editorial.css](file:///Users/macstudio/Documents/Antigravity/CO_River/web/editorial.css), [web/map.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/map.html), [web/map_embed.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/map_embed.html)):**
+  - Updated `.map-legend h4`, `.map-legend.collapsed h4`, `.map-legend .legend-toggle-chevron`, and `.map-legend.collapsed .legend-toggle-chevron` from `var(--river-blue, #2b5c8f)` to `var(--ink-heading)` (`#0f172a`) to match the rest of the map overlay headings.
+  - Updated `.map-legend .legend-nav-details > div` (`3D Flight & Controls` helper box) from cool slate `var(--bg-card)` / `var(--border-subtle)` to `#faf8f4` with `1px solid #d6cfc2` border to match the Basin Metrics card background.
+
+- **Real USGS Post-1963 Inflows in 100-Year Compact Accounting ([scripts/generate_seasonal_data.py](file:///Users/macstudio/Documents/Antigravity/CO_River/scripts/generate_seasonal_data.py), [web/data/seasonal_regimes.json](file:///Users/macstudio/Documents/Antigravity/CO_River/web/data/seasonal_regimes.json), [web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
+  - Fixed a column-name mismatch (`cisco_cfs` / `green_river_cfs` / `san_juan_cfs` vs. `cisco` / `green_river` / `san_juan`) in `scripts/generate_seasonal_data.py` that caused post-1963 inflows to evaluate to `0` and fall back to a flat `lees_ferry + 4.0 MAF` offset.
+  - Re-fetched live 1963–2026 USGS NWIS daily discharge for Cisco (`09180500`), Green River (`09315000`), and San Juan at Bluff (`09379500`), updating all `64` post-1963 water years in `web/data/seasonal_regimes.json` so `supply_maf` and `lees_ferry_release_maf` now decouple realistically after Glen Canyon Dam closed (e.g., `2002`: `8.36 MAF` supply vs. `8.34 MAF` Lees Ferry release; `1982`: `15.27 MAF` vs. `8.30 MAF`), and synced the caption stat in `web/index.html` (`67%` of years; `26 of 27` since 2000).
+
+- **Reservoir Threshold Formatting & Lake Mead "Third Straw" Label ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/dashboard.js](file:///Users/macstudio/Documents/Antigravity/CO_River/web/dashboard.js)):**
+  - Removed trailing `.0` decimals from whole-foot operational threshold badges on Lake Mead (`1,075 ft`, `950 ft`, `895 ft`, `860 ft`) and Lake Powell (`3,700 ft`, `3,525 ft`, `3,490 ft`, `3,370 ft`).
+  - Replaced the inaccurate `Top Joint Use Pool (3,648 ft)` badge and chart reference line on Lake Powell with **Drought Protection Target (`3,525 ft`)** (the 2019 DCP 35-ft buffer above Minimum Power Pool).
+  - Moved the `SNWA Intake No. 3 ("Third Straw")` threshold label on `chart-mead-history` from the left (`position: 'start'`) to the right side to align with the other threshold labels.
+
 - **Responsive Wrapping for Reservoir Storage Filter Controls ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html)):**
   - Replaced `shrink-0` and unconditional `whitespace-nowrap` on `#reservoir-filter-left`, `#reservoir-filter-right`, their button group wrappers, and JS-toggled classes (`resFilterActiveCls` / `resFilterInactiveCls`) with `flex-wrap`, `w-full sm:w-auto min-w-0`, `flex-1 sm:flex-none`, and `sm:whitespace-nowrap` so the Reservoir (`Lake Mead` / `Lake Powell`) and View (`Seasonal Elevation Envelope` / `12-Month Water Level Matrix`) controls stay inside the viewport width on mobile instead of overflowing to the right.
   - Added `flex-wrap max-w-full` to the Reservoir Storage header sub-tab bar and `flex-wrap gap-2` to the Lake Mead and Lake Powell envelope chart source footers.

@@ -272,11 +272,11 @@ function copyApiSnippet() {
   navigator.clipboard.writeText(codeEl.innerText).then(() => {
     if (btn) {
       const orig = btn.innerText;
-      btn.innerText = 'Copied!';
-      btn.classList.add('text-emerald-400');
+      btn.innerText = 'Copied';
+      btn.style.color = '#2f5744';
       setTimeout(() => {
         btn.innerText = orig;
-        btn.classList.remove('text-emerald-400');
+        btn.style.color = '';
       }, 2000);
     }
   });
@@ -569,9 +569,157 @@ async function loadSeasonalData() {
     seasonalData = await res.json();
     window.seasonalData = seasonalData;
     renderSeasonalEngineChart();
+    renderCompact100yrChart();
   } catch (err) {
     console.error('Failed loading seasonal regimes:', err);
   }
+}
+
+let compact100yrChartInstance = null;
+
+function toggleCompactDataset(datasetIndex) {
+  if (!compact100yrChartInstance) return;
+  const visible = compact100yrChartInstance.isDatasetVisible(datasetIndex);
+  compact100yrChartInstance.setDatasetVisibility(datasetIndex, !visible);
+  compact100yrChartInstance.update();
+}
+window.toggleCompactDataset = toggleCompactDataset;
+
+const glenCanyonDamMarkerPlugin = {
+  id: 'glenCanyonDamMarkerPlugin',
+  afterDatasetsDraw(chart) {
+    if (!chart || !chart.chartArea || !chart.scales || !chart.scales.x) return;
+    const { ctx, chartArea } = chart;
+    const xScale = chart.scales.x;
+    const labels = chart.data.labels || [];
+    const idx1963 = labels.findIndex(y => String(y) === '1963');
+    if (idx1963 === -1) return;
+    const xPos = xScale.getPixelForValue(idx1963);
+    if (xPos < chartArea.left || xPos > chartArea.right) return;
+
+    ctx.save();
+    const labelText = '1963: Glen Canyon Dam Closes';
+    ctx.font = '600 10px "Inter", -apple-system, sans-serif';
+    const textWidth = ctx.measureText(labelText).width;
+    const pillW = textWidth + 14;
+    const pillH = 18;
+    const pillY = chartArea.top + 2;
+    const pillX = Math.max(chartArea.left + 2, Math.min(chartArea.right - pillW - 2, xPos - (pillW / 2)));
+
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(pillX, pillY, pillW, pillH, 3);
+    } else {
+      ctx.rect(pillX, pillY, pillW, pillH);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#334155';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(labelText, xPos, pillY + (pillH / 2));
+
+    ctx.beginPath();
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1.2;
+    ctx.moveTo(xPos, pillY + pillH);
+    ctx.lineTo(xPos, chartArea.bottom);
+    ctx.stroke();
+    ctx.restore();
+  }
+};
+
+function renderCompact100yrChart() {
+  if (!seasonalData || !seasonalData.compact_accounting_100yr) return;
+  const canvas = document.getElementById('chart-compact-100yr');
+  if (!canvas) return;
+  if (compact100yrChartInstance) {
+    compact100yrChartInstance.destroy();
+    compact100yrChartInstance = null;
+  }
+
+  const ts = seasonalData.compact_accounting_100yr.annual_time_series || [];
+  const labels = ts.map(d => d.wy);
+  const supplyVals = ts.map(d => d.supply_maf);
+  const releaseVals = ts.map(d => d.lees_ferry_release_maf);
+  const bgColors = ts.map(d => d.meets_compact ? '#0284c7' : '#b2182b');
+
+  compact100yrChartInstance = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    plugins: [glenCanyonDamMarkerPlugin],
+    data: {
+      labels,
+      datasets: [
+        {
+          type: 'bar',
+          label: 'Actual Basin Water Supply (MAF)',
+          data: supplyVals,
+          backgroundColor: bgColors,
+          borderRadius: 1.5,
+          barPercentage: 0.85,
+          order: 2
+        },
+        {
+          type: 'line',
+          label: 'Lees Ferry Releases (MAF)',
+          data: releaseVals,
+          borderColor: '#334155',
+          borderWidth: 1.75,
+          pointRadius: 0,
+          tension: 0.1,
+          order: 1
+        },
+        {
+          type: 'line',
+          label: '16.5 MAF Core Statutory Line (7.5 Upper + 7.5 Lower + 1.5 MX)',
+          data: labels.map(() => 16.5),
+          borderColor: '#1e293b',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          pointRadius: 0,
+          fill: false,
+          order: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      layout: { padding: { left: 8, right: 10, top: 16, bottom: 4 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => `Water Year ${items[0].label}`,
+            label: (ctx) => {
+              if (ctx.dataset.type === 'bar') {
+                const item = ts[ctx.dataIndex];
+                return `Actual Supply: ${item.supply_maf.toFixed(2)} MAF`;
+              }
+              const name = ctx.dataset.label.includes('Lees Ferry') ? 'Lees Ferry Releases' : '1922 Compact Target';
+              return `${name}: ${ctx.parsed.y.toFixed(2)} MAF`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: makeDecadeXAxis(10),
+        y: {
+          min: 0,
+          max: 30,
+          title: { display: true, text: 'Annual Volume (MAF)', font: { size: 11, weight: '600' }, color: '#475569' },
+          ticks: { stepSize: 5, callback: (v) => `${v} MAF`, font: { size: 10 }, color: '#64748b' },
+          grid: { color: '#e2e8f0', lineWidth: 1 }
+        }
+      }
+    }
+  });
 }
 
 function renderSeasonalEngineChart() {
@@ -1212,7 +1360,7 @@ function renderMeadHistoricalCharts() {
             { value: 1075.0, label: 'Tier 1 Shortage', color: '#0072B2', dash: [5, 3], position: 'center' },
             { value: 950.0, label: 'Min Power Pool', color: '#D55E00', dash: [5, 3] },
             { value: 895.0, label: 'Dead Pool', color: '#dc2626', dash: [6, 3] },
-            { value: 860.0, label: 'SNWA Intake No. 3 ("Third Straw")', color: '#6d28d9', dash: [3, 3], position: 'start' }
+            { value: 860, label: 'SNWA Intake No. 3 ("Third Straw")', color: '#6d28d9', dash: [3, 3] }
           ]
         },
         legend: {
@@ -1373,8 +1521,8 @@ function renderPowellHistoricalCharts() {
       plugins: {
         horizontalThresholdPlugin: {
           lines: [
-            { value: 3700.0, label: 'Spillway / Full Pool', color: '#1e293b', dash: [6, 4] },
-            { value: 3648.0, label: 'Top Joint Use', color: '#0072B2', dash: [5, 3] },
+            { value: 3700, label: 'Spillway / Full Pool', color: '#1e293b', dash: [6, 4] },
+            { value: 3525, label: 'Drought Protection Target', color: '#0072B2', dash: [5, 3] },
             { value: 3490.0, label: 'Min Power Pool', color: '#D55E00', dash: [5, 3] },
             { value: 3370.0, label: 'Dead Pool', color: '#dc2626', dash: [6, 3] }
           ]
@@ -1435,7 +1583,7 @@ function renderPowellHeatmap() {
   function getPowellColor(elv) {
     if (!elv) return '#f1f5f9';
     if (elv > 3670) return '#1e3a8a'; // Near Full Pool / Historic Spillway Crest (3,700 ft)
-    if (elv > 3620) return '#0284c7'; // Upper Operating Range (Top Joint Use Pool 3,648 ft)
+    if (elv > 3620) return '#0284c7'; // Upper Operating Range
     if (elv > 3575) return '#38bdf8'; // Active Conservation Mid-Pool (Buffer Target 3,575 ft)
     if (elv > 3525) return '#cbd5e1'; // DCP Conservation Buffer Range
     if (elv > 3490) return '#f59e0b'; // Critical Warning Buffer above Min Power Pool (3,490 ft)

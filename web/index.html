@@ -14,7 +14,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Editorial Design Standard (Edward Tufte / NYT Restrained Palette) -->
-  <link rel="stylesheet" href="editorial.css?v=20261122g">
+  <link rel="stylesheet" href="editorial.css?v=20261124a">
   
   <!-- Chart.js CDN for responsive, publication-quality academic charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -319,21 +319,21 @@
           <span>Water Budget</span>
         </button>
 
-        <!-- Group 3: Decadal Storage & Historical Regimes -->
+        <!-- Group 3: Historical Analysis -->
         <div class="sidebar-category-header pt-3">
-          <span>Decadal &amp; Regimes</span>
+          <span>Historical Analysis</span>
         </div>
-        <button onclick="setTab('reservoirs')" id="tab-btn-reservoirs" class="sidebar-link" title="Powell &amp; Mead Historical Storage Records">
+        <button onclick="setTab('reservoirs')" id="tab-btn-reservoirs" class="sidebar-link" title="Powell &amp; Mead Historical Storage Records &amp; Compact Deficit">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
           </svg>
           <span>Reservoir Storage</span>
         </button>
-        <button onclick="setTab('ml')" id="tab-btn-ml" class="sidebar-link" title="Upper Basin Tributaries &amp; Powell Deficit">
+        <button onclick="setTab('ml')" id="tab-btn-ml" class="sidebar-link" title="Upper Basin Tributary Hydrology &amp; Flow Regimes">
           <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
           </svg>
-          <span>Tributaries &amp; Deficit</span>
+          <span>Tributary Hydrology</span>
         </button>
       </nav>
 
@@ -662,7 +662,7 @@
               </div>
             </header>
             <div class="flex-1 w-full min-h-0 relative">
-              <iframe id="iframe-map" src="./map_embed.html?v=20261123a" allow="fullscreen" allowfullscreen class="w-full h-full border-none"></iframe>
+              <iframe id="iframe-map" src="./map_embed.html?v=20261124e" allow="fullscreen" allowfullscreen class="w-full h-full border-none"></iframe>
             </div>
           </div>
         </div>
@@ -747,6 +747,43 @@
               <strong>Note:</strong> Because Lake Mead and Lake Powell sit in V-shaped desert canyons, the bottom 100 feet hold roughly 5× less water per vertical foot (~28,000 AF/ft) than the top (~160,000 AF/ft)—causing water levels to drop faster the lower the reservoirs get.
             </div>
           </div>
+
+          <!-- FEATURED 2: NATURAL FLOW VS. COMPACT PROMISES (1922–2026) -->
+          <div class="card-academic rounded-[2px] border border-stone-300 p-5 shadow-xs bg-white">
+            <div class="flex flex-wrap items-center justify-between gap-4 pb-3 border-b border-stone-200">
+              <div class="max-w-3xl">
+                <h2 class="text-xl font-black text-stone-900 tracking-tight">
+                  Natural Flow vs. Compact Promises (1922–2026)
+                </h2>
+                <p class="text-xs text-stone-600 mt-1">
+                  The <strong>16.5 MAF</strong> core statutory promise (7.5 Upper + 7.5 Lower + 1.5 Mexico) exceeded natural basin supply in <strong>67% of years</strong>—and 26 of 27 years since 2000—forcing the system to draw down Powell and Mead storage to cover the gap.
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-stone-700">
+                <span class="inline-flex items-center gap-1.5 cursor-pointer select-none" onclick="toggleCompactDataset(0)">
+                  <span class="inline-block w-2.5 h-2.5 rounded-[1px]" style="background:#0284c7;"></span>
+                  <span class="inline-block w-2.5 h-2.5 rounded-[1px] -ml-1" style="background:#b2182b;"></span>
+                  <span>Actual Supply (Surplus / Deficit)</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5 cursor-pointer select-none" onclick="toggleCompactDataset(1)">
+                  <span class="inline-block w-3.5 border-t-2 border-slate-700"></span>
+                  <span>Lees Ferry Releases</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5 cursor-pointer select-none" onclick="toggleCompactDataset(2)">
+                  <span class="inline-block w-3.5 border-t-2 border-dashed border-slate-800"></span>
+                  <span>16.5 MAF Core Promise</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="h-72 w-full relative mt-4">
+              <canvas id="chart-compact-100yr"></canvas>
+            </div>
+            <div class="text-xs text-stone-600 flex flex-wrap justify-between items-center mt-2 pt-2 border-t border-stone-200 gap-2">
+              <span>Blue bars indicate wet years above 16.5 MAF; red bars indicate structural deficit years met by drawing down reservoir storage.</span>
+              <span class="font-bold text-stone-700">Source: <a href="https://www.usbr.gov/lc/region/g4000/NaturalFlow/" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:text-sky-900 hover:underline font-semibold transition">USBR Natural Flow Database ↗</a> &amp; <a href="https://waterdata.usgs.gov/monitoring-location/09380000/" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:text-sky-900 hover:underline font-semibold transition">USGS Lees Ferry Gage #09380000 ↗</a></span>
+            </div>
+          </div>
           </div>
 
           <div id="view-res-elevations" class="space-y-4 hidden">
@@ -802,22 +839,22 @@
               </div>
               <div class="p-2.5 rounded bg-stone-50 border border-stone-200">
                 <span class="text-[10px] font-bold text-sky-600 uppercase block">Shortage Tier 1 Trigger</span>
-                <span class="text-sm font-black text-sky-900 tabular-nums">1,075.0 ft</span>
+                <span class="text-sm font-black text-sky-900 tabular-nums">1,075 ft</span>
                 <span class="text-[10px] text-stone-500 block">Mandatory Lower Basin cuts</span>
               </div>
               <div class="p-2.5 rounded bg-stone-50 border border-stone-200">
                 <span class="text-[10px] font-bold text-amber-600 uppercase block">Minimum Power Pool</span>
-                <span class="text-sm font-black text-amber-800 tabular-nums">950.0 ft</span>
+                <span class="text-sm font-black text-amber-800 tabular-nums">950 ft</span>
                 <span class="text-[10px] text-stone-500 block">Hoover Dam turbines cease</span>
               </div>
               <div class="p-2.5 rounded bg-stone-50 border border-stone-200">
                 <span class="text-[10px] font-bold text-red-600 uppercase block">Dead Pool (No Flow)</span>
-                <span class="text-sm font-black text-red-800 tabular-nums">895.0 ft</span>
+                <span class="text-sm font-black text-red-800 tabular-nums">895 ft</span>
                 <span class="text-[10px] text-stone-500 block">Intake sill limit (0 release)</span>
               </div>
               <div class="p-2.5 rounded bg-stone-50 border border-stone-200">
                 <span class="text-[10px] font-bold text-purple-700 uppercase block">SNWA Intake No. 3</span>
-                <span class="text-sm font-black text-purple-900 tabular-nums">860.0 ft</span>
+                <span class="text-sm font-black text-purple-900 tabular-nums">860 ft</span>
                 <span class="text-[10px] text-stone-500 block">Las Vegas "Third Straw" (L3PS)</span>
               </div>
             </div>
@@ -878,22 +915,22 @@
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 my-4">
               <div class="p-2.5 rounded bg-stone-50 border border-stone-200">
                 <span class="text-[10px] font-bold text-stone-500 uppercase block">Spillway Crest / Full Pool</span>
-                <span class="text-sm font-black text-stone-900 tabular-nums">3,700.0 ft</span>
+                <span class="text-sm font-black text-stone-900 tabular-nums">3,700 ft</span>
                 <span class="text-[10px] text-stone-500 block">Peak 1983: 3,708.4 ft</span>
               </div>
               <div class="p-2.5 rounded bg-stone-50 border border-stone-200">
-                <span class="text-[10px] font-bold text-sky-600 uppercase block">Top Joint Use Pool</span>
-                <span class="text-sm font-black text-sky-900 tabular-nums">3,648.0 ft</span>
-                <span class="text-[10px] text-stone-500 block">Active conservation storage</span>
+                <span class="text-[10px] font-bold text-sky-600 uppercase block">Drought Protection Target</span>
+                <span class="text-sm font-black text-sky-900 tabular-nums">3,525 ft</span>
+                <span class="text-[10px] text-stone-500 block">35 ft buffer above power pool</span>
               </div>
               <div class="p-2.5 rounded bg-stone-50 border border-stone-200">
                 <span class="text-[10px] font-bold text-amber-600 uppercase block">Minimum Power Pool</span>
-                <span class="text-sm font-black text-amber-800 tabular-nums">3,490.0 ft</span>
+                <span class="text-sm font-black text-amber-800 tabular-nums">3,490 ft</span>
                 <span class="text-[10px] text-stone-500 block">Glen Canyon Dam turbines cease</span>
               </div>
               <div class="p-2.5 rounded bg-stone-50 border border-stone-200">
                 <span class="text-[10px] font-bold text-red-600 uppercase block">Dead Pool (No Flow)</span>
-                <span class="text-sm font-black text-red-800 tabular-nums">3,370.0 ft</span>
+                <span class="text-sm font-black text-red-800 tabular-nums">3,370 ft</span>
                 <span class="text-[10px] text-stone-500 block">River bypass tubes sill limit</span>
               </div>
             </div>
@@ -1037,13 +1074,13 @@
           </p>
           <div class="space-y-2.5 my-3">
             <div class="p-3 bg-white rounded-[3px] border border-stone-300/80">
-              <strong class="text-slate-900">Senior Present Perfected Rights in California (1901):</strong> Southern California agricultural users—led by the Imperial Irrigation District (IID) and Coachella Valley Water District—hold senior water rights established in 1901 that pre-date the 1922 Compact. Confirmed by the Supreme Court in <em>Arizona v. California</em> (1963), IID's 3.1 MAF entitlement is senior to all municipal water projects across the Lower Basin.
+              <strong class="text-slate-900">Senior Present Perfected Rights in California (1901):</strong> Southern California agricultural users—led by the Imperial Irrigation District (IID) and Coachella Valley Water District—hold 1901 water rights that predate the 1922 Compact. Confirmed by the Supreme Court in <em>Arizona v. California</em> (1963), IID's 3.1 MAF entitlement is senior to all Lower Basin municipal water projects.
             </div>
             <div class="p-3 bg-white rounded-[3px] border border-stone-300/80">
-              <strong class="text-slate-900">Subordination of the Central Arizona Project (1968):</strong> To obtain federal authorization and funding for the 336-mile Central Arizona Project (CAP) canal in the 1968 Basin Project Act, Arizona agreed that CAP deliveries are junior to California's 4.4 MAF baseline allocation. As a result, when shortage triggers occur, Arizona takes the first and deepest cuts while senior California agricultural users receive their full supply.
+              <strong class="text-slate-900">The Shoshone Call &amp; Upper Basin Headwaters (1902):</strong> In Glenwood Canyon, the Shoshone Hydroelectric Plant holds a non-consumptive <strong>1902 senior right for 1,250 cfs</strong> (administered at USGS #09070500 near Dotsero) that predates Colorado's major Front Range trans-mountain tunnels. During low flows, an active Shoshone Call compels upstream tunnels to bypass water down the West Slope mainstem; combined with other headwater priority limits, Upper Basin consumptive use averages 4.0 to 4.5 MAF/yr—well below its 7.5 MAF paper apportionment.
             </div>
             <div class="p-3 bg-white rounded-[3px] border border-stone-300/80">
-              <strong class="text-slate-900">The Shoshone Call &amp; Upper Basin Headwater Administration (1902, USGS #09070500 Dotsero):</strong> Without large regulatory reservoirs above their diversion points, Upper Basin users divert directly under local priority calls—most consequentially the Shoshone Hydroelectric Plant in Glenwood Canyon, which holds a 1902 senior water right for <strong>1,250 cfs</strong> (plus a 1929 right for 158 cfs, totaling 1,408 cfs) administered at <strong>USGS #09070500 (Colorado River near Dotsero)</strong>. Because its 1902 priority predates major Front Range trans-mountain tunnels (Moffat 1921, Adams/C-BT 1935, Roberts/Dillon 1946) and its turbine flow is 100% non-consumptive, a Shoshone Call compels upstream trans-divide diverters to bypass native headwaters down the West Slope mainstem—supporting Glenwood Canyon, Grand Valley irrigation at Cameo (#09095500), and the 15-Mile Reach endangered fish corridor (now advancing as a permanent West Slope instream flow right led by the Colorado River District). Combined with late-summer priority limits, Upper Basin consumptive use averages 4.0 to 4.5 MAF/yr, well below its 7.5 MAF paper apportionment.
+              <strong class="text-slate-900">Subordination of the Central Arizona Project (1968):</strong> To obtain federal authorization and funding for the 336-mile Central Arizona Project (CAP) canal in the 1968 Basin Project Act, Arizona agreed that CAP deliveries are junior to California's 4.4 MAF baseline allocation. When shortage triggers occur, Arizona absorbs the first and deepest cuts while senior California agricultural users receive their full supply.
             </div>
           </div>
         </section>
@@ -1385,7 +1422,8 @@
                     <strong>62614:</strong> Lake elevation (ft)
                   </td>
                   <td class="p-2.5 align-top whitespace-nowrap">
-                    <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded font-bold text-[10px]">15–60 min</span>
+                    <span class="px-1.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded font-bold text-[10px]">15–60 min (IV)</span>
+                    <div class="text-[10px] text-stone-500 mt-1">Monthly DV (CAP/Morelos)</div>
                   </td>
                   <td class="p-2.5 align-top space-y-1">
                     <a href="https://waterservices.usgs.gov/docs/instantaneous-values/instantaneous-values-details/" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:text-sky-900 hover:underline font-bold block">USGS Instantaneous Values (IV) Docs ↗</a>

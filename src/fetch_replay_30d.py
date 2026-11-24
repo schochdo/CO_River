@@ -24,10 +24,11 @@ def fetch_chunk(sites, cache_dir, timeout=30, retries=3):
     cache_key = f"chunk_{abs(hash(sites_str)) % 1000000}_{len(sites)}.json"
     cache_path = os.path.join(cache_dir, cache_key)
 
-    # Check cache freshness (valid for 12 hours)
-    if os.path.exists(cache_path):
+    # Check cache freshness (valid for 3 hours locally; bypassed in CI or with --no-cache)
+    use_cache = (os.environ.get('CI') != 'true') and ('--no-cache' not in sys.argv)
+    if use_cache and os.path.exists(cache_path):
         mtime = os.path.getmtime(cache_path)
-        if (time.time() - mtime) < 43200:
+        if (time.time() - mtime) < 10800:
             try:
                 with open(cache_path, 'r') as f:
                     cached_data = json.load(f)
@@ -65,9 +66,14 @@ def fetch_chunk(sites, cache_dir, timeout=30, retries=3):
 
 def main():
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    hierarchy_path = os.path.join(root_dir, 'web', 'data', 'station_hierarchy.json')
-    output_path = os.path.join(root_dir, 'web', 'data', 'replay_30d.json')
-    cache_dir = os.path.join(root_dir, 'web', 'data', '.cache_usgs_30d')
+    data_dir = os.path.join(root_dir, 'web', 'data')
+    if not os.path.exists(os.path.join(data_dir, 'station_hierarchy.json')):
+        alt_dir = os.path.join(root_dir, 'public', 'colorado_river', 'data')
+        if os.path.exists(os.path.join(alt_dir, 'station_hierarchy.json')):
+            data_dir = alt_dir
+    hierarchy_path = os.path.join(data_dir, 'station_hierarchy.json')
+    output_path = os.path.join(data_dir, 'replay_30d.json')
+    cache_dir = os.path.join(data_dir, '.cache_usgs_30d')
     os.makedirs(cache_dir, exist_ok=True)
 
     if not os.path.exists(hierarchy_path):
@@ -116,12 +122,15 @@ def main():
                 if val_str and val_str != '-999999':
                     try:
                         flow = round(float(val_str), 1)
+                        # Convert USGS local-offset ISO timestamp accurately to UTC 2-hour bucket
                         dt_raw = v.get('dateTime', '')
-                        if len(dt_raw) >= 13:
-                            hour_int = int(dt_raw[11:13])
-                            # Snap to even 2-hour mark
-                            even_hour = (hour_int // 2) * 2
-                            step_key = f"{dt_raw[:10]}T{even_hour:02d}:00Z"
+                        if dt_raw:
+                            dt_parsed = datetime.fromisoformat(dt_raw.replace('Z', '+00:00'))
+                            if dt_parsed.tzinfo is None:
+                                dt_parsed = dt_parsed.replace(tzinfo=timezone.utc)
+                            dt_utc = dt_parsed.astimezone(timezone.utc)
+                            even_hour = (dt_utc.hour // 2) * 2
+                            step_key = f"{dt_utc.strftime('%Y-%m-%d')}T{even_hour:02d}:00Z"
                             if step_key not in by_step:
                                 by_step[step_key] = flow
                                 valid_flows.append(flow)
