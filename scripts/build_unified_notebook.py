@@ -28,10 +28,10 @@ def build_notebook():
             "# Colorado River Basin: Hydrologic Accounting, Storage Depletion & Flow Regimes",
             "",
             "**Author:** Douglas Schoch • **Course:** DAT1001: Introduction to Data Science (Colorado Mountain College)  ",
-            "**Sources:** USGS NWIS Water Services, USBR HydroData & RiverOps, USBR Natural Flow (`1906–2024`), USBR Consumptive Uses & Losses (`2005–2024`), Colorado DWR",
+            "**Sources:** USGS NWIS Water Services, USBR HydroData & RiverOps, USBR Natural Flow (`1906–2024`), USBR Consumptive Uses & Losses (`2000–2024`), Colorado DWR",
             "",
             "### Research Question",
-            "Under the **1922 Colorado River Compact** and **1944 Mexican Water Treaty**, legal paper apportionments allocate **17.50 MAF/yr** (**18.76 MAF/yr** when including **1.26 MAF/yr** of measured mainstem reservoir evaporation). Because negotiators calibrated those allocations during an unusually wet 1906–1921 period (**18.00 MAF/yr** at Lees Ferry), legal claims exceed modern mainstream inflows (**13.51 MAF/yr** over 2005–2024; **12.40 MAF/yr** at Lees Ferry over 2000–2024). This notebook queries live USGS streamflow, inspects the normalized SQLite database (`data/colorado_river_basin.db`), and reproduces the web platform's core analytical figures in Python.",
+            "Under the **1922 Colorado River Compact** and **1944 Mexican Water Treaty**, legal paper apportionments allocate **17.50 MAF/yr** (**18.82 MAF/yr** when including **1.32 MAF/yr** of measured mainstem reservoir evaporation). Because negotiators calibrated those allocations during an unusually wet 1906–1921 period (**18.00 MAF/yr** at Lees Ferry), legal claims exceed modern mainstream inflows (**12.76 MAF/yr** over 2000–2024: **12.40 MAF/yr** at Lees Ferry + **0.36 MAF/yr** from Lower Basin tributaries). This notebook queries live USGS streamflow, inspects the normalized SQLite database (`data/colorado_river_basin.db`), and reproduces the web platform's core analytical figures in Python.",
             "",
             "| Project Resource | Live Web Link | Repository Path |",
             "|---|---|---|",
@@ -41,7 +41,7 @@ def build_notebook():
             "| **Methodology & Session Logs** | [`AI_LOG.md`](https://github.com/schochdo/CO_River/blob/main/AI_LOG.md) | [`AI_LOG.md`](../AI_LOG.md) • [`CHANGELOG.md`](../CHANGELOG.md) |",
             "",
             "### Data Pipeline Summary",
-            "- **Immutable Raw Archive (`data/raw/`):** `26` federal workbooks, compacts, and agency downloads verified via SHA-256 in `data/raw/MANIFEST.csv`.",
+            "- **Immutable Raw Archive (`data/raw/`):** `27` federal workbooks, compacts, and agency downloads verified via SHA-256 in `data/raw/MANIFEST.csv`.",
             "- **Single Source of Truth (`data/colorado_river_basin.db`):** Normalized SQLite store refreshed every 6 hours by GitHub Actions (`.github/workflows/update_data.yml`).",
             "- **Static JSON Export (`scripts/export_sqlite_to_json.py`):** Compiles `10` static JSON files in `web/data/` for GitHub Pages hosting.",
             "- **Browser Fetch Fallback:** Direct CORS-enabled REST queries to USGS NWIS (`waterservices.usgs.gov`), falling back to the 6-hour snapshot (`latest_metrics.json`).",
@@ -87,10 +87,11 @@ def build_notebook():
             "    print(f'Live USGS request unavailable ({exc}) — see web/data/latest_metrics.json')",
         ]),
         md([
-            "## 2. Core SQLite Tables & Historical Flow Windows",
-            "**Takeaway:** All figures below read directly from six tables in `data/colorado_river_basin.db`. Comparing historical windows in `annual_lees_ferry` clarifies two frequent questions:",
-            "1. **Why `2005–2024` instead of 2025/2026?** Live USGS/USBR gages and reservoir elevations run through **November 2026**, but basin-wide **Natural Flow** and **Consumptive Uses & Losses (CUL)** require 1–2 years of post-season irrigation return-flow and evapotranspiration audits—making `2024` the latest complete year across Reclamation's Natural Flow and Upper/Lower CUL workbooks, and `2005–2024` Reclamation's standard `'20 yr'` contemporary reporting window.",
-            "2. **Why `12.40` vs. `13.12 MAF/yr`?** Including the severe `2000–2004` drought onset (`WY 2002` = `5.93 MAF`) lowers the 25-year `2000–2024` Lees Ferry mean to **12.40 MAF/yr**, versus **13.12 MAF/yr** over `2005–2024`.",
+            "## 2. Core SQLite Tables & Standardized Date Windows",
+            "**Takeaway:** All figures below read directly from six tables in `data/colorado_river_basin.db` using a standardized temporal hierarchy:",
+            "1. **Unified Contemporary Baseline (`2000–2024`, 25 Years):** Used across all modern water-budget, Compact deficit, schematic, and seasonal Powell inflow/release views. Starting in `2000` captures the full Millennium Drought from when the five major reservoirs were nearly full (`51.80 MAF` on `Dec 31, 1999`), and ending in `2024` reflects the 1–2 year federal verification lag on post-season USBR Natural Flow and Consumptive Uses & Losses (CUL) workbooks (whereas live streamgages and reservoir elevations run through **November 2026**).",
+            "2. **Full Historical Context (`1922–2024` & `1937–2026`):** Long-term timeline charts show the complete 103-year post-Compact natural flow record and 90-year federal reservoir trajectory.",
+            "3. **Active Streamgage Regime Diagnostics (`WY 2016–2025` & `WY 2021`):** Daily Richards–Baker Flashiness (`RBI`) uses the most recent 10 complete water years across active USGS streamgages, paired with the `WY 2021` flash-flood vs. snowmelt case study.",
         ]),
         code([
             "core_tables = [",
@@ -103,9 +104,9 @@ def build_notebook():
             "",
             "eras = q('''",
             "    SELECT '1906–1921 (Pre-Compact Pluvial)' AS window, COUNT(*) AS water_years, ROUND(AVG(natural_flow_maf), 2) AS mean_natural_maf FROM annual_lees_ferry WHERE water_year BETWEEN 1906 AND 1921",
-            "    UNION ALL SELECT '1922–2024 (Full Compact Era)', COUNT(*), ROUND(AVG(natural_flow_maf), 2) FROM annual_lees_ferry WHERE water_year BETWEEN 1922 AND 2024",
-            "    UNION ALL SELECT '2000–2024 (Millennium Drought)', COUNT(*), ROUND(AVG(natural_flow_maf), 2) FROM annual_lees_ferry WHERE water_year BETWEEN 2000 AND 2024",
-            "    UNION ALL SELECT '2005–2024 (USBR CUL Baseline)', COUNT(*), ROUND(AVG(natural_flow_maf), 2) FROM annual_lees_ferry WHERE water_year BETWEEN 2005 AND 2024",
+            "    UNION ALL SELECT '1906–2024 (Full USBR Record)', COUNT(*), ROUND(AVG(natural_flow_maf), 2) FROM annual_lees_ferry WHERE water_year BETWEEN 1906 AND 2024",
+            "    UNION ALL SELECT '1922–2024 (Post-Compact Era)', COUNT(*), ROUND(AVG(natural_flow_maf), 2) FROM annual_lees_ferry WHERE water_year BETWEEN 1922 AND 2024",
+            "    UNION ALL SELECT '2000–2024 (Millennium Drought Baseline)', COUNT(*), ROUND(AVG(natural_flow_maf), 2) FROM annual_lees_ferry WHERE water_year BETWEEN 2000 AND 2024",
             "''')",
             "print('\\nUSBR Lees Ferry Natural Flow Windows:')",
             "print(eras.to_string(index=False))",
@@ -144,10 +145,10 @@ def build_notebook():
             "plt.show()",
         ]),
         md([
-            "## 4. Multi-Decade Storage Drawdown (`1937–2026`) & Seasonal Inflow Pulse (`WY 2000–2025`)",
+            "## 4. Multi-Decade Storage Drawdown (`1937–2026`) & Seasonal Inflow Pulse (`WY 2000–2024`)",
             "**Takeaway:**",
-            "- **Figure 2:** Five major federal reservoirs (Lake Mead, Lake Powell, Flaming Gorge, Navajo, Blue Mesa) buffered structural deficits after 1999—falling from **53.5 MAF** (`Sep 1999`) to a **16.3 MAF** modern trough (`Mar 2023`, **37.2 MAF** lost) and standing at **17.64 MAF** in `Nov 2026`.",
-            "- **Figure 3:** Comparing 26-year daily averages (`Oct 1, 1999 – Sep 30, 2025`) of gaged Lake Powell inflows (`Cisco + Green River + San Juan`) against Glen Canyon Dam releases (`Lees Ferry #09380000`) shows an **87-day** snowmelt refill pulse (`36,562 cfs` peak) supporting **278 days** of net reservoir drawdown.",
+            "- **Figure 2:** Five major federal reservoirs (Lake Mead, Lake Powell, Flaming Gorge, Navajo, Blue Mesa) buffered structural deficits after 1999—falling **29.8 MAF** net across the `2000–2024` accounting window (`51.8 MAF` on `Dec 31, 1999` to `22.0 MAF` on `Dec 31, 2024`), reaching a **37.2 MAF** peak-to-trough low (`53.5 MAF` `Sep 1999` to `16.3 MAF` `Mar 2023`) before the wet 2023 snowpack rebound, and standing at **17.64 MAF** in `Nov 2026`.",
+            "- **Figure 3:** Comparing 25-year daily averages (`Water Years 2000–2024`: `Oct 1, 1999 – Sep 30, 2024`) of gaged Lake Powell inflows (`Cisco + Green River + San Juan`) against Glen Canyon Dam releases (`Lees Ferry #09380000`) shows an **88-day** snowmelt refill pulse (`37,297 cfs` peak) supporting **277 days** of net reservoir drawdown (`12,040 cfs` = `8.72 MAF/yr` mean release).",
         ]),
         code([
             "df_stor = q('SELECT * FROM basin_storage_timeline ORDER BY year')",
@@ -181,7 +182,7 @@ def build_notebook():
             "                 label=f\"Net Release Drain ({s_meta['deficit_days']}d)\")",
             "ax3.set_xticks([1, 32, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335])",
             "ax3.set_xticklabels(['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], fontsize=8.2)",
-            "ax3.set_title('Figure 3: Seasonal Inflow vs. Dam Release (WY 2000–2025)', fontsize=10.8, fontweight='bold', loc='left')",
+            "ax3.set_title('Figure 3: Seasonal Inflow vs. Dam Release (WY 2000–2024)', fontsize=10.8, fontweight='bold', loc='left')",
             "ax3.set_xlabel('Calendar Month')",
             "ax3.set_ylabel('Mean Daily Discharge (cfs)')",
             "ax3.legend(loc='upper right', fontsize=7.8, frameon=True, facecolor='white')",
@@ -243,17 +244,14 @@ def build_notebook():
             "plt.show()",
         ]),
         md([
-            "## 6. Closed `2005–2024` Macro Water Budget (`13.89 MAF/yr` Mass Balance)",
-            "**Takeaway:** Queried directly from SQLite `water_budget_nodes` (`col_tier = 0` inflows vs. `col_tier = 3` terminal state/treaty/evaporation nodes, keeping Upper Basin state depletions at `3.91 MAF/yr` separate from `1.26 MAF/yr` combined mainstem reservoir evaporation so CRSP evaporation is never double-counted), physical supply plus `0.26 MAF/yr` reservoir drawdown equals **`13.8917 MAF/yr`**—closing against actual depletions within `< 0.0001 MAF/yr`, well below `17.50–18.76 MAF/yr` paper entitlements.",
+            "## 6. Closed `2000–2024` Macro Water Budget (`14.14 MAF/yr` Mass Balance)",
+            "**Takeaway:** Queried directly from SQLite `water_budget_nodes` (`col_tier = 0` inflows vs. `col_tier = 3` terminal state/treaty/evaporation nodes, keeping Upper Basin state depletions at `3.90 MAF/yr` separate from `1.32 MAF/yr` combined mainstem reservoir evaporation so CRSP evaporation is never double-counted), physical supply plus `1.19 MAF/yr` reservoir drawdown equals **`14.1409 MAF/yr`**—closing against actual depletions within `< 0.0001 MAF/yr`.",
             "",
-            "### How Figure 5 is \"Closed\" Despite the Basin-Wide Structural Deficit",
-            "A frequent point of confusion is how the two columns can be equal if the basin is in a severe deficit. The distinction is between **physical mass conservation** (wet water) and **legal statutory claims** (paper rights):",
-            "1. **The Physical Mass Balance Must Always Close ($Supply = Use$):** Over any historical period, the volume of water physically delivered down the river must equal the volume of water that entered it, plus or minus changes in storage. Between 2005 and 2024, annual natural inflow averaged only **`13.51 MAF/yr`** (`13.12` Lees Ferry natural inflow + `0.39` Lower tributary inflows). Yet downstream users depleted **`13.89 MAF/yr`** (including reservoir evaporation). Where did the extra **`0.26 MAF/yr`** come from? It was drained directly out of the reservoirs: between Dec 31, 2004 (`27.25 MAF`) and Dec 31, 2024 (`22.04 MAF`), total storage across the major federal reservoirs dropped by **`5.20 MAF`**, exactly **`0.2602 MAF/yr`** over the 20-year accounting window (driven primarily by Lake Mead falling from `14.36` to `8.68 MAF`). Combined with `0.12 MAF/yr` in ungaged residual gains, this storage withdrawal balances the physical budget to the drop.",
+            "### Why the Two Columns Are Equal (`14.14 MAF/yr`) Even Though There Is a Deficit",
+            "- **Physical Water Conservation (The Two Columns):** Water cannot vanish or appear from nowhere—every drop consumed or evaporated (`14.14 MAF/yr`, right column) had to come from a physical source (`left column`). Because natural mainstream inflow averaged only **`12.76 MAF/yr`** (`12.40` Lees Ferry + `0.36` Lower tributaries), the missing **`1.19 MAF/yr`** was withdrawn directly from storage across the five major federal reservoirs (**`29.76 MAF` drained** from `51.80 MAF` on `Dec 31, 1999` down to `22.04 MAF` on `Dec 31, 2024`: Mead `-0.65`, Powell `-0.51`, CRSP `-0.03 MAF/yr`), alongside `0.19 MAF/yr` in ungaged side inflows/residual. *(Note: Measured from the `Sep 1999` seasonal high of `53.5 MAF` to the `Mar 2023` trough of `16.3 MAF` before the wet 2023 snowpack rebound, intra-period loss reached `37.2 MAF`.)*",
+            "- **Paper Over-Allocation (The Dashed Lines Above):** The structural deficit (**`+4.74 to +6.06 MAF/yr`** vs. `12.76 MAF/yr` natural inflow) is the gap between actual wet water and the horizontal dashed lines at **`17.50 MAF/yr`** (statutory paper claims) and **`18.82 MAF/yr`** (claims + `1.32 MAF/yr` mainstem evaporation). Upper Basin states used `3.90 MAF/yr` rather than their `7.50 MAF/yr` paper cap; otherwise Lake Powell and Lake Mead would already be at dead pool.",
             "",
-            "*(Note on the wider **37.2 MAF** figure: that refers to the peak-to-trough crash of the Millennium Drought from **September 1999** at `53.5 MAF` down to the historic **March 2023** low at `16.3 MAF`, which occurred before and during this baseline. Over the specific calendar 2005–2024 accounting window, the net storage drop was `5.20 MAF` = `0.26 MAF/yr`.)*",
-            "2. **The Deficit is the Gap Above the Columns:** The structural deficit (**`3.99 to 5.25 MAF/yr`**) is not an arithmetic imbalance inside the physical columns; it is the massive chasm between actual wet water (**`13.89 MAF/yr`**) and the horizontal dashed lines at **`17.50 MAF/yr`** (statutory paper claims) and **`18.76 MAF/yr`** (claims plus unavoidable reservoir evaporation). If water users had attempted to consume their full legal paper rights, Lake Mead and Powell would have gone completely dry years ago.",
-            "",
-            "*Chart choice note:* Because `seaborn` has no Sankey primitive and `matplotlib.sankey` only draws single-junction arrows rather than multi-column networks, a two-column stacked mass-balance chart (`Supply` vs. `Depletions`, matching View 2 of `web/sankey.html`) shows exact volumetric closure without adding browser-dependent JS libraries.",
+            "*Chart choice note:* Because `seaborn` has no Sankey primitive and `matplotlib.sankey` only draws single-junction arrows rather than multi-column networks, a two-column stacked mass-balance chart (`Supply` vs. `Depletions`, matching `web/sankey.html`) shows exact volumetric closure without browser-dependent JS libraries.",
         ]),
         code([
             "wb_meta = dict(q('SELECT meta_key, meta_value FROM water_budget_meta').values)",
@@ -262,8 +260,8 @@ def build_notebook():
             "",
             "supply_parts = [",
             "    ('Lees Ferry Natural Flow', float(t0.loc[t0['display_name'].str.contains('Lees Ferry'), 'maf_yr'].iloc[0]), PALETTE['blue']),",
+            "    ('5-Res Storage Drawdown', float(t0.loc[t0['display_name'].str.contains('Drawdown'), 'maf_yr'].iloc[0]), PALETTE['red']),",
             "    ('Lower Mainstem Gaged Tribs', float(t0.loc[t0['display_name'].str.contains('Lower Mainstem'), 'maf_yr'].iloc[0]), PALETTE['sage']),",
-            "    ('5-Reservoir Storage Drawdown', float(t0.loc[t0['display_name'].str.contains('Drawdown'), 'maf_yr'].iloc[0]), PALETTE['red']),",
             "    ('Ungaged Inflows & Residual', float(t0.loc[t0['display_name'].str.contains('Residual'), 'maf_yr'].iloc[0]), PALETTE['slate']),",
             "]",
             "ub_states = float(t3.loc[t3['basin'] == 'upper', 'maf_yr'].sum())",
@@ -279,7 +277,7 @@ def build_notebook():
             "sup_sum = sum(v for _, v, _ in supply_parts)",
             "dep_sum = sum(v for _, v, _ in depletion_parts)",
             "assert abs(sup_sum - dep_sum) < 0.01, f'Mass balance mismatch: {sup_sum} vs {dep_sum}'",
-            "print(f'2005–2024 Supply Sum: {sup_sum:.4f} MAF/yr | Depletions Sum: {dep_sum:.4f} MAF/yr | Diff: {sup_sum - dep_sum:+.6f} MAF/yr')",
+            "print(f'2000–2024 Supply Sum: {sup_sum:.4f} MAF/yr | Depletions Sum: {dep_sum:.4f} MAF/yr | Diff: {sup_sum - dep_sum:+.6f} MAF/yr')",
             "",
             "fig, ax = plt.subplots(figsize=(10.8, 5.2), dpi=140)",
             "bar_w = 0.50",
@@ -293,11 +291,11 @@ def build_notebook():
             "        bottom += val",
             "",
             "# Callout labels for thin top segments so no text overlaps",
-            "ax.text(-0.30, 13.50, 'Lower Tribs: 0.39 MAF\\n5-Res Drawdown: 0.26 MAF\\nUngaged Residual: 0.12 MAF',",
-            "        ha='right', va='center', fontsize=7.9, color=PALETTE['ink'], fontweight='bold')",
-            "ax.plot([-0.28, -0.25], [13.50, 13.50], color=PALETTE['slate'], lw=0.9)",
-            "ax.text(1.30, 13.77, 'Nevada: 0.24 MAF', ha='left', va='center', fontsize=8.2, color=PALETTE['ink'], fontweight='bold')",
-            "ax.plot([1.25, 1.28], [13.77, 13.77], color=PALETTE['slate'], lw=0.9)",
+            "ax.text(-0.30, 13.86, 'Lower Tribs: 0.36 MAF\\nUngaged Residual: 0.19 MAF',",
+            "        ha='right', va='center', fontsize=8.0, color=PALETTE['ink'], fontweight='bold')",
+            "ax.plot([-0.28, -0.25], [13.86, 13.86], color=PALETTE['slate'], lw=0.9)",
+            "ax.text(1.30, 14.02, 'Nevada: 0.25 MAF', ha='left', va='center', fontsize=8.2, color=PALETTE['ink'], fontweight='bold')",
+            "ax.plot([1.25, 1.28], [14.02, 14.02], color=PALETTE['slate'], lw=0.9)",
             "",
             "ax.plot([bar_w/2, 1 - bar_w/2], [sup_sum, dep_sum], color=PALETTE['ink'], ls=':', lw=1.2)",
             "ax.axhline(float(wb_meta['statutory_claims_maf']), color=PALETTE['ink'], ls='--', lw=1.3,",
@@ -309,7 +307,7 @@ def build_notebook():
             "ax.set_xlim(-0.85, 1.75)",
             "ax.set_ylim(0, 20.5)",
             "ax.set_ylabel('Annualized Volume (MAF/yr)')",
-            "ax.set_title('Figure 5: Closed 2005–2024 Colorado River Mainstream Water Budget vs. Paper Claims', fontsize=11.2, fontweight='bold', loc='left')",
+            "ax.set_title('Figure 5: Closed 2000–2024 Colorado River Mainstream Water Budget vs. Paper Claims', fontsize=11.2, fontweight='bold', loc='left')",
             "ax.legend(loc='upper right', fontsize=8.2, frameon=True, facecolor='white')",
             "sns.despine(ax=ax)",
             "plt.tight_layout()",
@@ -318,7 +316,7 @@ def build_notebook():
         ]),
         md([
             "## 7. Known Limitations & AI Collaboration Disclosure",
-            "- **Temporal & Accounting Boundaries:** Operational streamgages report instantaneous rate (`cfs`), whereas the macro budget reports 20-year annualized volume (`MAF/yr`, `2005–2024`). Off-mainstem Gila Basin consumptive use (`2.04 MAF/yr`) is excluded from mainstream Compact totals under *Arizona v. California* (1963).",
+            "- **Temporal & Accounting Boundaries:** Operational streamgages report instantaneous rate (`cfs`), whereas the macro budget reports 25-year annualized volume (`MAF/yr`, `2000–2024`). Off-mainstem Gila Basin consumptive use (`1.99 MAF/yr`) is excluded from mainstream Compact totals under *Arizona v. California* (1963).",
             "- **Bathymetric Sedimentation:** Reservoir storage series use official USBR elevation–capacity tables; gradual deltaic sedimentation slightly reduces physical volume between bathymetric surveys.",
             "- **Academic AI Transparency:** All AI pair-programming sessions, model selections, verification scripts, and prompt transcripts are documented in [`AI_LOG.md`](../AI_LOG.md), [`CHANGELOG.md`](../CHANGELOG.md), and [`web/ai_complete_prompt_archive.html`](../web/ai_complete_prompt_archive.html).",
         ]),
@@ -340,6 +338,20 @@ def build_notebook():
     out_path = Path("notebooks") / "colorado_river_analysis.ipynb"
     out_path.write_text(json.dumps(nb, indent=1), encoding="utf-8")
     print(f"Created {out_path} ({len(cells)} cells)")
+
+    # Automatically execute cells via nbclient and sync web/notebooks/ so outputs & PNGs are never stripped
+    import shutil
+    import nbformat
+    from nbclient import NotebookClient
+
+    nb_obj = nbformat.read(out_path, as_version=4)
+    client = NotebookClient(nb_obj, timeout=120, kernel_name="python3", resources={"metadata": {"path": str(out_path.parent)}})
+    client.execute()
+    nbformat.write(nb_obj, out_path)
+    web_nb = Path("web") / "notebooks" / "colorado_river_analysis.ipynb"
+    shutil.copy2(out_path, web_nb)
+    n_imgs = sum(1 for c in nb_obj.cells if c.cell_type == "code" for o in c.get("outputs", []) if "image/png" in o.get("data", {}))
+    print(f"Executed {out_path} & synced {web_nb} ({n_imgs} embedded PNG figures)")
 
 
 if __name__ == "__main__":

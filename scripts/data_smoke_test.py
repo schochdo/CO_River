@@ -64,6 +64,9 @@ RETIRED_STRINGS = [
     (r"crsp/studies/?\"", "crsp/studies/"),
     (r"pao/lawofrvr\.html", "pao/lawofrvr.html"),
     (r"\bflowCfs:", "flowCfs:"),
+    (r"2005[–-]2024", "2005-2024"),
+    (r"\b13\.89\s*MAF", "13.89 MAF"),
+    (r"\b13\.51\s*MAF", "13.51 MAF"),
 ]
 
 
@@ -281,6 +284,16 @@ def check_web_and_claims(failures: list[str]) -> None:
     bad_rows = [r for r in rows if r.get("status") != "verified"]
     if bad_rows:
         failures.append(f"data/claims_register.csv has {len(bad_rows)} non-verified rows")
+
+    # Ensure exported HTML notebook contains executed PNG figures (guards against unexecuted nb export)
+    nb_html = os.path.join(WEB_DIR, "notebooks", "colorado_river_analysis.html")
+    if not os.path.exists(nb_html):
+        failures.append("Missing web/notebooks/colorado_river_analysis.html")
+    else:
+        with open(nb_html, "r", encoding="utf-8") as f:
+            png_count = f.read().count("data:image/png;base64")
+        if png_count < 4:
+            failures.append(f"web/notebooks/colorado_river_analysis.html has {png_count} embedded PNGs (expected >= 4)")
 
 
 def main() -> int:

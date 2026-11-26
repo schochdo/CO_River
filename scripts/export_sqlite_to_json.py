@@ -23,7 +23,13 @@ from datetime import datetime, timezone
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(REPO_ROOT, "data", "colorado_river_basin.db")
-WEB_DATA_DIR = os.path.join(REPO_ROOT, "web", "data")
+_PRIMARY_WEB_DATA = os.path.join(REPO_ROOT, "web", "data")
+_PORTFOLIO_WEB_DATA = os.path.join(REPO_ROOT, "public", "colorado_river", "data")
+WEB_DATA_DIR = (
+    _PORTFOLIO_WEB_DATA
+    if (not os.path.isdir(_PRIMARY_WEB_DATA) and os.path.isdir(os.path.join(REPO_ROOT, "public", "colorado_river")))
+    else _PRIMARY_WEB_DATA
+)
 DATA_DIR = os.path.join(REPO_ROOT, "data")
 
 MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
@@ -261,7 +267,7 @@ def export_seasonal_regimes(conn: sqlite3.Connection) -> None:
             },
         },
         "supply_demand_mismatch": {
-            "period": "WY 2000-2025",
+            "period": "WY 2000-2024",
             "doy": [r["doy"] for r in sd_rows],
             "supply_cfs": [r["supply_cfs"] for r in sd_rows],
             "demand_cfs": [r["demand_cfs"] for r in sd_rows],

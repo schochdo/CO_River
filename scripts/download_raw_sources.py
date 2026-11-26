@@ -54,7 +54,7 @@ SOURCES = [
         "official_url": "https://www.usbr.gov/uc/DocLibrary/Reports/ConsumptiveUsesLosses/20251201-UpperColoradoCUL1971-2025_v24.5_MajorTribSummary-DataSummariesFigures.xlsx",
         "local_path": "data/raw/usbr_consumptive_use/UpperColoradoCUL1971-2025_Summary.xlsx",
         "magic": b"PK\x03\x04",
-        "locator_summary": "Sheet 'Summary', Rows 6-28 & 37-259, Cols AO:BH (CY 2005-2024) & Col BL ('20 yr')",
+        "locator_summary": "Sheet 'Summary', Rows 6-28 & 37-259, Cols AJ:BH (CY 2000-2024)",
         "used_by_pages": "sankey.html, index.html, pipeline.html, data_sources.html",
     },
     {
@@ -67,7 +67,7 @@ SOURCES = [
         "official_url": "https://www.usbr.gov/lc/region/g4000/4200Rpts/CULReport/1971-2024%20Lower%20Colorado%20River%20System%20CUL%20Data.xlsx",
         "local_path": "data/raw/usbr_consumptive_use/LowerColoradoCUL1971-2024_Data.xlsx",
         "magic": b"PK\x03\x04",
-        "locator_summary": "Tabs 'Mainstream', 'Mainstream_Reservoirs', 'Mexico', 'Tributary', YEAR 2005-2024",
+        "locator_summary": "Tabs 'Mainstream', 'Mainstream_Reservoirs', 'Mexico', 'Tributary', YEAR 2000-2024",
         "used_by_pages": "sankey.html, index.html, pipeline.html, data_sources.html",
     },
     {

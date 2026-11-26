@@ -15,7 +15,7 @@ Developed for **Introduction to Data Science (DAT1001)** at Colorado Mountain Co
 
 | Document | Description |
 | :--- | :--- |
-| **[SYSTEM_GUIDE.md](SYSTEM_GUIDE.md)** | **Master Guide:** Basin Math Rosetta Stone (`15.0` vs `16.5` vs `17.5` vs `18.76` vs `13.51` / `13.89 MAF/yr`), domain physics, water law history, frontend architecture, and topological engineering. |
+| **[SYSTEM_GUIDE.md](SYSTEM_GUIDE.md)** | **Master Guide:** Basin Math Rosetta Stone (`15.0` vs `16.5` vs `17.5` vs `18.82` vs `12.76` / `14.14 MAF/yr`), domain physics, water law history, frontend architecture, and topological engineering. |
 | **[CHANGELOG.md](CHANGELOG.md)** | **Semantic Release Log:** Day-by-day record of features, data calibrations, and bug fixes following the *Keep a Changelog* standard. |
 | **[AI_LOG.md](AI_LOG.md)** | **Methodology Log:** Pair-programming log detailing models used, prompt scopes, verification checks, and human review for academic evaluation. |
 | **[scripts/README.md](scripts/README.md)** | **Pipeline Runbook:** Execution order for raw source archiving, SQLite compilation, JSON export, notebook builds, and automated smoke tests. |
@@ -42,8 +42,8 @@ The web dashboard is organized into seven analytical views (plus Methodology, La
 │ 4. Flow Schematic  │ Swiss transit-style topological flow schematic & USGS 3DEP        │
 │                    │ elevation profile scaling by annualized MAF/yr volumes            │
 ├────────────────────┼───────────────────────────────────────────────────────────────────┤
-│ 5. Water Budget    │ D3.js Sankey & stacked mass-balance bars closing at 13.89 MAF/yr  │
-│                    │ across CY/WY 2005–2024 USBR Consumptive Uses & Losses accounting  │
+│ 5. Water Budget    │ D3.js Sankey & stacked mass-balance bars closing at 14.14 MAF/yr  │
+│                    │ across CY/WY 2000–2024 USBR Consumptive Uses & Losses accounting  │
 ├────────────────────┼───────────────────────────────────────────────────────────────────┤
 │ 6. Reservoirs      │ Multi-reservoir storage timeline (1937–2026), 1922–2024 Compact   │
 │                    │ accounting, and monthly elevation heatmaps for Mead and Powell    │
@@ -55,17 +55,17 @@ The web dashboard is organized into seven analytical views (plus Methodology, La
 
 ---
 
-## The Basin Math at a Glance (Verified 2005–2024 Accounting Baseline)
+## The Basin Math at a Glance (Unified 2000–2024 Millennium Drought Baseline)
 
-*Why 2005–2024?* Live USGS/USBR streamgages and reservoir sensors run through **November 2026**, whereas basin-wide **Natural Flow** and **Consumptive Uses & Losses (CUL)** require post-season irrigation diversion/return-flow audits and satellite evapotranspiration processing across seven states and Mexico—so **2024** is the latest complete year published across Reclamation's Natural Flow (`LFnatFlow1906-2024.xlsx`) and Upper/Lower CUL workbooks, and `2005–2024` is Reclamation's standard `'20 yr'` contemporary CUL reporting window.
+*Why 2000–2024?* Starting in **2000** captures the entire 25-year Millennium Drought from when the five major federal reservoirs were nearly full (`51.80 MAF` on Dec 31, 1999). Live USGS/USBR streamgages and reservoir sensors run through **November 2026**, whereas basin-wide **Natural Flow** and **Consumptive Uses & Losses (CUL)** require post-season irrigation diversion/return-flow audits and satellite evapotranspiration processing across seven states and Mexico—so **2024** is the latest complete year published across Reclamation's Natural Flow (`LFnatFlow1906-2024.xlsx`) and Upper/Lower CUL workbooks.
 
 * **15.00 MAF/yr:** 1922 Compact domestic core apportionment (`7.50` Upper + `7.50` Lower, Article III.a).
 * **16.50 MAF/yr:** Core domestic apportionment (`15.00`) + 1944 Mexican Water Treaty obligation (`1.50`).
 * **17.50 MAF/yr:** **Full Statutory Paper Entitlements** (`15.00` Art. III.a + `1.00` Lower Art. III.b + `1.50` Mexico Treaty).
-* **18.76 MAF/yr:** **Statutory Claims + Measured Mainstem Evaporation** (`17.50` paper claims + `1.26 MAF/yr` measured CRSP/Lower mainstem reservoir evaporation over CY 2005–2024).
-* **13.51 MAF/yr:** **Physical Mainstream Inflow (2005–2024 Mean)** (`13.12 MAF/yr` USBR Lees Ferry natural flow + `0.39 MAF/yr` from 5 gaged Lower Basin mainstem tributaries). *(Note: Across the longer Water Years 2000–2024 Millennium Drought window—which includes the severe 2000–2004 drought onset—Lees Ferry natural flow averaged **12.40 MAF/yr**, vs. **14.11 MAF/yr** over 1922–2024).*
-* **13.89 MAF/yr:** **Closed 2005–2024 Mainstream Water Budget** (`13.51` mainstream inflow + `0.26` net 5-reservoir storage drawdown + `0.12` ungaged side inflows/closure residual = `13.89 MAF/yr` actual depletions & evaporation).
-* **+3.99 / +5.25 MAF/yr Over-Allocation:** Gap between `13.51 MAF/yr` physical mainstream inflow and `17.50 MAF/yr` statutory claims (`+3.99`) or `18.76 MAF/yr` claims plus mainstem evaporation (`+5.25`). Between Sep 1999 (`53.5 MAF`) and Mar 2023 (`16.3 MAF`), the 5 major federal reservoirs lost **37.2 MAF** of stored water.
+* **18.82 MAF/yr:** **Statutory Claims + Measured Mainstem Evaporation** (`17.50` paper claims + `1.32 MAF/yr` measured CRSP/Lower mainstem reservoir evaporation over CY 2000–2024).
+* **12.76 MAF/yr:** **Physical Mainstream Inflow (2000–2024 Mean)** (`12.40 MAF/yr` USBR Lees Ferry natural flow + `0.36 MAF/yr` from 5 gaged Lower Basin mainstem tributaries; vs. `14.11 MAF/yr` at Lees Ferry over the full 1922–2024 post-Compact record).
+* **14.14 MAF/yr:** **Closed 2000–2024 Mainstream Water Budget** (`12.76` mainstream inflow + `1.19` net 5-reservoir storage drawdown [`29.76 MAF` lost from Dec 31, 1999 to Dec 31, 2024] + `0.19` ungaged side inflows/closure residual = `14.14 MAF/yr` actual depletions & evaporation).
+* **+4.74 / +6.06 MAF/yr Over-Allocation:** Gap between `12.76 MAF/yr` physical mainstream inflow and `17.50 MAF/yr` statutory claims (`+4.74`) or `18.82 MAF/yr` claims plus mainstem evaporation (`+6.06`). Measured from seasonal peak (`Sep 1999`, `53.5 MAF`) to intra-period trough (`Mar 2023`, `16.3 MAF`) before the wet 2023 rebound, peak-to-trough reservoir depletion reached **37.2 MAF**.
 
 *For the full breakdown and source citations, see [Section 2 of SYSTEM_GUIDE.md](SYSTEM_GUIDE.md#2-the-basin-math-rosetta-stone) and `web/data/water_budget.json`.*
 

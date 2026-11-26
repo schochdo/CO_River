@@ -58,50 +58,49 @@ One of the greatest points of confusion in Western water policy is the multitude
 | **2. Lower Basin Art. III(b) Increase** | 1922 Compact, Art. III(b) | — | 1.00 | — | **1.00** | **16.00** |
 | **3. International Treaty Obligation** | 1944 Mexican Treaty (TS 994) | (0.75)* | (0.75)* | 1.50 | **1.50** | **17.50** |
 | **Total Statutory Paper Entitlements** | **1922 Compact + 1944 Treaty** | **7.50** | **8.50** | **1.50** | **17.50** | **17.50** |
-| **4. Measured Mainstem Evaporation** | USBR UC/LC CUL (CY 2005–2024) | 0.45 | 0.81 | — | **1.26** | **18.76** |
-| **Total System Paper Pull + Evap** | **Paper Claims + Mainstem Evap** | **7.95** | **9.31** | **1.50** | **18.76** | **18.76** |
+| **4. Measured Mainstem Evaporation** | USBR UC/LC CUL (CY 2000–2024) | 0.47 | 0.85 | — | **1.32** | **18.82** |
+| **Total System Paper Pull + Evap** | **Paper Claims + Mainstem Evap** | **7.97** | **9.35** | **1.50** | **18.82** | **18.82** |
 
 *\*Note: Under Article III(c), Mexico's 1.50 MAF is satisfied first from surplus waters; when surplus is insufficient, the deficiency is borne equally by the Upper and Lower Basins. Separately, a `16.50 MAF/yr` benchmark (`15.00` Art. III.a + `1.50` Mexico Treaty, excluding Art. III.b) is plotted on the 1922–2024 Lees Ferry Natural Flow chart.*
 
 ---
 
-### B. Step-by-Step Breakdown: Statutory Promises vs. 2005–2024 Accounting Reality
+### B. Step-by-Step Breakdown: Statutory Promises vs. 2000–2024 Accounting Reality
 
 ```
-15.00 MAF ──[+1.00 III(b)]──> 16.00 MAF ──[+1.50 Treaty]──> 17.50 MAF ──[+1.26 Mainstem Evap]──> 18.76 MAF/yr
+15.00 MAF ──[+1.00 III(b)]──> 16.00 MAF ──[+1.50 Treaty]──> 17.50 MAF ──[+1.32 Mainstem Evap]──> 18.82 MAF/yr
 (Core Compact)               (Domestic Statutory)          (Paper Entitlements)                 (Total System Pull)
                                                                  │                                    │
                                                                  ▼                                    ▼
-                                                      vs. 13.51 MAF/yr Mainstream Natural Inflow (2005–2024)
-                                                    (+3.99 MAF/yr Statutory Gap • +5.25 MAF/yr Full Over-Allocation)
+                                                      vs. 12.76 MAF/yr Mainstream Natural Inflow (2000–2024)
+                                                    (+4.74 MAF/yr Statutory Gap • +6.06 MAF/yr Full Over-Allocation)
 ```
 
 1. **15.00 MAF/yr (Article III.a):** Divided 7.50 MAF/yr to the Upper Basin (CO, UT, WY, NM, plus 50,000 AF Upper AZ) and 7.50 MAF/yr to the Lower Basin (CA, AZ, NV).
 2. **16.00 MAF/yr (Article III.a + III.b):** Added 1.00 MAF/yr of permissible Lower Basin consumptive use increase.
 3. **16.50 MAF/yr (Core Compact + Treaty):** Combines the 15.00 MAF/yr Article III(a) domestic core with the 1.50 MAF/yr 1944 Mexican Water Treaty obligation.
 4. **17.50 MAF/yr (Full Statutory Paper Water):** `7.50 + 7.50 + 1.00 + 1.50 = 17.50 MAF/yr`.
-5. **18.76 MAF/yr (Statutory Claims + Measured Mainstem Evaporation):** Adding measured CY 2005–2024 mainstem reservoir evaporation (`0.4470` Upper CRSP + `0.8115` Lower mainstem = `1.2585 MAF/yr`) yields `18.7585 MAF/yr` (`18.76 MAF/yr`).
+5. **18.82 MAF/yr (Statutory Claims + Measured Mainstem Evaporation):** Adding measured CY 2000–2024 mainstem reservoir evaporation (`0.4655` Upper CRSP + `0.8524` Lower mainstem = `1.3179 MAF/yr`) yields `18.8179 MAF/yr` (`18.82 MAF/yr`).
 
 ---
 
 ### C. Wet Water Reality Across Historical Windows (`LFnatFlow1906-2024.2024.9.12.xlsx`)
 
-Why do different analyses cite **12.40 MAF/yr** vs. **13.12 MAF/yr** at Lees Ferry? Because the averaging window either includes or excludes the severe 2000–2004 drought onset:
+All contemporary multi-year accounting, schematic, and seasonal inflow/release charts are standardized onto the **25-year `2000–2024` Millennium Drought baseline** (while long-term timeline charts show the full historical record and active-gage flashiness uses the most recent 10 water years `WY 2016–2025`):
 
 | Hydrologic Window | Water Years | Lees Ferry Natural Flow | Context & Data Provenance |
 | :--- | :---: | :---: | :--- |
 | **Pre-Compact Pluvial Window** | 1906–1921 (`16` yrs) | **18.00 MAF/yr** | Unusually wet early-century period (`18.03 MAF/yr` through WY 1922) that misled Compact negotiators. |
 | **Full USBR Instrumental Record** | 1906–2024 (`119` yrs) | **14.63 MAF/yr** | Complete USBR Lees Ferry natural flow workbook average. |
 | **Post-Compact Era** | 1922–2024 (`103` yrs) | **14.11 MAF/yr** | Full statutory administration record (`68.0%` of years below `16.50 MAF`). |
-| **Millennium Drought (25-Yr)** | 2000–2024 (`25` yrs) | **12.40 MAF/yr** | Includes the extreme `2000–2004` drought onset (`WY 2002` hit `5.93 MAF`). |
-| **USBR CUL Accounting Baseline (20-Yr)** | 2005–2024 (`20` yrs) | **13.12 MAF/yr** | Matches Reclamation's standard `'20 yr'` contemporary Consumptive Uses & Losses (CUL) window (`+0.39 MAF/yr` from 5 gaged Lower Basin mainstem tributaries = **13.51 MAF/yr** mainstream inflow). Ends in `2024` due to the 1–2 year federal verification lag on post-season CUL and Natural Flow workbooks (live streamgages and reservoir elevations run through Nov 2026). |
+| **Unified Millennium Drought Baseline (25-Yr)** | 2000–2024 (`25` yrs) | **12.40 MAF/yr** | Primary contemporary baseline across Overview, Water Budget, Schematic, Law, and Notebook (`+0.36 MAF/yr` from 5 Lower mainstem tributaries = **12.76 MAF/yr** mainstream inflow; `21 of 25` years below `16.50 MAF`). Ends in `2024` due to the 1–2 year federal verification lag on post-season CUL and Natural Flow workbooks (live gages run through Nov 2026). |
 
-### D. Closed 2005–2024 Macro Water Budget (`13.89 MAF/yr`)
+### D. Closed 2000–2024 Macro Water Budget (`14.14 MAF/yr`)
 
-On the Water Budget page (`web/sankey.html` and `web/data/water_budget.json`), actual basin supply and consumptive depletions close to **13.8917 MAF/yr**:
-* **Supply & Balance (`13.8917 MAF/yr`):** `13.1170` Lees Ferry natural flow + `0.3935` Lower mainstem gaged tributaries + `0.2602` net 5-reservoir storage drawdown (`2004-12-31` to `2024-12-31`) + `0.1209` ungaged side inflows/closure residual.
-* **Actual Depletions & Evaporation (`13.8917 MAF/yr`):** Upper Basin states `3.9133` (`CO 1.9473`, `UT 0.9371`, `WY 0.6192`, `NM 0.3822`, `Upper AZ 0.0276`) + Lower Basin states `7.0792` (`CA 4.2864`, `Lower AZ 2.5530`, `NV 0.2399`) + Mexico measured boundary `1.6406` + system mainstem reservoir evaporation `1.2585` (`0.4470` Upper CRSP + `0.8115` Lower mainstem). *(Off-mainstem Gila Basin consumptive use of `2.0381 MAF/yr` is accounted separately per *Arizona v. California*).*
-* **How Storage Absorbed the Gap:** Because Upper Basin states use ~3.91 MAF/yr rather than their 7.50 MAF/yr paper share, actual basin depletions (`13.89 MAF/yr`) are lower than `18.76 MAF/yr` paper claims—yet still exceeded physical inflows after 1999. Between **September 1999 (`53.5 MAF`)** and **March 14, 2023 (`16.3 MAF`)**, the five major federal reservoirs (Mead, Powell, Flaming Gorge, Navajo, Blue Mesa) lost **37.2 MAF** of stored water (standing at **17.64 MAF** in November 2026).
+On the Water Budget page (`web/sankey.html` and `web/data/water_budget.json`), actual basin supply and consumptive depletions close to **14.1409 MAF/yr**:
+* **Supply & Balance (`14.1409 MAF/yr`):** `12.4000` Lees Ferry natural flow + `0.3606` Lower mainstem gaged tributaries + `1.1904` net 5-reservoir storage drawdown (`1999-12-31` `51.80 MAF` to `2024-12-31` `22.04 MAF` = `29.76 MAF` over 25 years) + `0.1900` ungaged side inflows/closure residual.
+* **Actual Depletions & Evaporation (`14.1409 MAF/yr`):** Upper Basin states `3.8995` (`CO 1.9690`, `UT 0.9317`, `WY 0.5966`, `NM 0.3752`, `Upper AZ 0.0270`) + Lower Basin states `7.2484` (`CA 4.4066`, `Lower AZ 2.5921`, `NV 0.2497`) + Mexico measured boundary `1.6750` + system mainstem reservoir evaporation `1.3179` (`0.4655` Upper CRSP + `0.8524` Lower mainstem). *(Off-mainstem Gila Basin consumptive use of `1.9946 MAF/yr` is accounted separately per *Arizona v. California*).*
+* **How Storage Absorbed the Gap (`29.8 MAF` Net vs. `37.2 MAF` Peak-to-Trough):** Because Upper Basin states use ~3.90 MAF/yr rather than their 7.50 MAF/yr paper share, actual basin depletions (`14.14 MAF/yr`) are lower than `18.82 MAF/yr` paper claims—yet still exceeded `12.76 MAF/yr` physical inflows by over 1 MAF/yr after 1999. Across the exact calendar baseline (`Dec 31, 1999` `51.80 MAF` to `Dec 31, 2024` `22.04 MAF`), the five major federal reservoirs lost **29.76 MAF** (**-1.19 MAF/yr**). Measured from the late-summer seasonal peak (`Sep 1999`, `53.5 MAF`) to the intra-period record low (`Mar 14, 2023`, `16.3 MAF`) before the wet 2023 snowpack rebound, peak-to-trough depletion reached **37.2 MAF** (standing at **17.64 MAF** in November 2026).
 
 ---
 
@@ -128,14 +127,14 @@ The application was deliberately engineered with **Zero-Framework Vanilla Web Ar
 The platform provides seven analytical views plus reference documentation:
 
 1. **Basin Overview (`web/index.html`):** Four-card presentation briefing:
-   - *Card 1: Statutory Rights vs. River Reality (`13.51` inflow vs. `17.50` statutory / `18.76 MAF/yr` with evap)*
-   - *Card 2: Seasonal Inflow vs. Dam Release (`WY 2000–2025`: `87` snowmelt refill days vs. `278` net drain days)*
+   - *Card 1: Statutory Rights vs. River Reality (`2000–2024`: `12.76` inflow vs. `17.50` statutory / `18.82 MAF/yr` with evap)*
+   - *Card 2: Seasonal Inflow vs. Dam Release (`WY 2000–2024`: `88` snowmelt refill days vs. `277` net drain days)*
    - *Card 3: Macro Basin Storage Timeline (`1937–2026`, `55.8 MAF` Jul 1984 peak, `37.2 MAF` post-1999 drawdown)*
    - *Card 4: Statutory Apportionments by State (`15.00 MAF/yr` US + `1.50 MAF/yr` Mexico Treaty)*
 2. **System Map (`web/map_embed.html` & `web/map.html`):** Full-bleed MapLibre GL geospatial map featuring live USGS/USBR/CDWR streamflows, square-root reach weighting, Continental Divide vector, 7d/30d flow replay, and 3D terrain flight navigation.
 3. **Gage & Facility Registry (`web/telemetry.html`):** Searchable tabular inventory of all **92** cataloged facilities (**81** live gages, canals, and tunnels + **11** major reservoirs) with sortable columns, reach groupings, and daily RBI badges.
 4. **River Flow Schematic & Elevation Profile (`web/pipeline.html`):** Topological flow schematic and USGS 3DEP elevation profile tracing water from Rocky Mountain headwaters (`>10,000 ft`) to Morelos Dam (`115 ft`).
-5. **Water Budget (`web/sankey.html`):** D3.js Sankey diagram and two-column stacked balance modeling the **CY/WY 2005–2024** `13.89 MAF/yr` USBR accounting ledger.
+5. **Water Budget (`web/sankey.html`):** D3.js Sankey diagram and two-column stacked balance modeling the **CY/WY 2000–2024** `14.14 MAF/yr` USBR accounting ledger.
 6. **Reservoir Storage (`web/index.html`):** Interactive `1937–2026` 5-reservoir storage trajectory, `1922–2024` USBR Lees Ferry Natural Flow vs. Releases chart, and monthly elevation heatmaps for Lake Mead and Lake Powell.
 7. **Tributary Hydrology & Flow Regimes (`web/ml_analysis.html`):** Daily Richards–Baker Flashiness (`RBI`) vs. annual volume, Lake Powell canyon hypsometry (`AF/ft`), the `WY 2021` Dirty Devil flash flood vs. Cisco snowmelt case study, and 5 normalized seasonal flow regimes.
 

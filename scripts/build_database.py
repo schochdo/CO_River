@@ -31,7 +31,7 @@ LC_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "Au
 CFS_DAY_TO_AF = 1.983471
 CFS_DAY_TO_MAF = CFS_DAY_TO_AF / 1e6
 
-BUDGET_START_YR = 2005
+BUDGET_START_YR = 2000
 BUDGET_END_YR = 2024
 BUDGET_N_YRS = BUDGET_END_YR - BUDGET_START_YR + 1
 
@@ -771,7 +771,7 @@ def populate_cul_tables(cur: sqlite3.Cursor) -> None:
 
 
 def populate_water_budget(cur: sqlite3.Cursor) -> None:
-    """Compute CY/WY 2005-2024 water budget directly from SQLite tables & archived gages/storage."""
+    """Compute CY/WY 2000-2024 water budget directly from SQLite tables & archived gages/storage."""
     def uc_mean(jur, sec):
         row = cur.execute(
             "SELECT AVG(value_af)/1e6 FROM cul_upper_annual WHERE water_or_cal_year BETWEEN ? AND ? AND jurisdiction=? AND sector=?",
@@ -793,7 +793,7 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
         ).fetchone()[0]
     )
 
-    # Lower mainstem gaged tributaries CY 2005-2024 from archived USGS dv
+    # Lower mainstem gaged tributaries CY 2000-2024 from archived USGS dv
     budget_gages = load_usgs_dv_json(os.path.join(RAW_DIR, "usgs_baselines", "usgs_budget_and_inflow_gages_dv.json"))
     trib_means = {}
     for sid in ("09382000", "09402000", "09415000", "09419000", "09426000"):
@@ -801,7 +801,9 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
         trib_means[sid] = tot_af / BUDGET_N_YRS / 1e6
     lb_tribs_maf = sum(trib_means.values())
 
-    # Dated 5-reservoir storage change: 2004-12-31 -> 2024-12-31 (in MAF/yr)
+    # Dated 5-reservoir storage change: (BUDGET_START_YR-1)-12-31 -> BUDGET_END_YR-12-31 (in MAF/yr)
+    start_eoy = f"{BUDGET_START_YR - 1}-12-31"
+    end_eoy = f"{BUDGET_END_YR}-12-31"
     res_files = {
         "lake_powell": "usbr_919_powell_17_storage.csv",
         "lake_mead": "usbr_921_mead_17_storage.csv",
@@ -812,7 +814,7 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
     ds_by_res = {}
     for rid, fn in res_files.items():
         dmap = dict(load_usbr_csv_series(os.path.join(RAW_DIR, "reservoirs", fn)))
-        ds_by_res[rid] = (dmap["2024-12-31"] - dmap["2004-12-31"]) / BUDGET_N_YRS / 1e6
+        ds_by_res[rid] = (dmap[end_eoy] - dmap[start_eoy]) / BUDGET_N_YRS / 1e6
     net_drawdown_maf = -sum(ds_by_res.values())  # positive = storage drawdown supplying demand
 
     # Upper Basin states & sectors
@@ -862,37 +864,44 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
 
     lb_pool_maf = lf_implied_delivery_maf + lb_tribs_maf + net_drawdown_maf + residual_maf
     gila_cul_maf = lc_mean("Tributary", "Gila_Basin", "TOTAL_TRIB_CUL")
+    lf_gaged_maf = float(
+        cur.execute(
+            "SELECT AVG(gaged_flow_maf) FROM annual_lees_ferry WHERE water_year BETWEEN ? AND ?",
+            (BUDGET_START_YR, BUDGET_END_YR),
+        ).fetchone()[0]
+    )
+    win = f"{BUDGET_START_YR}-{BUDGET_END_YR}"
 
     # Populate water_budget_nodes
     cur.execute("DELETE FROM water_budget_nodes;")
     nodes = [
         # Col 0
         ("Upper Basin Natural Flow (Lees Ferry)", "Upper Basin Natural Flow (Lees Ferry)", 0, "inflow", "upper",
-         lf_nat_maf, "Unimpaired USBR Lees Ferry natural flow (WY 2005-2024 mean).", None,
+         lf_nat_maf, f"Unimpaired USBR Lees Ferry natural flow (WY {win} 25-year mean).", None,
          "09380000", "USBR Natural Flow / USGS #09380000", "https://www.usbr.gov/lc/region/g4000/NaturalFlow/LFnatFlow1906-2024.2024.9.12.xlsx",
-         "usbr_lf_natflow_1906_2024", "Sheet1, WY 2005-2024"),
+         "usbr_lf_natflow_1906_2024", f"Sheet1, WY {win}"),
         ("Lower Mainstem Gaged Tributaries", "Lower Mainstem Gaged Tributaries", 0, "inflow", "lower",
-         lb_tribs_maf, f"USGS CY 2005-2024 gaged mainstem tributaries: Virgin ({trib_means['09415000']:.2f}), Little CO ({trib_means['09402000']:.2f}), Bill Williams ({trib_means['09426000']:.2f}), Muddy ({trib_means['09419000']:.2f}), Paria ({trib_means['09382000']:.2f}).", None,
-         "09415000", "USGS Lower Mainstem Tributaries", "https://waterservices.usgs.gov/nwis/dv/?format=rdb&sites=09382000,09402000,09415000,09419000,09426000&parameterCd=00060&startDT=2005-01-01&endDT=2024-12-31",
-         "usgs_water_budget_gages_dv", "5 Lower Mainstem Tributary Gages, CY 2005-2024"),
+         lb_tribs_maf, f"USGS CY {win} gaged mainstem tributaries: Virgin ({trib_means['09415000']:.2f}), Little CO ({trib_means['09402000']:.2f}), Bill Williams ({trib_means['09426000']:.2f}), Muddy ({trib_means['09419000']:.2f}), Paria ({trib_means['09382000']:.2f}).", None,
+         "09415000", "USGS Lower Mainstem Tributaries", f"https://waterservices.usgs.gov/nwis/dv/?format=rdb&sites=09382000,09402000,09415000,09419000,09426000&parameterCd=00060&startDT={BUDGET_START_YR}-01-01&endDT={BUDGET_END_YR}-12-31",
+         "usgs_water_budget_gages_dv", f"5 Lower Mainstem Tributary Gages, CY {win}"),
         ("Net Reservoir Storage Drawdown", "Net Reservoir Storage Drawdown", 0, "deficit", "lower",
-         net_drawdown_maf, f"Measured 5-reservoir change (2004-12-31 to 2024-12-31): Mead {ds_by_res['lake_mead']:+.2f}, Powell {ds_by_res['lake_powell']:+.3f}, FG {ds_by_res['flaming_gorge']:+.3f}, Navajo/BM {ds_by_res['navajo_reservoir']+ds_by_res['blue_mesa']:+.3f} MAF/yr.", None,
+         net_drawdown_maf, f"Measured 5-reservoir change ({start_eoy} to {end_eoy}, 29.76 MAF total): Mead {ds_by_res['lake_mead']:+.2f}, Powell {ds_by_res['lake_powell']:+.2f}, FG/Navajo/BM {ds_by_res['flaming_gorge']+ds_by_res['navajo_reservoir']+ds_by_res['blue_mesa']:+.2f} MAF/yr.", None,
          "lake_mead", "USBR HydroData Storage (17.csv)", "https://www.usbr.gov/uc/water/hydrodata/reservoir_data/921/csv/17.csv",
-         "usbr_921_mead_stor", "921/919/917/920/913 17.csv, 2004-12-31 to 2024-12-31"),
+         "usbr_921_mead_stor", f"921/919/917/920/913 17.csv, {start_eoy} to {end_eoy}"),
         ("Ungaged Side Inflows & Residual", "Ungaged Side Inflows & Residual", 0, "inflow", "lower",
-         residual_maf, "Closure residual (0.9%): ungaged Grand Canyon springs, side washes, LV Wash runoff & WY/CY boundary offset.", None,
+         residual_maf, f"Closure residual ({abs(residual_maf)/total_depletions_maf*100:.1f}%): ungaged Grand Canyon springs, side washes, LV Wash runoff & WY/CY boundary offset.", None,
          None, "Mass-Balance Closure Residual", None,
          "usbr_lc_cul_1971_2024", "Derived: Total Depletions - (Natural Flow + Gaged Tribs + Net Storage Drawdown)"),
 
         # Col 1
         ("Upper Basin Depletions & CRSP Evap", "Upper Basin Depletions & CRSP Evap", 1, "inflow", "upper",
-         ub_total_cul, "USBR Upper Colorado CUL CY 2005-2024: 3.91 MAF state uses + 0.45 MAF CRSP mainstem evap.", None,
+         ub_total_cul, f"USBR Upper Colorado CUL CY {win}: {sum(ub_state_totals.values()):.2f} MAF state uses + {ub_crsp_evap:.2f} MAF CRSP mainstem evap.", None,
          "09095500", "USBR Upper Basin CUL", "https://www.usbr.gov/uc/DocLibrary/Reports/ConsumptiveUsesLosses/20251201-UpperColoradoCUL1971-2025_v24.5_MajorTribSummary-DataSummariesFigures.xlsx",
-         "usbr_uc_cul_1971_2024", "Summary Row 6, CY 2005-2024"),
+         "usbr_uc_cul_1971_2024", f"Summary Row 6, CY {win}"),
         ("Lower Basin Mainstream & Treaty Pool", "Lower Basin Mainstream & Treaty Pool", 1, "inflow", "lower",
-         lb_pool_maf, "Lees Ferry delivery (8.76 MAF implied; 8.75 MAF USGS gaged) + Lower tribs + storage drawdown + ungaged.", None,
+         lb_pool_maf, f"Lees Ferry delivery ({lf_implied_delivery_maf:.2f} MAF net; {lf_gaged_maf:.2f} MAF USGS gaged incl. Powell drawdown) + Lower tribs + storage drawdown + ungaged.", None,
          "lake_mead", "USBR Lower Colorado CUL", "https://www.usbr.gov/lc/region/g4000/4200Rpts/CULReport/1971-2024%20Lower%20Colorado%20River%20System%20CUL%20Data.xlsx",
-         "usbr_lc_cul_1971_2024", "Lower CUL Mainstream + Reservoirs + Mexico, CY 2005-2024"),
+         "usbr_lc_cul_1971_2024", f"Lower CUL Mainstream + Reservoirs + Mexico, CY {win}"),
 
         # Col 2
         ("Upper Basin In-Basin Agriculture", "Upper Basin In-Basin Agriculture", 2, "ag", "upper",
@@ -934,7 +943,7 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
 
         # Col 3
         ("Colorado", "Colorado", 3, "ag", "upper",
-         ub_state_totals["Colorado"], "USBR Upper CUL CY 2005-2024 state total (excludes shared CRSP evap).",
+         ub_state_totals["Colorado"], f"USBR Upper CUL CY {win} state total (excludes shared CRSP evap).",
          json.dumps([
              f"- In-Basin Ag: {uc_mean('Colorado','agriculture'):.2f}",
              f"- Outside Exports: {uc_mean('Colorado','transbasin_export'):.2f}",
@@ -943,7 +952,7 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
          "09095500", "USBR Upper CUL (CO)", "https://www.usbr.gov/uc/DocLibrary/Reports/ConsumptiveUsesLosses/20251201-UpperColoradoCUL1971-2025_v24.5_MajorTribSummary-DataSummariesFigures.xlsx",
          "usbr_uc_cul_1971_2024", "Summary Row 12"),
         ("Utah", "Utah", 3, "ag", "upper",
-         ub_state_totals["Utah"], "USBR Upper CUL CY 2005-2024 state total.",
+         ub_state_totals["Utah"], f"USBR Upper CUL CY {win} state total.",
          json.dumps([
              f"- In-Basin Ag: {uc_mean('Utah','agriculture'):.2f}",
              f"- Outside Exports (CUP): {uc_mean('Utah','transbasin_export'):.2f}",
@@ -952,43 +961,43 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
          "09315000", "USBR Upper CUL (UT)", "https://www.usbr.gov/uc/DocLibrary/Reports/ConsumptiveUsesLosses/20251201-UpperColoradoCUL1971-2025_v24.5_MajorTribSummary-DataSummariesFigures.xlsx",
          "usbr_uc_cul_1971_2024", "Summary Row 17"),
         ("Wyoming", "Wyoming", 3, "ag", "upper",
-         ub_state_totals["Wyoming"], "USBR Upper CUL CY 2005-2024 state total.",
+         ub_state_totals["Wyoming"], f"USBR Upper CUL CY {win} state total.",
          json.dumps([f"- In-Basin Ag: {uc_mean('Wyoming','agriculture'):.2f}", f"- Energy/M&I/Exp/Evap: {ub_state_totals['Wyoming']-uc_mean('Wyoming','agriculture'):.2f}"]),
          "09211200", "USBR Upper CUL (WY)", "https://www.usbr.gov/uc/DocLibrary/Reports/ConsumptiveUsesLosses/20251201-UpperColoradoCUL1971-2025_v24.5_MajorTribSummary-DataSummariesFigures.xlsx",
          "usbr_uc_cul_1971_2024", "Summary Row 18"),
         ("New Mexico", "New Mexico", 3, "ag", "upper",
-         ub_state_totals["New Mexico"], "USBR Upper CUL CY 2005-2024 state total.",
+         ub_state_totals["New Mexico"], f"USBR Upper CUL CY {win} state total.",
          json.dumps([f"- In-Basin Ag: {uc_mean('New Mexico','agriculture'):.2f}", f"- Exports & Energy/Evap: {ub_state_totals['New Mexico']-uc_mean('New Mexico','agriculture'):.2f}"]),
          "09368000", "USBR Upper CUL (NM)", "https://www.usbr.gov/uc/DocLibrary/Reports/ConsumptiveUsesLosses/20251201-UpperColoradoCUL1971-2025_v24.5_MajorTribSummary-DataSummariesFigures.xlsx",
          "usbr_uc_cul_1971_2024", "Summary Row 13"),
         ("Arizona (Upper)", "Arizona (Upper)", 3, "municipal", "upper",
-         ub_state_totals["Arizona_Upper"], "USBR Upper CUL CY 2005-2024 Arizona Upper Basin share (0.05 MAF statutory cap).",
+         ub_state_totals["Arizona_Upper"], f"USBR Upper CUL CY {win} Arizona Upper Basin share (0.05 MAF statutory cap).",
          json.dumps([f"- Power/M&I/Ag/Evap: {ub_state_totals['Arizona_Upper']:.3f}"]),
          "09380000", "USBR Upper CUL (AZ)", "https://www.usbr.gov/uc/DocLibrary/Reports/ConsumptiveUsesLosses/20251201-UpperColoradoCUL1971-2025_v24.5_MajorTribSummary-DataSummariesFigures.xlsx",
          "usbr_uc_cul_1971_2024", "Summary Row 8"),
 
         ("California", "California", 3, "ag", "lower",
-         ca_tot, "USBR Lower CUL CY 2005-2024 mainstream consumptive use (AAC + CRA + Palo Verde/Yuma).",
+         ca_tot, f"USBR Lower CUL CY {win} mainstream consumptive use (AAC + CRA + Palo Verde/Yuma).",
          json.dumps([f"- Outside-System (AAC/CRA): {ca_out:.2f}", f"- On-River Ag & M&I: {ca_ag+ca_mi:.2f}"]),
          "09527700", "USBR Lower CUL (CA)", "https://www.usbr.gov/lc/region/g4000/4200Rpts/CULReport/1971-2024%20Lower%20Colorado%20River%20System%20CUL%20Data.xlsx",
          "usbr_lc_cul_1971_2024", "Mainstream Tab (CA)"),
         ("Arizona (Lower)", "Arizona (Lower)", 3, "ag", "lower",
-         az_tot, "USBR Lower CUL CY 2005-2024 mainstream consumptive use (excludes Gila Basin).",
+         az_tot, f"USBR Lower CUL CY {win} mainstream consumptive use (excludes Gila Basin).",
          json.dumps([f"- CAP (Within-System): {az_within:.2f}", f"- On-River Ag & M&I: {az_ag+az_mi:.2f}"]),
          "09426650", "USBR Lower CUL (AZ)", "https://www.usbr.gov/lc/region/g4000/4200Rpts/CULReport/1971-2024%20Lower%20Colorado%20River%20System%20CUL%20Data.xlsx",
          "usbr_lc_cul_1971_2024", "Mainstream Tab (AZ)"),
         ("Nevada", "Nevada", 3, "municipal", "lower",
-         nv_tot, "USBR Lower CUL CY 2005-2024 net mainstream consumptive use (after Las Vegas Wash return credits).",
+         nv_tot, f"USBR Lower CUL CY {win} net mainstream consumptive use (after Las Vegas Wash return credits).",
          json.dumps([f"- SNWA M&I / TEP: {nv_mi:.2f}", f"- On-River Ag: {nv_ag:.3f}"]),
          "lake_mead", "USBR Lower CUL (NV)", "https://www.usbr.gov/lc/region/g4000/4200Rpts/CULReport/1971-2024%20Lower%20Colorado%20River%20System%20CUL%20Data.xlsx",
          "usbr_lc_cul_1971_2024", "Mainstream Tab (NV)"),
         ("1944 Mexico Treaty", "Mexico", 3, "treaty", "lower",
-         mx_tot, "USBR Mexico Tab CY 2005-2024 measured deliveries at international boundary.",
+         mx_tot, f"USBR Mexico Tab CY {win} measured deliveries at international boundary.",
          json.dumps([f"- Treaty Satisfaction: {mx_treaty:.2f}", f"- Min. 242 Bypass & Excess: {mx_min242+mx_excess:.2f}"]),
          "09522000", "USBR Lower CUL (Mexico)", "https://www.usbr.gov/lc/region/g4000/4200Rpts/CULReport/1971-2024%20Lower%20Colorado%20River%20System%20CUL%20Data.xlsx",
          "usbr_lc_cul_1971_2024", "Mexico Tab"),
         ("System Mainstem Evaporation", "Mainstem Evap", 3, "loss", "lower",
-         mainstem_evap_tot, "Combined USBR Upper CRSP (0.45) & Lower Mainstream (0.81) open-water reservoir evaporation.",
+         mainstem_evap_tot, f"Combined USBR Upper CRSP ({ub_crsp_evap:.2f}) & Lower Mainstream ({lb_res_evap:.2f}) open-water reservoir evaporation.",
          json.dumps([f"- Upper CRSP (Powell/FG): {ub_crsp_evap:.2f}", f"- Lower (Mead/Mohave/Hav): {lb_res_evap:.2f}"]),
          "lake_mead", "USBR UC + LC Evap", "https://www.usbr.gov/lc/region/g4000/4200Rpts/CULReport/1971-2024%20Lower%20Colorado%20River%20System%20CUL%20Data.xlsx",
          "usbr_lc_cul_1971_2024", "UC Summary R23 + LC Mainstream_Reservoirs"),
@@ -1011,7 +1020,7 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
         ("Upper Basin Natural Flow (Lees Ferry)", "Upper Basin Depletions & CRSP Evap", ub_total_cul, "inflow", "usbr_uc_cul_1971_2024", "Summary Row 6"),
         ("Upper Basin Natural Flow (Lees Ferry)", "Lower Basin Mainstream & Treaty Pool", lf_implied_delivery_maf, "inflow", "usbr_lf_natflow_1906_2024", "Lees Ferry Natural Flow - Upper CUL"),
         ("Lower Mainstem Gaged Tributaries", "Lower Basin Mainstream & Treaty Pool", lb_tribs_maf, "inflow", "usgs_water_budget_gages_dv", "5 Lower Mainstem Tributaries"),
-        ("Net Reservoir Storage Drawdown", "Lower Basin Mainstream & Treaty Pool", net_drawdown_maf, "deficit", "usbr_921_mead_stor", "5-Reservoir dS 2004-12-31 to 2024-12-31"),
+        ("Net Reservoir Storage Drawdown", "Lower Basin Mainstream & Treaty Pool", net_drawdown_maf, "deficit", "usbr_921_mead_stor", f"5-Reservoir dS {start_eoy} to {end_eoy}"),
         ("Ungaged Side Inflows & Residual", "Lower Basin Mainstream & Treaty Pool", residual_maf, "inflow", "usbr_lc_cul_1971_2024", "Mass-Balance Closure Residual"),
 
         # Col 1 -> Col 2
@@ -1070,15 +1079,15 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
                 l,
             )
 
-    # Stacked View 2: Physical Supply (2005-2024) vs Statutory Paper Claims + Mainstem Evap
+    # Stacked View 2: Physical Supply (2000-2024) vs Statutory Paper Claims + Mainstem Evap
     cur.execute("DELETE FROM water_budget_stacked;")
     stacked = [
         ("supply", "Upper Basin Natural Flow (Lees Ferry)", lf_nat_maf, f"{lf_nat_maf/total_measured_inflow_maf*100:.1f}% of Mainstream Supply", "Physical Inflow", "#0284c7", 0,
-         "Unimpaired USBR Lees Ferry natural flow (WY 2005-2024 20-year mean).", "usbr_lf_natflow_1906_2024", "Sheet1 WY 2005-2024"),
+         f"Unimpaired USBR Lees Ferry natural flow (WY {win} {BUDGET_N_YRS}-year mean).", "usbr_lf_natflow_1906_2024", f"Sheet1 WY {win}"),
         ("supply", "Lower Mainstem Gaged Tributaries", lb_tribs_maf, f"{lb_tribs_maf/total_measured_inflow_maf*100:.1f}% of Mainstream Supply", "Physical Inflow", "#0d9488", 0,
-         "Virgin, Little Colorado, Bill Williams, Muddy & Paria rivers entering below Lees Ferry (CY 2005-2024).", "usgs_water_budget_gages_dv", "5 USGS Gages CY 2005-2024"),
+         f"Virgin, Little Colorado, Bill Williams, Muddy & Paria rivers entering below Lees Ferry (CY {win}).", "usgs_water_budget_gages_dv", f"5 USGS Gages CY {win}"),
         ("supply", "Gila River Basin (Excluded CUL Ref.)", gila_cul_maf, "Off-Mainstem / Excluded", "Off-Mainstem / Excluded", "#0f766e", 1,
-         "USBR Tributary CUL (CY 2005-2024): intercepted in AZ/NM below Imperial Dam; excluded from Compact mainstream accounting.", "usbr_lc_cul_1971_2024", "Tributary Tab REPORTING_AREA='Gila'"),
+         f"USBR Tributary CUL (CY {win}): intercepted in AZ/NM below Imperial Dam; excluded from Compact mainstream accounting.", "usbr_lc_cul_1971_2024", "Tributary Tab REPORTING_AREA='Gila'"),
 
         ("demand", "Colorado (Upper Basin Statutory 51.75%)", 3.855, "51.75% of 7.45 MAF Upper Pool", "Paper Allocation", "#1e40af", 0,
          "1948 Upper Basin Compact Art. III(a) statutory percentage share at 7.50 MAF Upper Basin cap.", "compact_1948_upper", "63 Stat. 31 Art. III(a)"),
@@ -1100,8 +1109,8 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
          "Authorizes +1.0 MAF/yr Lower Basin beneficial consumptive use.", "compact_1922", "42 Stat. 171 Art. III(b)"),
         ("demand", "1944 Mexico Water Treaty", 1.500, "International Treaty Delivery", "Treaty Obligation", "#7c3aed", 0,
          "Guaranteed 1.50 MAF/yr treaty delivery at international boundary.", "compact_1922", "1944 Treaty TS 994 Art. 10"),
-        ("demand", "Mainstem Reservoir Evaporation (Measured 2005-2024)", mainstem_evap_tot, "Omitted from 1922 Compact", "System Depletion", "#64748b", 0,
-         f"USBR CY 2005-2024 measured mainstem evaporation: CRSP {ub_crsp_evap:.2f} + Lower {lb_res_evap:.2f} MAF/yr.", "usbr_lc_cul_1971_2024", "UC Row 23 + LC Mainstream_Reservoirs"),
+        ("demand", f"Mainstem Reservoir Evaporation (Measured {win})", mainstem_evap_tot, "Omitted from 1922 Compact", "System Depletion", "#64748b", 0,
+         f"USBR CY {win} measured mainstem evaporation: CRSP {ub_crsp_evap:.2f} + Lower {lb_res_evap:.2f} MAF/yr.", "usbr_lc_cul_1971_2024", "UC Row 23 + LC Mainstream_Reservoirs"),
     ]
     for st in stacked:
         cur.execute(
@@ -1116,7 +1125,7 @@ def populate_water_budget(cur: sqlite3.Cursor) -> None:
     # Summary scalar metadata for strict consistency across pages & smoke tests
     cur.execute("DELETE FROM water_budget_meta;")
     meta_kv = {
-        "period": f"{BUDGET_START_YR}-{BUDGET_END_YR} (20-Year Baseline)",
+        "period": f"{BUDGET_START_YR}-{BUDGET_END_YR} ({BUDGET_N_YRS}-Year Baseline)",
         "period_start": str(BUDGET_START_YR),
         "period_end": str(BUDGET_END_YR),
         "lf_natural_flow_maf": f"{lf_nat_maf:.4f}",
@@ -1388,11 +1397,11 @@ def populate_normals_and_seasonal(cur: sqlite3.Cursor) -> None:
             (doy_idx + 1, round(snowmelt[doy_idx], 4), round(tun_norm[doy_idx], 4), round(monsoon[doy_idx], 4), round(dam_rel[doy_idx], 4), round(canal[doy_idx], 4)),
         )
 
-    # 3. Seasonal Supply vs Demand Mismatch (WY 2000-2025 identical dates)
+    # 3. Seasonal Supply vs Demand Mismatch (WY 2000-2024 identical dates matching macro baseline)
     gages = load_usgs_dv_json(os.path.join(RAW_DIR, "usgs_baselines", "usgs_budget_and_inflow_gages_dv.json"))
     common_dates = sorted(
         dt for dt in (set(gages["09180500"]) & set(gages["09315000"]) & set(gages["09379500"]) & set(gages["09380000"]))
-        if "1999-10-01" <= dt <= "2025-09-30" and dt[5:10] != "02-29"
+        if f"{BUDGET_START_YR - 1}-10-01" <= dt <= f"{BUDGET_END_YR}-09-30" and dt[5:10] != "02-29"
     )
     by_mmdd_sup = defaultdict(list)
     by_mmdd_rel = defaultdict(list)
