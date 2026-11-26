@@ -1,119 +1,128 @@
-# Colorado River Basin Hydrologic Intelligence & Infrastructure Topology Platform
+# Colorado River Basin Hydrologic & Infrastructure Platform
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Academic Project](https://img.shields.io/badge/Course-DAT1001-0284c7.svg)](https://coloradomtn.edu/)
 [![Zero-Framework](https://img.shields.io/badge/Frontend-Vanilla_JS_%2B_MapLibre-0f172a.svg)](#architecture--frontend-tech-stack)
-[![Colorblind Safe](https://img.shields.io/badge/Palette-ColorBrewer_%26_Okabe--Ito-009E73.svg)](#anti-saas-design-standards)
+[![Colorblind Safe](https://img.shields.io/badge/Palette-ColorBrewer_%26_Okabe--Ito-009E73.svg)](SYSTEM_GUIDE.md#1-executive-summary--design-philosophy)
 
-An academic research platform and high-performance interactive web dashboard modeling the hydrology, infrastructure, statutory allocations, and multi-decade reservoir drawdowns of the 246,000-square-mile Colorado River Basin.
+An academic research platform and interactive web dashboard modeling the hydrology, infrastructure, statutory allocations, and multi-decade reservoir drawdowns of the 246,000-square-mile Colorado River Basin.
 
 Developed for **Introduction to Data Science (DAT1001)** at Colorado Mountain College by **Douglas Schoch**.
 
 ---
 
-## 📖 Primary Documentation & References
+## Primary Documentation & References
 
 | Document | Description |
 | :--- | :--- |
-| **[SYSTEM_GUIDE.md](SYSTEM_GUIDE.md)** | **Master Guide:** Basin Math Rosetta Stone (15 vs 16.5 vs 17.5 vs 19.5 vs 12.4 MAF), domain physics, 19th-century water law history, frontend architecture, and topological engineering. |
-| **[CHANGELOG.md](CHANGELOG.md)** | **Semantic Release Log:** Granular day-by-day record of features, cartographic updates, and bug fixes following the *Keep a Changelog* standard. |
-| **[AI_LOG.md](AI_LOG.md)** | **Methodology Log:** Comprehensive pair-programming log detailing models used, prompt scopes, verification scripts, and human-in-the-loop control for academic evaluation. |
-| **[PROJECT_MANIFEST.md](PROJECT_MANIFEST.md)** | **Systems Manifest:** Complete file tree, API endpoints, schema contracts, and notebook descriptions. |
+| **[SYSTEM_GUIDE.md](SYSTEM_GUIDE.md)** | **Master Guide:** Basin Math Rosetta Stone (`15.0` vs `16.5` vs `17.5` vs `18.76` vs `13.51` / `13.89 MAF/yr`), domain physics, water law history, frontend architecture, and topological engineering. |
+| **[CHANGELOG.md](CHANGELOG.md)** | **Semantic Release Log:** Day-by-day record of features, data calibrations, and bug fixes following the *Keep a Changelog* standard. |
+| **[AI_LOG.md](AI_LOG.md)** | **Methodology Log:** Pair-programming log detailing models used, prompt scopes, verification checks, and human review for academic evaluation. |
+| **[scripts/README.md](scripts/README.md)** | **Pipeline Runbook:** Execution order for raw source archiving, SQLite compilation, JSON export, notebook builds, and automated smoke tests. |
 
 ---
 
-## ⚡ Key Highlights & Core Analytical Views
+## Key Highlights & Core Analytical Views
 
-The web dashboard is organized into seven specialized analytical views:
+The web dashboard is organized into seven analytical views (plus Methodology, Law of the River, Data Sources, Research Notebook, and AI Prompt Archive):
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                        COLORADO RIVER BASIN ANALYTICAL SUITE                           │
 ├────────────────────┬───────────────────────────────────────────────────────────────────┤
-│ 1. Overview Deck   │ 10-Minute Presentation Storyboard (Acts 1–4, Math Gap, Seasonal   │
-│                    │ Engine, 90-Yr Drawdown, Mining Law "Use It or Lose It" Paradox)   │
+│ 1. Basin Overview  │ Four-act briefing deck: Statutory Gap, Seasonal Inflow vs. Dam    │
+│                    │ Release, 90-Year Storage Drawdown, and State Apportionments       │
 ├────────────────────┼───────────────────────────────────────────────────────────────────┤
-│ 2. Hydrology Map   │ Full-bleed MapLibre GL 3D vector map with live USGS streamflow,   │
+│ 2. System Map      │ Full-bleed MapLibre GL 3D vector map with live USGS streamflow,   │
 │                    │ dynamic line weighting (sqrt(Q)), Continental Divide, & dams      │
 ├────────────────────┼───────────────────────────────────────────────────────────────────┤
-│ 3. Gage Registry   │ Searchable real-time ledger of 30+ USGS, USBR, and CDWR stations  │
+│ 3. Gage Registry   │ Searchable ledger of 92 cataloged facilities (81 gages/tunnels +  │
+│                    │ 11 reservoirs) across USGS, USBR, and CDWR feeds                  │
 ├────────────────────┼───────────────────────────────────────────────────────────────────┤
-│ 4. Flow Schematic  │ Swiss transit-style topological flow schematic with dynamic SVG   │
-│                    │ strokes scaling by statutory allocation volumes                   │
+│ 4. Flow Schematic  │ Swiss transit-style topological flow schematic & USGS 3DEP        │
+│                    │ elevation profile scaling by annualized MAF/yr volumes            │
 ├────────────────────┼───────────────────────────────────────────────────────────────────┤
-│ 5. Water Budget    │ D3.js true Sankey diagram modeling mass-balance from headwaters to│
-│                    │ international treaty delivery and delta losses                    │
+│ 5. Water Budget    │ D3.js Sankey & stacked mass-balance bars closing at 13.89 MAF/yr  │
+│                    │ across CY/WY 2005–2024 USBR Consumptive Uses & Losses accounting  │
 ├────────────────────┼───────────────────────────────────────────────────────────────────┤
-│ 6. Reservoirs      │ 90-year multi-reservoir storage timeline (1935–2026) and monthly  │
-│                    │ elevation heatmaps for Lake Mead and Lake Powell                  │
+│ 6. Reservoirs      │ Multi-reservoir storage timeline (1937–2026), 1922–2024 Compact   │
+│                    │ accounting, and monthly elevation heatmaps for Mead and Powell    │
 ├────────────────────┼───────────────────────────────────────────────────────────────────┤
-│ 7. ML Analysis     │ Single-screen Gapminder dashboard with flashiness regimes (RBI),  │
-│                    │ Lake Powell hypsometry, and lagged travel times to Powell        │
+│ 7. Tributaries &   │ Daily Richards–Baker Flashiness (RBI across 74 USGS gages), Lake  │
+│    Flow Regimes    │ Powell canyon hypsometry, WY 2021 flood vs. snowmelt, & 5 regimes │
 └────────────────────┴───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ⚖️ The Basin Math at a Glance
+## The Basin Math at a Glance (Verified 2005–2024 Accounting Baseline)
 
-* **15.0 MAF/yr:** 1922 Compact domestic baseline (7.5 Upper + 7.5 Lower, Article III.a).
-* **16.0 MAF/yr:** Compact baseline + 1.0 MAF Lower Basin tributary concession (Article III.b).
-* **17.5 MAF/yr:** **Total Statutory Paper Allocations** (15.0 domestic + 1.0 surplus + 1.5 Mexico Treaty).
-* **~19.5 MAF/yr:** **Gross System Demand** (17.5 paper rights + ~1.8–2.0 MAF uncounted reservoir evaporation & river seepage).
-* **12.4 MAF/yr:** **Physical Wet Water Reality** (2000–2026 Millennium Drought natural virgin flow at Lee's Ferry).
-* **-5.1 MAF/yr Deficit:** Annual structural overdraft absorbed by draining 60 MAF of storage down to ~17.7 MAF (29.5%) today.
+* **15.00 MAF/yr:** 1922 Compact domestic core apportionment (`7.50` Upper + `7.50` Lower, Article III.a).
+* **16.50 MAF/yr:** Core domestic apportionment (`15.00`) + 1944 Mexican Water Treaty obligation (`1.50`).
+* **17.50 MAF/yr:** **Full Statutory Paper Entitlements** (`15.00` Art. III.a + `1.00` Lower Art. III.b + `1.50` Mexico Treaty).
+* **18.76 MAF/yr:** **Statutory Claims + Measured Mainstem Evaporation** (`17.50` paper claims + `1.26 MAF/yr` measured CRSP/Lower mainstem reservoir evaporation over CY 2005–2024).
+* **13.51 MAF/yr:** **Physical Mainstream Inflow (2005–2024 Mean)** (`13.12 MAF/yr` USBR Lees Ferry natural flow + `0.39 MAF/yr` from 5 gaged Lower Basin mainstem tributaries). *(Note: Across the longer Water Years 2000–2024 Millennium Drought window—which includes the severe 2000–2004 drought onset—Lees Ferry natural flow averaged **12.40 MAF/yr**, vs. **14.11 MAF/yr** over 1922–2024).*
+* **13.89 MAF/yr:** **Closed 2005–2024 Mainstream Water Budget** (`13.51` mainstream inflow + `0.26` net 5-reservoir storage drawdown + `0.12` ungaged side inflows/closure residual = `13.89 MAF/yr` actual depletions & evaporation).
+* **+3.99 / +5.25 MAF/yr Over-Allocation:** Gap between `13.51 MAF/yr` physical mainstream inflow and `17.50 MAF/yr` statutory claims (`+3.99`) or `18.76 MAF/yr` claims plus mainstem evaporation (`+5.25`). Between Sep 1999 (`53.5 MAF`) and Mar 2023 (`16.3 MAF`), the 5 major federal reservoirs lost **37.2 MAF** of stored water.
 
-*For the comprehensive step-by-step breakdown, see [Section 2 of SYSTEM_GUIDE.md](SYSTEM_GUIDE.md#2-the-basin-math-rosetta-stone).*
-
----
-
-## 🛠️ Architecture & Frontend Tech Stack
-
-* **Zero-Framework Web Engine:** Built strictly in **Semantic HTML5, Vanilla JavaScript (ES6+), and Tailwind CSS**.
-* **Zero Production Bundlers:** No React, no Next.js, no Node.js runtime in production. 100% static client that deploys seamlessly to GitHub Pages or AWS S3 with zero monthly hosting costs and zero cold starts.
-* **Geospatial & Visualization Engines:**
-  * **MapLibre GL / Leaflet:** Dynamic client-side GeoJSON vector rendering with 3D terrain mesh.
-  * **D3.js (v7):** True flow-proportional SVG Sankey diagram.
-  * **Chart.js (v4):** Time series, seasonal hydrographs, stacked storage areas, and standardized monthly heatmaps.
-* **Backend Data Pipeline:** Python 3 (`src/fetch_water_data.py`) querying USGS NWIS IV/DV REST APIs, CDWR HydroBase, and USBR operational teletypes with automated 3-tier fallback.
+*For the full breakdown and source citations, see [Section 2 of SYSTEM_GUIDE.md](SYSTEM_GUIDE.md#2-the-basin-math-rosetta-stone) and `web/data/water_budget.json`.*
 
 ---
 
-## 🚀 Quickstart & Local Execution
+## Architecture & Tech Stack
+
+* **Vanilla Web Frontend:** Semantic HTML5, Vanilla JavaScript (ES6+), and Tailwind CSS without React, Next.js, or runtime server dependencies, hosted as static files on GitHub Pages.
+* **Visualization Engines:**
+  * **MapLibre GL JS (v4.7.1):** WebGL GeoJSON vector rendering with USGS 3DEP terrain hillshading and 3D camera flight.
+  * **D3.js (v7):** Flow-proportional SVG Sankey mass-balance network (`web/sankey.html`).
+  * **Chart.js (v4):** Historical timelines, seasonal inflow-vs-release hydrographs, tributary RBI scatter plots, and reservoir elevation heatmaps.
+* **Single-Source-of-Truth Data Pipeline:**
+  * **Immutable Raw Archive (`data/raw/`):** `26` federal workbooks, compacts, and agency series verified by SHA-256 checksums (`data/raw/MANIFEST.csv`).
+  * **Relational Store (`data/colorado_river_basin.db`):** Normalized SQLite database (`31` tables, `3` analytical views) refreshed every 6 hours by GitHub Actions (`.github/workflows/update_data.yml`) and compiled into `10` static JSON contracts via `scripts/export_sqlite_to_json.py`.
+  * **Two-Tier Browser Fetch:** Direct client-side REST queries to CORS-enabled USGS NWIS (`waterservices.usgs.gov`), with automatic fallback to the 6-hour static snapshot (`web/data/latest_metrics.json`).
+
+---
+
+## Quickstart & Verification
 
 ### 1. Environment Setup
 ```bash
-# Clone the repository
 git clone https://github.com/schochdo/CO_River.git
 cd CO_River
 
-# Create and activate Python virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+npm install
 ```
 
-### 2. Update Live Streamflow & Reservoir Telemetry
+### 2. Refresh Data & Export Static JSON Contracts
 ```bash
-# Run the Python ingestion pipeline
 python3 src/fetch_water_data.py
+python3 scripts/export_sqlite_to_json.py
 ```
 
-### 3. Launch Local Dashboard
+### 3. Run Automated Data & UI Smoke Tests
+```bash
+npm test
+# Or run the full pre-commit release check (transcript compile + npm test + log check):
+./scripts/release_check.sh
+```
+
+### 4. Launch Local Server
 ```bash
 ./start.sh
-# Open http://localhost:8088/index.html in your browser
+# Open http://localhost:8088/index.html (stop with ./stop.sh)
 ```
-*(To stop the server: `./stop.sh`)*
 
 ---
 
-## 🔬 Reproducible Research Notebook
+## Reproducible Research Notebook
 
-All hydrologic accounting, topological inspection, SQLite queries, tributary travel times, and flow regime clustering are consolidated in a single executable Jupyter notebook:
-- **`notebooks/colorado_river_analysis.ipynb`**: End-to-end analysis against USGS NWIS, `data/colorado_river_basin.db`, and `web/data/*.json` (rendered copy at `web/notebooks/colorado_river_analysis.html`).
+All hydrologic accounting, live USGS API queries, SQLite analytics, tributary flashiness analysis, and water-budget mass-balance checks are consolidated in one executable Jupyter notebook:
+- **`notebooks/colorado_river_analysis.ipynb`** (built via `scripts/build_unified_notebook.py` and rendered to `web/notebooks/colorado_river_analysis.html`).
 
 ---
 
-## 📄 License & Academic Attribution
+## License & Academic Attribution
 Released under the [MIT License](LICENSE). Built for academic evaluation in DAT1001 (Colorado Mountain College).

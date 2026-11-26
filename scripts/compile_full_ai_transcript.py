@@ -34,6 +34,12 @@ CO_SESSIONS = [
     '58cfdbf8-91b4-4263-ad4e-596d29fac1a2',
     'f3a97760-d230-4b4e-8463-96f71462f340',
     'aad5e810-76c0-4f7e-a9c4-9eb2855ee883',
+    '6ce2ac97-8d71-4f3f-8582-3d67b1739f40',
+    '9d47a40f-5b01-4a90-ac41-db7bb8caaae0',
+    '6ab8037f-f846-49c2-821f-5bea901c24d2',
+    'c53e1b6e-465a-4b9c-b8c2-a6d26afeb390',
+    '3dae7038-a3a4-40ce-93c4-d2794b6a2760',
+    '1e3faf53-51a7-4310-a9d4-1073625ba885',
 ]
 
 SESSION_BASE_TITLES = {
@@ -44,6 +50,12 @@ SESSION_BASE_TITLES = {
     '58cfdbf8-91b4-4263-ad4e-596d29fac1a2': 'Session 5: ML Richards-Baker Flashiness & Legal Accounting',
     'f3a97760-d230-4b4e-8463-96f71462f340': 'Session 6: Deep Architecture Defense & Academic Disclosure',
     'aad5e810-76c0-4f7e-a9c4-9eb2855ee883': 'Session 7: Corridor Palette Unification, Sankey Brackets & Single Notebook Consolidation',
+    '6ce2ac97-8d71-4f3f-8582-3d67b1739f40': 'Session 8: Mobile Layout, CDP Smoke Test & Dashboard Module Extraction',
+    '9d47a40f-5b01-4a90-ac41-db7bb8caaae0': 'Session 9: Historical Sidebar, Reservoir Thresholds & Post-1963 Inflow Fix',
+    '6ab8037f-f846-49c2-821f-5bea901c24d2': 'Session 10: AI Archive Date Fix, Runnable Popup API Code & Monthly Canals',
+    'c53e1b6e-465a-4b9c-b8c2-a6d26afeb390': 'Session 11: USBR Natural Flow, Daily RBI, Tributary Hydrology & Link Audit',
+    '3dae7038-a3a4-40ce-93c4-d2794b6a2760': 'Session 12: SQLite Single Source of Truth, Raw Archive & 2005–2024 Water Budget',
+    '1e3faf53-51a7-4310-a9d4-1073625ba885': 'Session 13: Final Submission Cleanup, Baseline Reconciliation & Notebook Rewrite',
 }
 
 def extract_gemini_web_pdf_turns(pdf_path, dest_rel_src):
@@ -271,7 +283,7 @@ def main():
                                 assistant_replies.append(f"### Plan Review Status Report\n\n{args['reason'].strip()}")
                             elif tool_name in ('write_file', 'write_to_file') and any(
                                 k in str(args.get('Path') or args.get('TargetFile') or '')
-                                for k in ('implementation_plan.md', 'walkthrough.md')
+                                for k in ('implementation_plan.md', 'walkthrough.md', 'cleanup_plan.md')
                             ):
                                 body = (args.get('Content') or args.get('CodeContent') or '').strip()
                                 if body:

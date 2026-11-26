@@ -1,18 +1,19 @@
 # Project To-Do List
 
-## High Priority — Data Integrity & Hydrologic Verification
+## Completed Pre-Submission Items
 
-- [x] **Add a Data & Hydrologic Smoke Test (`scripts/data_smoke_test.py` & `npm test`):**
-  - [x] Assert that post-1963 `supply_maf` and `lees_ferry_release_maf` in `web/data/seasonal_regimes.json` have std dev > 1.0 MAF (catches silent fallback regressions).
-  - [x] Verify MANIFEST SHA-256 checksums, SQLite/JSON parity across all 10 JSON contracts, `1937+` timeline start, `EOM` standardization, `water_budget.json` mass-balance closure, and `data/claims_register.csv` (`0` `needs_fix`).
-- [ ] **Audit `scripts/` and `src/` for Legacy Fallbacks & Remaining Threshold Checks:**
-  - Sweep remaining helper scripts for defensive `.get(..., 0)` defaults or silent `except:` blocks in non-export utilities.
-  - [x] Replace pre- and post-1963 `supply_maf` flat depletion estimates in `scripts/generate_seasonal_data.py` with official USBR Lees Ferry Natural Flow records (`1922–2024`).
-  - Verify all domain threshold labels and benchmark elevations across Mead, Powell, and tributary views against official USBR/USGS documentation.
+- [x] **Data & Hydrologic Smoke Test (`scripts/data_smoke_test.py` & `npm test`):**
+  - [x] Assert post-1963 `supply_maf` and `lees_ferry_release_maf` divergence (`std > 1.0 MAF`).
+  - [x] Verify `MANIFEST.csv` SHA-256 checksums, SQLite schema, 10-JSON parity, `1937+` timeline start, `EOM` standardization, `water_budget.json` closure (`< 0.01 MAF`), and `data/claims_register.csv` (`0` `needs_fix`).
+- [x] **Reconcile Basin-Math Baselines & Archive Obsolete Docs (`README.md`, `SYSTEM_GUIDE.md`, `web/map.html`, `archive/docs/`):**
+  - [x] Unified documentation and `web/map.html` Law modal onto the verified `2005–2024` USBR accounting baseline (`13.51` mainstream inflow, `13.89 MAF/yr` closed water budget, `17.50` / `18.76 MAF/yr` paper claims, `37.2 MAF` post-1999 5-reservoir drawdown) alongside labeled historical Lees Ferry windows (`1906–1921: 18.00`, `1922–2024: 14.11`, `2000–2024: 12.40`, `2005–2024: 13.12 MAF/yr`).
+- [x] **Submission Research Notebook Rewrite (`scripts/build_unified_notebook.py` → `notebooks/colorado_river_analysis.ipynb`):**
+  - [x] Streamlined code cells to query SQLite directly (`q(sql)`), included one concise live USGS NWIS API cell (`Lee's Ferry #09380000`), removed the redundant `cluster_id` RBI bar chart, and added a closed two-column `2005–2024` Water Budget chart (`13.8917 MAF/yr`, `0.0000` residual difference).
+- [x] **Active Script Runbook, Transcript Recompile & Pre-Commit Gate (`scripts/README.md`, `scripts/release_check.sh`):**
+  - [x] Archived 139 unreferenced one-off sprint scripts to `archive/scripts/`, compiled all `13` project sessions into `web/ai_complete_prompt_archive.html`, and added `scripts/release_check.sh`.
 
-## Completed Quality Items
+## Post-Class Portfolio Backlog (Deferred After Submission)
 
-- [x] **Consumptive Use by State (`web/dashboard.js` → Overview Card 4):** Replaced mixed hardcoded consumptive-use estimates with exact statutory apportionments (`CA 4.40`, `CO 3.86`, `AZ 2.85`, `UT 1.71`, `WY 1.04`, `NM 0.84`, `NV 0.30` = `15.00 MAF/yr` under the 1922/1948 Compacts & 1928 BCPA / 1964 Decree).
-- [x] **Macro Water Budget Sankey (`web/sankey.html`):** Re-anchored from `12.40 + 2.50 = 14.90 MAF` onto the USBR CY/WY 2005–2024 (`13.89 MAF/yr`) CUL + Natural Flow SQLite balance rendered dynamically from `web/data/water_budget.json`.
-- [x] **`5 Flow Regimes` Monsoon Curve (`scripts/build_database.py`, `scripts/export_sqlite_to_json.py`, `web/ml_analysis.html`):** Removed snowmelt-dominated San Juan (`09379500`) from `monsoon_tributaries`; now averages Little Colorado (`09402000`) and Paria River (`09382000`).
-- [x] **Unused Static JSON Blocks:** Removed `swe_history`, `state_consumptive_use`, and `canals_pipelines` from `web/data/portal_historical.json`, `reservoir_sawtooth_20yr` from `web/data/seasonal_regimes.json`, and `kmeans_clusters` from `web/data/tributary_hydrology.json`.
+- [ ] **Modularize Frontend Scripts (`web/app.js`, `web/dashboard.js`):** Split `web/app.js` (`6,879` lines) into focused ES modules for map layers, popups, camera flight, and tray state.
+- [ ] **Audit Ingestion Scripts for Defensive Fallbacks (`src/`, `scripts/`):** Sweep helper scripts for defensive `.get(..., 0)` defaults or broad `except:` clauses so upstream schema changes fail loudly.
+- [ ] **Full USBR Threshold Document Cross-Check:** Re-verify every elevation benchmark across Mead, Powell, and Upper CRSP reservoirs against post-2026 NEPA Record of Decision updates.
