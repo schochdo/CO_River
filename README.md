@@ -57,6 +57,8 @@ The web dashboard is organized into seven analytical views (plus Methodology, La
 
 ## The Basin Math at a Glance (Verified 2005–2024 Accounting Baseline)
 
+*Why 2005–2024?* Live USGS/USBR streamgages and reservoir sensors run through **November 2026**, whereas basin-wide **Natural Flow** and **Consumptive Uses & Losses (CUL)** require post-season irrigation diversion/return-flow audits and satellite evapotranspiration processing across seven states and Mexico—so **2024** is the latest complete year published across Reclamation's Natural Flow (`LFnatFlow1906-2024.xlsx`) and Upper/Lower CUL workbooks, and `2005–2024` is Reclamation's standard `'20 yr'` contemporary CUL reporting window.
+
 * **15.00 MAF/yr:** 1922 Compact domestic core apportionment (`7.50` Upper + `7.50` Lower, Article III.a).
 * **16.50 MAF/yr:** Core domestic apportionment (`15.00`) + 1944 Mexican Water Treaty obligation (`1.50`).
 * **17.50 MAF/yr:** **Full Statutory Paper Entitlements** (`15.00` Art. III.a + `1.00` Lower Art. III.b + `1.50` Mexico Treaty).

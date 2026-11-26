@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-11-26T04:34:05.087683+00:00",
-  "total_sources": 32,
+  "generated_at": "2026-11-26T05:10:59.609383+00:00",
+  "total_sources": 33,
   "sources": [
     {
       "source_id": "usbr_29node_natflow_1906_2020",
@@ -99,13 +99,29 @@
       "used_by_pages": "data_sources.html"
     },
     {
+      "source_id": "bcpa_1928",
+      "category": "compact",
+      "agency": "U.S. Congress (45 Stat. 1057)",
+      "title": "1928 Boulder Canyon Project Act (Lower Basin State Apportionments)",
+      "period": "1928-Present (Perpetual)",
+      "period_basis": "Statutory",
+      "locator_detail": "Sec. 4(a) pp. 2-3 (45 Stat. 1058-1059): CA 4,400,000 AF, AZ 2,800,000 AF, NV 300,000 AF",
+      "official_url": "https://www.govinfo.gov/content/pkg/STATUTE-45/pdf/STATUTE-45-Pg1057.pdf",
+      "doc_url": "https://www.govinfo.gov/content/pkg/STATUTE-45/pdf/STATUTE-45-Pg1057.pdf",
+      "local_raw_path": "data/raw/legal_compacts/1928_Boulder_Canyon_Project_Act_45Stat1057.pdf",
+      "retrieved_at_utc": "2026-11-26T05:10:50Z",
+      "bytes": 2670081,
+      "sha256": "ab319340eeda1c9e5e316becf805263624796f55f11bd4bc639729695d1403de",
+      "used_by_pages": "index.html, law.html, data_sources.html"
+    },
+    {
       "source_id": "compact_1922",
       "category": "compact",
       "agency": "Seven Basin States / U.S. Congress (42 Stat. 171)",
       "title": "1922 Colorado River Compact",
       "period": "1922-Present (Perpetual)",
       "period_basis": "Statutory",
-      "locator_detail": "Art. III(a) 7.5+7.5 MAF; Art. III(b) +1.0 MAF; Art. III(d) 75 MAF/10-yr Lees Ferry floor",
+      "locator_detail": "Art. III(a) p. 2: 7.5+7.5 MAF basin split (no state split); Art. III(b) +1.0 MAF; Art. III(d) 75 MAF/10-yr floor",
       "official_url": "https://www.usbr.gov/lc/region/g1000/pdfiles/crcompct.pdf",
       "doc_url": "https://www.usbr.gov/lc/region/g1000/pdfiles/crcompct.pdf",
       "local_raw_path": "data/raw/legal_compacts/1922_Colorado_River_Compact.pdf",
@@ -121,7 +137,7 @@
       "title": "1948 Upper Colorado River Basin Compact",
       "period": "1948-Present (Perpetual)",
       "period_basis": "Statutory",
-      "locator_detail": "Art. III(a): AZ 50,000 AF/yr; remainder CO 51.75%, UT 23.00%, WY 14.00%, NM 11.25%",
+      "locator_detail": "Art. III(a) pp. 2-3 (63 Stat. 32-33): AZ 50,000 AF/yr; remainder by % (CO 51.75%, UT 23%, WY 14%, NM 11.25%)",
       "official_url": "https://www.govinfo.gov/content/pkg/STATUTE-63/pdf/STATUTE-63-Pg31.pdf",
       "doc_url": "https://www.govinfo.gov/content/pkg/STATUTE-63/pdf/STATUTE-63-Pg31.pdf",
       "local_raw_path": "data/raw/legal_compacts/1948_Upper_Colorado_River_Basin_Compact_63Stat31.pdf",

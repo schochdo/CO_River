@@ -971,13 +971,13 @@ function initOverviewCharts() {
             callbacks: {
               title: items => {
                 const desc = {
-                  CA: 'California • 4.40 MAF (Lower Basin • 1928 BCPA / 1964 Decree)',
-                  CO: 'Colorado • 3.86 MAF (51.75% of 7.45 MAF Upper Basin • 1948 Compact)',
-                  AZ: 'Arizona • 2.85 MAF (2.80 Lower BCPA + 0.05 fixed Upper Basin)',
-                  UT: 'Utah • 1.71 MAF (23.00% of 7.45 MAF Upper Basin • 1948 Compact)',
-                  WY: 'Wyoming • 1.04 MAF (14.00% of 7.45 MAF Upper Basin • 1948 Compact)',
-                  NM: 'New Mexico • 0.84 MAF (11.25% of 7.45 MAF Upper Basin • 1948 Compact)',
-                  NV: 'Nevada • 0.30 MAF (Lower Basin • 1928 BCPA / 1964 Decree)'
+                  CA: 'California • 4.40 MAF (1928 BCPA §4a, 45 Stat. 1058 p. 2)',
+                  CO: 'Colorado • 3.86 MAF derived (51.75% × 7.45 MAF • 1948 Compact Art. III, p. 3)',
+                  AZ: 'Arizona • 2.85 MAF (2.80 Lower BCPA p. 3 + 0.05 Upper 1948 Compact p. 2)',
+                  UT: 'Utah • 1.71 MAF derived (23.00% × 7.45 MAF • 1948 Compact Art. III, p. 3)',
+                  WY: 'Wyoming • 1.04 MAF derived (14.00% × 7.45 MAF • 1948 Compact Art. III, p. 3)',
+                  NM: 'New Mexico • 0.84 MAF derived (11.25% × 7.45 MAF • 1948 Compact Art. III, p. 3)',
+                  NV: 'Nevada • 0.30 MAF (1928 BCPA §4a, 45 Stat. 1059 p. 3)'
                 };
                 return desc[items[0].label] || items[0].label;
               },

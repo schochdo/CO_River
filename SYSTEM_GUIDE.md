@@ -94,7 +94,7 @@ Why do different analyses cite **12.40 MAF/yr** vs. **13.12 MAF/yr** at Lees Fer
 | **Full USBR Instrumental Record** | 1906–2024 (`119` yrs) | **14.63 MAF/yr** | Complete USBR Lees Ferry natural flow workbook average. |
 | **Post-Compact Era** | 1922–2024 (`103` yrs) | **14.11 MAF/yr** | Full statutory administration record (`68.0%` of years below `16.50 MAF`). |
 | **Millennium Drought (25-Yr)** | 2000–2024 (`25` yrs) | **12.40 MAF/yr** | Includes the extreme `2000–2004` drought onset (`WY 2002` hit `5.93 MAF`). |
-| **USBR CUL Accounting Baseline (20-Yr)** | 2005–2024 (`20` yrs) | **13.12 MAF/yr** | Matches the latest 20-year USBR Consumptive Uses & Losses (CUL) reporting window (`+0.39 MAF/yr` from 5 gaged Lower Basin mainstem tributaries = **13.51 MAF/yr** mainstream inflow). |
+| **USBR CUL Accounting Baseline (20-Yr)** | 2005–2024 (`20` yrs) | **13.12 MAF/yr** | Matches Reclamation's standard `'20 yr'` contemporary Consumptive Uses & Losses (CUL) window (`+0.39 MAF/yr` from 5 gaged Lower Basin mainstem tributaries = **13.51 MAF/yr** mainstream inflow). Ends in `2024` due to the 1–2 year federal verification lag on post-season CUL and Natural Flow workbooks (live streamgages and reservoir elevations run through Nov 2026). |
 
 ### D. Closed 2005–2024 Macro Water Budget (`13.89 MAF/yr`)
 

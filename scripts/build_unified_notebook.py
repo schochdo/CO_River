@@ -88,7 +88,9 @@ def build_notebook():
         ]),
         md([
             "## 2. Core SQLite Tables & Historical Flow Windows",
-            "**Takeaway:** All figures below read directly from six tables in `data/colorado_river_basin.db`. Comparing historical windows in `annual_lees_ferry` also explains why two modern numbers appear in policy reports: **12.40 MAF/yr** (`Water Years 2000–2024`, which includes the severe `2000–2004` drought onset) versus **13.12 MAF/yr** (`Water Years 2005–2024`, which aligns with the 20-year USBR Consumptive Uses & Losses accounting baseline).",
+            "**Takeaway:** All figures below read directly from six tables in `data/colorado_river_basin.db`. Comparing historical windows in `annual_lees_ferry` clarifies two frequent questions:",
+            "1. **Why `2005–2024` instead of 2025/2026?** Live USGS/USBR gages and reservoir elevations run through **November 2026**, but basin-wide **Natural Flow** and **Consumptive Uses & Losses (CUL)** require 1–2 years of post-season irrigation return-flow and evapotranspiration audits—making `2024` the latest complete year across Reclamation's Natural Flow and Upper/Lower CUL workbooks, and `2005–2024` Reclamation's standard `'20 yr'` contemporary reporting window.",
+            "2. **Why `12.40` vs. `13.12 MAF/yr`?** Including the severe `2000–2004` drought onset (`WY 2002` = `5.93 MAF`) lowers the 25-year `2000–2024` Lees Ferry mean to **12.40 MAF/yr**, versus **13.12 MAF/yr** over `2005–2024`.",
         ]),
         code([
             "core_tables = [",
