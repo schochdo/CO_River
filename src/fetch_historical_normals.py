@@ -5,12 +5,12 @@ Writes web/data/historical_normals.json:
   { "09380000": { "09-29": 8400, "09-30": 8350, ... }, ... }
   (keys are MM-DD, values are long-term daily mean in cfs)
 """
-import requests
-import json
 import os
-from datetime import datetime, timezone
+import sys
 
-USER_AGENT = "DAT1001-Research (Colorado River Dashboard)"
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 
 GAUGE_SITES = [
     # Mainstem Upper Basin
@@ -97,63 +97,19 @@ GAUGE_SITES = [
     "09527700",  # All-American Canal
 ]
 
-STAT_URL = "https://waterservices.usgs.gov/nwis/stat/?format=rdb&sites={sites}&parameterCd=00060&statReportType=daily&statType=mean"
-
-def fetch_normals_batch(site_ids):
-    """Fetch daily mean stats for a batch of site IDs, return dict of {site_id: {MM-DD: mean_cfs}}"""
-    url = STAT_URL.format(sites=",".join(site_ids))
-    r = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=30)
-    if r.status_code != 200:
-        print(f"  ERROR {r.status_code} for sites {site_ids}")
-        return {}
-
-    result = {}
-    for line in r.text.splitlines():
-        if line.startswith("#") or line.startswith("5s") or line.startswith("agency"):
-            continue
-        parts = line.split("\t")
-        if len(parts) < 11:
-            continue
-        try:
-            site_no = parts[1].strip()
-            month = int(parts[5].strip())
-            day = int(parts[6].strip())
-            mean_va = float(parts[10].strip())
-            key = f"{month:02d}-{day:02d}"
-            if site_no not in result:
-                result[site_no] = {}
-            result[site_no][key] = round(mean_va, 1)
-        except (ValueError, IndexError):
-            continue
-    return result
-
-
 def main():
-    out_path = os.path.join(os.path.dirname(__file__), "..", "web", "data", "historical_normals.json")
-    all_normals = {}
+    """Rebuild normals tables from archived RDB into SQLite and export historical_normals.json."""
+    from scripts.build_database import main as rebuild_database
+    from scripts.export_sqlite_to_json import DB_PATH, export_historical_normals, get_conn
 
-    # Fetch in batches of 8 (USGS recommends ≤ 10)
-    batch_size = 8
-    batches = [GAUGE_SITES[i:i+batch_size] for i in range(0, len(GAUGE_SITES), batch_size)]
+    if not os.path.exists(DB_PATH):
+        rebuild_database()
+    conn = get_conn(DB_PATH)
+    try:
+        export_historical_normals(conn)
+    finally:
+        conn.close()
 
-    for i, batch in enumerate(batches):
-        print(f"Fetching batch {i+1}/{len(batches)}: {batch}")
-        normals = fetch_normals_batch(batch)
-        all_normals.update(normals)
-        print(f"  Got normals for {len(normals)} sites")
-
-    # Write output
-    out_data = {
-        "fetched_at": datetime.now(timezone.utc).isoformat(),
-        "description": "USGS historical daily-mean streamflow (cfs) keyed by site_no -> MM-DD",
-        "sites": all_normals
-    }
-    with open(out_path, "w") as f:
-        json.dump(out_data, f, indent=2)
-    print(f"\nWrote {len(all_normals)} sites to {out_path}")
-    for site, days in list(all_normals.items())[:3]:
-        today_key = datetime.now().strftime("%m-%d")
-        print(f"  {site}: today's mean ({today_key}) = {days.get(today_key, 'N/A')} cfs, {len(days)} days total")
 
 if __name__ == "__main__":
     main()

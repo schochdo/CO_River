@@ -3,194 +3,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Interaction & Dialogue Archive — Colorado River Basin Project</title>
+    <title>AI Interaction &amp; Dialogue Archive — Colorado River Basin Project</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="editorial.css">
     <style>
-            :root {
-            --canvas-bg: #fafaf9;
+        :root {
+            --canvas-bg: #f5f2eb;
             --surface-bg: #ffffff;
-            --surface-subtle: #f8fafc;
-            --user-bubble: #f1f5f9;
+            --surface-header: #ebe4d6;
+            --surface-subtle: #faf8f4;
+            --user-bubble: #faf8f4;
             --ink-heading: #0f172a;
-            --ink-body: #334155;
-            --ink-muted: #64748b;
-            --ink-subtle: #94a3b8;
-            --hairline: #e2e8f0;
-            --hairline-dark: #cbd5e1;
-            --accent-blue: #0284c7;
-            --accent-cyan: #0891b2;
-            --accent-amber: #d97706;
-            --code-bg: #f8fafc;
+            --ink-body: #1e293b;
+            --ink-muted: #475569;
+            --ink-subtle: #64748b;
+            --hairline: #cfc8ba;
+            --hairline-dark: #b8ae9c;
+            --accent-blue: #2b5c8f;
+            --accent-ochre: #7c4318;
+            --code-bg: #faf8f4;
         }
-        
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        
+
         body {
             background-color: var(--canvas-bg);
             color: var(--ink-body);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             line-height: 1.6;
-            padding-bottom: 5rem;
         }
-        
+
+        body.in-iframe .back-btn {
+            display: none !important;
+        }
+
         header.audit-header {
-            background: #ffffff;
+            background: var(--surface-header);
             border-bottom: 1px solid var(--hairline);
-            padding: 2rem 2rem 1.25rem;
+            width: 100%;
+        }
+
+        .audit-header-inner {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
         }
-        
-        .audit-meta-line {
-            font-size: 0.9rem;
-            color: var(--ink-muted);
-            margin-top: 0.35rem;
-        }
-        
-        .header-tag {
-            display: inline-block;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--accent-cyan);
-            border: 1px solid #bae6fd;
-            background: #f0f9ff;
-            padding: 0.2rem 0.6rem;
-            border-radius: 4px;
-            margin-bottom: 1rem;
+
+        .audit-eyebrow {
+            font-size: 10px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        
-        h1.audit-title {
-            font-size: 2.2rem;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            color: var(--ink-heading);
-            margin-bottom: 0.8rem;
-        }
-        
-        .audit-subtitle {
-            font-size: 1.05rem;
+            letter-spacing: 0.06em;
             color: var(--ink-muted);
-            max-width: 900px;
-            margin-bottom: 2rem;
-            line-height: 1.7;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.25rem;
-            margin-top: 1.5rem;
-        }
-        
-        .stat-card {
-            background: var(--surface-bg);
-            border: 1px solid var(--hairline);
-            border-radius: 8px;
-            padding: 1.25rem;
-        }
-        
-        .stat-val {
-            font-size: 2rem;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--accent-blue);
             margin-bottom: 0.25rem;
         }
-        
-        .stat-label {
-            font-size: 0.85rem;
-            color: var(--ink-muted);
-            font-weight: 500;
+
+        h1.audit-title {
+            font-size: 1.35rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color: var(--ink-heading);
+            line-height: 1.2;
         }
-        
+
+        .audit-meta-line {
+            font-size: 0.8rem;
+            color: var(--ink-muted);
+            margin-top: 0.3rem;
+            font-variant-numeric: tabular-nums;
+            font-feature-settings: "tnum" 1;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: #ffffff;
+            border: 1px solid var(--hairline-dark);
+            border-radius: 2px;
+            color: var(--ink-body);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+            text-decoration: none;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .back-btn:hover {
+            background: var(--surface-subtle);
+            border-color: #8c8476;
+            color: var(--ink-heading);
+        }
+
         main.audit-container {
             max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1.5rem;
+            margin: 1.5rem auto;
+            padding: 0 1.25rem;
         }
-        
+
         /* Sticky Filter Bar */
         .controls-sticky {
             position: sticky;
             top: 0;
             z-index: 100;
-            background: rgba(250, 250, 249, 0.95);
-            backdrop-filter: blur(12px);
+            background: var(--surface-header);
             border: 1px solid var(--hairline-dark);
-            border-radius: 10px;
-            padding: 1rem 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.05);
+            border-radius: 2px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 0.75rem;
             align-items: center;
             justify-content: space-between;
         }
-        
+
         .search-box-wrap {
-            flex: 1 1 320px;
+            flex: 1 1 280px;
             position: relative;
         }
-        
+
         .search-input {
             width: 100%;
             background: #ffffff;
             border: 1px solid var(--hairline-dark);
-            border-radius: 6px;
+            border-radius: 2px;
             color: var(--ink-heading);
-            padding: 0.65rem 1rem;
-            font-size: 0.95rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
             font-family: inherit;
             outline: none;
             transition: border-color 0.15s ease;
         }
-        
+
         .search-input:focus {
             border-color: var(--accent-blue);
         }
-        
+
         .filter-controls {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.5rem;
             flex-wrap: wrap;
         }
-        
+
         .filter-select {
             background: #ffffff;
             border: 1px solid var(--hairline-dark);
-            border-radius: 6px;
+            border-radius: 2px;
             color: var(--ink-body);
-            padding: 0.65rem 1rem;
-            font-size: 0.875rem;
+            padding: 0.48rem 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            max-width: 100%;
             outline: none;
             cursor: pointer;
         }
-        
+
         .action-btn {
             background: #ffffff;
             border: 1px solid var(--hairline-dark);
-            border-radius: 6px;
+            border-radius: 2px;
             color: var(--ink-body);
-            padding: 0.65rem 1.1rem;
-            font-size: 0.875rem;
-            font-weight: 500;
+            padding: 0.48rem 0.85rem;
+            font-size: 0.8rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
         }
-        
+
         .action-btn:hover {
-            background: #f1f5f9;
+            background: var(--surface-subtle);
             border-color: var(--accent-blue);
             color: var(--accent-blue);
         }
@@ -199,382 +194,483 @@
         .mockup-section {
             background: #ffffff;
             border: 1px solid var(--hairline);
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2.5rem;
+            border-radius: 2px;
+            padding: 1.5rem;
+            margin-bottom: 1.75rem;
         }
-        
+
         .section-title {
-            font-size: 1.3rem;
-            font-weight: 700;
+            font-size: 1.125rem;
+            font-weight: 800;
             color: var(--ink-heading);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.35rem;
+            letter-spacing: -0.01em;
         }
-        
+
         .section-desc {
             color: var(--ink-muted);
-            font-size: 0.95rem;
-            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
             max-width: 850px;
         }
-        
+
         .mockup-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
         }
-        
+
         .mockup-card {
-            background: #ffffff;
+            background: var(--surface-subtle);
             border: 1px solid var(--hairline);
-            border-radius: 8px;
+            border-radius: 2px;
             overflow: hidden;
-            transition: transform 0.15s ease, border-color 0.15s ease;
+            transition: border-color 0.15s ease;
         }
-        
+
         .mockup-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-blue);
+            border-color: #8c8476;
         }
-        
+
         .mockup-img {
             width: 100%;
-            height: 190px;
+            height: 180px;
             object-fit: cover;
             display: block;
             border-bottom: 1px solid var(--hairline);
         }
-        
+
         .mockup-title {
-            padding: 0.75rem 1rem 0.25rem;
-            font-size: 0.85rem;
-            font-weight: 600;
+            padding: 0.65rem 0.85rem 0.2rem;
+            font-size: 0.8rem;
+            font-weight: 700;
             color: var(--ink-heading);
         }
-        
+
         .mockup-fn {
-            padding: 0 1rem 0.75rem;
+            padding: 0 0.85rem 0.65rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--ink-muted);
+            word-break: break-word;
+        }
+
+        .argon-pdf-box {
+            margin-top: 1rem;
+            padding: 0.85rem 1rem;
+            background: var(--surface-subtle);
+            border: 1px solid var(--hairline);
+            border-radius: 2px;
+        }
+
+        .argon-pdf-title {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--ink-heading);
+            margin-bottom: 0.25rem;
+        }
+
+        .argon-pdf-desc {
+            font-size: 0.78rem;
+            color: var(--ink-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .argon-pdf-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 4px 16px;
+            font-size: 0.78rem;
+            list-style: disc;
+            padding-left: 1.15rem;
+            margin: 0;
+        }
+
+        .argon-pdf-link {
+            color: var(--accent-blue);
+            font-weight: 600;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .argon-pdf-link:hover {
+            color: #1e436a;
         }
 
         /* Dialogue List */
         .dialogue-stream {
             display: flex;
             flex-direction: column;
-            gap: 1.75rem;
+            gap: 1.25rem;
         }
-        
+
         .audit-card {
             background: #ffffff;
             border: 1px solid var(--hairline);
-            border-radius: 10px;
+            border-radius: 2px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            box-shadow: none;
             transition: border-color 0.15s ease;
         }
-        
+
         .audit-card:hover {
-            border-color: var(--hairline-dark);
+            border-color: #8c8476;
         }
-        
+
         .card-meta {
-            background: #f8fafc;
+            background: var(--surface-header);
             border-bottom: 1px solid var(--hairline);
-            padding: 0.75rem 1.25rem;
+            padding: 0.6rem 1rem;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 0.65rem;
-            font-size: 0.8rem;
+            gap: 0.55rem;
+            font-size: 0.78rem;
         }
-        
+
         .badge-idx {
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
             color: var(--accent-blue);
-            background: #e0f2fe;
-            border: 1px solid #bae6fd;
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
+            background: #ffffff;
+            border: 1px solid var(--hairline-dark);
+            padding: 0.12rem 0.45rem;
+            border-radius: 2px;
+            font-variant-numeric: tabular-nums;
         }
-        
+
         .badge-session {
             color: var(--ink-heading);
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .badge-argon {
             font-family: 'JetBrains Mono', monospace;
-            background: #fef3c7;
-            border: 1px solid #f59e0b;
-            color: #92400e;
+            background: #f5efe6;
+            border: 1px solid #c9a679;
+            color: var(--accent-ochre);
             font-size: 0.72rem;
             font-weight: 600;
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
+            padding: 0.12rem 0.45rem;
+            border-radius: 2px;
             cursor: pointer;
             text-decoration: none;
         }
         .badge-argon:hover {
-            background: #fde68a;
+            background: #ebe0d0;
         }
 
         .badge-argon-used {
             font-family: 'JetBrains Mono', monospace;
-            background: #e0f2fe;
-            border: 1px solid #38bdf8;
-            color: #075985;
+            background: #eef4fa;
+            border: 1px solid #adc4dc;
+            color: var(--accent-blue);
             font-size: 0.72rem;
             font-weight: 600;
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
+            padding: 0.12rem 0.45rem;
+            border-radius: 2px;
         }
 
         .audit-card.jump-highlight {
-            outline: 2px solid #d97706;
+            outline: 2px solid var(--accent-ochre);
             outline-offset: 2px;
             transition: outline-color 0.4s ease;
         }
-        
+
         .meta-time {
             margin-left: auto;
             color: var(--ink-muted);
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.74rem;
+            font-variant-numeric: tabular-nums;
         }
-        
+
         /* Speaker Blocks */
         .user-prompt-wrap {
-            background: #f8fafc;
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--hairline);
+            background: var(--user-bubble);
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #dfd9cc;
         }
-        
+
         .speaker-tag {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
-            font-weight: 700;
+            font-size: 0.68rem;
+            font-weight: 800;
             letter-spacing: 0.08em;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
             display: inline-block;
             text-transform: uppercase;
         }
-        
+
         .speaker-tag.user {
             color: var(--accent-blue);
         }
-        
+
         .prompt-text {
-            font-size: 0.975rem;
+            font-size: 0.92rem;
             color: var(--ink-heading);
             white-space: pre-wrap;
+            overflow-wrap: anywhere;
             line-height: 1.6;
         }
-        
+
         .screenshot-gallery {
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
+            gap: 0.85rem;
+            margin-top: 0.85rem;
+            padding-top: 0.85rem;
             border-top: 1px dashed var(--hairline-dark);
         }
-        
+
         .user-screenshot-wrap {
             background: #ffffff;
             border: 1px solid var(--hairline);
-            border-radius: 6px;
-            padding: 0.5rem;
+            border-radius: 2px;
+            padding: 0.4rem;
             max-width: 260px;
         }
-        
+
         .user-screenshot-thumb {
             width: 100%;
             height: 150px;
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: 2px;
             display: block;
             border: 1px solid var(--hairline);
             transition: opacity 0.15s ease;
         }
-        
+
         .user-screenshot-thumb:hover {
-            opacity: 0.85;
+            opacity: 0.88;
         }
-        
+
         .screenshot-label {
             display: block;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             color: var(--ink-muted);
-            margin-top: 0.4rem;
+            margin-top: 0.35rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
+
         /* AI Response Section */
         .ai-response-container {
             background: #ffffff;
             padding: 0;
         }
-        
+
         .ai-toggle-btn {
             width: 100%;
             background: transparent;
             border: none;
-            padding: 0.75rem 1.5rem;
+            padding: 0.65rem 1.25rem;
             text-align: left;
             color: var(--accent-blue);
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.82rem;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             border-bottom: 1px solid transparent;
-            transition: background 0.15s ease;
+            transition: background-color 0.15s ease;
         }
-        
+
         .ai-toggle-btn:hover {
-            background: #f8fafc;
+            background: var(--surface-subtle);
         }
-        
+
         .ai-response-body {
             display: block;
-            padding: 1.25rem 1.5rem 1.5rem;
+            padding: 1rem 1.25rem 1.25rem;
             border-top: 1px solid var(--hairline);
         }
-        
+
         .ai-response-body.collapsed {
             display: none;
         }
-        
+
         .tool-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.4rem;
+            gap: 0.35rem;
             align-items: center;
-            margin-bottom: 1.25rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--hairline);
+            margin-bottom: 1rem;
+            padding-bottom: 0.65rem;
+            border-bottom: 1px solid #dfd9cc;
         }
-        
+
         .tool-header {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
+            font-weight: 700;
             color: var(--ink-muted);
             margin-right: 0.25rem;
         }
-        
+
         .tool-pill {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.72rem;
-            background: #f1f5f9;
+            background: var(--canvas-bg);
             border: 1px solid var(--hairline);
             color: var(--ink-body);
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
+            padding: 0.12rem 0.45rem;
+            border-radius: 2px;
         }
-        
+
         .tool-pill.more {
-            background: #fef3c7;
-            border-color: #fde68a;
-            color: #b45309;
+            background: #f5efe6;
+            border-color: #c9a679;
+            color: var(--accent-ochre);
         }
-        
+
         .ai-action-only {
-            padding: 0.85rem 1.5rem;
-            font-size: 0.85rem;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.82rem;
             color: var(--ink-muted);
         }
-        
+
         .ai-action-only.empty {
             font-style: italic;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             color: var(--ink-subtle);
         }
-        
+
         /* Markdown formatting inside responses */
         .ai-markdown-content {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: var(--ink-body);
-            line-height: 1.7;
+            line-height: 1.68;
+            overflow-wrap: anywhere;
         }
-        
+
+        .ai-markdown-content a {
+            color: var(--accent-blue);
+            font-weight: 600;
+        }
+
         .ai-markdown-content p {
-            margin-bottom: 1rem;
+            margin-bottom: 0.85rem;
         }
-        
+
         .ai-markdown-content p:last-child {
             margin-bottom: 0;
         }
-        
+
         .ai-markdown-content .ai-heading {
             color: var(--ink-heading);
-            margin: 1.25rem 0 0.5rem;
-            font-weight: 700;
+            margin: 1.1rem 0 0.45rem;
+            font-weight: 800;
         }
-        
+
         .ai-markdown-content .inline-code {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85em;
-            background: #f1f5f9;
-            border: 1px solid var(--hairline);
-            color: #b45309;
+            font-size: 0.84em;
+            background: var(--canvas-bg);
+            border: 1px solid #dfd9cc;
+            color: var(--accent-ochre);
             padding: 0.1em 0.35em;
-            border-radius: 3px;
+            border-radius: 2px;
+            overflow-wrap: anywhere;
         }
-        
+
         .code-block-header {
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.7rem;
-            background: #f1f5f9;
+            font-weight: 700;
+            background: var(--surface-header);
             color: var(--ink-muted);
             padding: 0.3rem 0.75rem;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
+            border-radius: 2px 2px 0 0;
             border: 1px solid var(--hairline);
             border-bottom: none;
-            margin-top: 1rem;
+            margin-top: 0.85rem;
         }
-        
+
         .code-block {
-            background: #f8fafc;
+            background: var(--code-bg);
             border: 1px solid var(--hairline);
-            border-bottom-left-radius: 6px;
-            border-bottom-right-radius: 6px;
-            padding: 1rem;
+            border-radius: 0 0 2px 2px;
+            padding: 0.85rem 1rem;
             overflow-x: auto;
-            margin-bottom: 1rem;
+            margin-bottom: 0.85rem;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--ink-heading);
             line-height: 1.5;
         }
-        
+
         .ai-ul {
-            margin: 0.75rem 0 1rem 1.5rem;
+            margin: 0.65rem 0 0.85rem 1.4rem;
         }
-        
+
         .ai-li {
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.35rem;
+        }
+
+        footer.audit-footer {
+            background: var(--surface-header);
+            border-top: 1px solid var(--hairline);
+            margin-top: 2.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 11px;
+            color: var(--ink-muted);
+        }
+
+        .audit-footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .audit-footer a {
+            color: var(--ink-heading);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .audit-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media print {
+            body { background: #ffffff; }
+            .controls-sticky, .back-btn, .ai-toggle-btn { display: none !important; }
+            .ai-response-body.collapsed { display: block !important; }
+            .audit-card { break-inside: avoid; }
         }
 </style>
 </head>
 <body>
+<script>
+    if (window.self !== window.top) {
+        document.body.classList.add('in-iframe');
+    }
+</script>
 
 <header class="audit-header">
-    <h1 class="audit-title">Colorado River Basin Platform — AI Dialogue Archive</h1>
-    <div class="audit-meta-line">
-        <span>Sessions 1–7</span> &bull; 
-        <span>Sep 27 – Nov 23, 2026</span> &bull; 
-        <span>782 dialogues</span> &bull; 
-        <span>204 screenshots</span> &bull; 
-        <span>25 Argon &rarr; Flash prompts</span> &bull; 
-        <span>Updated Nov 24, 2026 12:17 PM</span>
+    <div class="audit-header-inner">
+        <div>
+            <div class="audit-eyebrow">DAT1001 Academic Audit • Verbatim Prompt &amp; Response Ledger</div>
+            <h1 class="audit-title">Colorado River Basin Platform — AI Dialogue Archive</h1>
+            <div class="audit-meta-line">
+                <span>Sessions 1–7</span> &bull; 
+                <span>Sep 27 – Nov 23, 2026</span> &bull; 
+                <span>782 dialogues</span> &bull; 
+                <span>204 screenshots</span> &bull; 
+                <span>25 Argon &rarr; Flash prompts</span> &bull; 
+                <span>Updated Nov 24, 2026 12:17 PM</span>
+            </div>
+        </div>
+        <a href="index.html" class="back-btn">&larr; System Dashboard</a>
     </div>
 </header>
 
@@ -596,7 +692,7 @@
                 <option value="aad5e810-76c0-4f7e-a9c4-9eb2855ee883">Session 7: Corridor Palette Unification, Sankey Brackets &amp; Single Notebook Consolidation (Nov 20–23)</option>
                 <option value="gemini-web-sessions">Gemini Web Sessions (10 PDFs / 84 Turns)</option>
             </select>
-            <select id="sortOrder" class="filter-select" style="min-width:210px;" onchange="applySortOrder()">
+            <select id="sortOrder" class="filter-select" onchange="applySortOrder()">
                 <option value="DESC" selected>Sort: Newest First (Nov 23 &rarr; Sep 27)</option>
                 <option value="ASC">Sort: Chronological (#1 Sep 27 &rarr; Nov 23)</option>
             </select>
@@ -663,10 +759,10 @@
             </div>
             <div style="margin-top:12px;font-size:12px;"><strong>Early Gemini Prototype:</strong> <a href="audit_assets/gemini_doc_gemini-code-1790119779253.html" target="_blank" rel="noopener noreferrer" class="tool-pill" style="text-decoration:none;margin-right:6px;">gemini-code-1790119779253.html ↗</a></div>
             
-        <div style="margin-top:16px;padding:12px 16px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;">
-            <strong style="display:block;font-size:13px;color:#0f172a;margin-bottom:4px;">Gemini Argon Meta-Prompting &amp; Architecture Sessions (10 PDFs, 84 Turns Extracted Below)</strong>
-            <p style="font-size:12px;color:#475569;margin-bottom:8px;">When Gemini 3.8 Flash drifted inside Antigravity, Gemini Argon sessions were used to sanity-check water law/hydrology and author structured anti-drift prompts. All 10 exported PDFs are archived below and indexed as filterable cards in the dialogue stream.</p>
-            <ul style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:4px 16px;font-size:12px;list-style:disc;padding-left:18px;margin:0;"><li><a href="audit_assets/gemini_session_colorado_river_basin_dashboard_mockup.pdf" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">Colorado River Basin Dashboard Mockup.pdf ↗</a></li><li><a href="audit_assets/gemini_session_colorado_river_basin_tributary_ml_analysis.pdf" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">Colorado River Basin Tributary ML Analysis.pdf ↗</a></li><li><a href="audit_assets/gemini_session_colorado_river_seasonal_modeling_strategy.pdf" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">Colorado River Seasonal Modeling Strategy.pdf ↗</a></li><li><a href="audit_assets/gemini_session_dat_1001_project_pipeline_review.pdf" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">DAT 1001 Project Pipeline Review.pdf ↗</a></li><li><a href="audit_assets/gemini_session_exporting_antigravity_session_logs.pdf" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">Exporting Antigravity Session Logs.pdf ↗</a></li><li><a href="audit_assets/gemini_session_fixing_ai_slop_in_water_policy_text.pdf" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">Fixing AI Slop in Water Policy Text.pdf ↗</a></li><li><a href="audit_assets/gemini_session_gis_and_hydrology_river_network_integration.pdf" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">GIS and Hydrology River Network Integration.pdf ↗</a></li><li><a href="audit_assets/gemini_session_project_outline_sanity_check.pdf" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">Project Outline Sanity Check.pdf ↗</a></li><li><a href="audit_assets/gemini_session_understanding_dam_water_levels_and_plumbing.pdf" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">Understanding Dam Water Levels and Plumbing.pdf ↗</a></li><li><a href="audit_assets/gemini_session_understanding_government_water_api_architecture.pdf" target="_blank" rel="noopener noreferrer" style="color:#0284c7;font-weight:600;text-decoration:underline;">Understanding Government Water API Architecture.pdf ↗</a></li></ul>
+        <div class="argon-pdf-box">
+            <strong class="argon-pdf-title">Gemini Argon Meta-Prompting &amp; Architecture Sessions (10 PDFs, 84 Turns Extracted Below)</strong>
+            <p class="argon-pdf-desc">When Gemini 3.8 Flash drifted inside Antigravity, Gemini Argon sessions were used to sanity-check water law/hydrology and author structured anti-drift prompts. All 10 exported PDFs are archived below and indexed as filterable cards in the dialogue stream.</p>
+            <ul class="argon-pdf-list"><li><a href="audit_assets/gemini_session_colorado_river_basin_dashboard_mockup.pdf" target="_blank" rel="noopener noreferrer" class="argon-pdf-link">Colorado River Basin Dashboard Mockup.pdf ↗</a></li><li><a href="audit_assets/gemini_session_colorado_river_basin_tributary_ml_analysis.pdf" target="_blank" rel="noopener noreferrer" class="argon-pdf-link">Colorado River Basin Tributary ML Analysis.pdf ↗</a></li><li><a href="audit_assets/gemini_session_colorado_river_seasonal_modeling_strategy.pdf" target="_blank" rel="noopener noreferrer" class="argon-pdf-link">Colorado River Seasonal Modeling Strategy.pdf ↗</a></li><li><a href="audit_assets/gemini_session_dat_1001_project_pipeline_review.pdf" target="_blank" rel="noopener noreferrer" class="argon-pdf-link">DAT 1001 Project Pipeline Review.pdf ↗</a></li><li><a href="audit_assets/gemini_session_exporting_antigravity_session_logs.pdf" target="_blank" rel="noopener noreferrer" class="argon-pdf-link">Exporting Antigravity Session Logs.pdf ↗</a></li><li><a href="audit_assets/gemini_session_fixing_ai_slop_in_water_policy_text.pdf" target="_blank" rel="noopener noreferrer" class="argon-pdf-link">Fixing AI Slop in Water Policy Text.pdf ↗</a></li><li><a href="audit_assets/gemini_session_gis_and_hydrology_river_network_integration.pdf" target="_blank" rel="noopener noreferrer" class="argon-pdf-link">GIS and Hydrology River Network Integration.pdf ↗</a></li><li><a href="audit_assets/gemini_session_project_outline_sanity_check.pdf" target="_blank" rel="noopener noreferrer" class="argon-pdf-link">Project Outline Sanity Check.pdf ↗</a></li><li><a href="audit_assets/gemini_session_understanding_dam_water_levels_and_plumbing.pdf" target="_blank" rel="noopener noreferrer" class="argon-pdf-link">Understanding Dam Water Levels and Plumbing.pdf ↗</a></li><li><a href="audit_assets/gemini_session_understanding_government_water_api_architecture.pdf" target="_blank" rel="noopener noreferrer" class="argon-pdf-link">Understanding Government Water API Architecture.pdf ↗</a></li></ul>
         </div>
         
         </section>
@@ -44337,8 +44433,11 @@ files full of redundant charts and commentary and impossible to read code, those
     }
 </script>
 
-<footer style="max-width:1200px;margin:2rem auto 0;padding:1rem 2rem;border-top:1px solid #cbd5e1;font-size:12px;color:#64748b;">
-    Colorado River Basin • DAT1001 • Douglas Schoch • Fall 2026
+<footer class="audit-footer">
+    <div class="audit-footer-inner">
+        <span>Colorado River Basin • DAT1001 • Douglas Schoch • Fall 2026</span>
+        <a href="index.html">&larr; Return to System Dashboard</a>
+    </div>
 </footer>
 
 </body>

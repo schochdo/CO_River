@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Colorado Mountain College (DAT1001) - 3D Basin Explorer and Hydrologic Transit Schematic",
   "scripts": {
-    "test": "node scripts/smoke_test.js",
+    "test": "(.venv/bin/python3 scripts/data_smoke_test.py || python3 scripts/data_smoke_test.py) && node scripts/smoke_test.js",
     "update:data": "./.venv/bin/python3 src/fetch_water_data.py || python3 src/fetch_water_data.py",
     "update:normals": "./.venv/bin/python3 src/fetch_historical_normals.py || python3 src/fetch_historical_normals.py",
     "update:portal": "./.venv/bin/python3 src/fetch_historical_portal_data.py || python3 src/fetch_historical_portal_data.py"

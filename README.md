@@ -47,8 +47,8 @@ The web dashboard is organized into seven specialized analytical views:
 │ 6. Reservoirs      │ 90-year multi-reservoir storage timeline (1935–2026) and monthly  │
 │                    │ elevation heatmaps for Lake Mead and Lake Powell                  │
 ├────────────────────┼───────────────────────────────────────────────────────────────────┤
-│ 7. ML Analysis     │ Single-screen Gapminder dashboard with K-Means regime clustering, │
-│                    │ Richards-Baker Flashiness index, and lagged travel times to Powell│
+│ 7. ML Analysis     │ Single-screen Gapminder dashboard with flashiness regimes (RBI),  │
+│                    │ Lake Powell hypsometry, and lagged travel times to Powell        │
 └────────────────────┴───────────────────────────────────────────────────────────────────┘
 ```
 

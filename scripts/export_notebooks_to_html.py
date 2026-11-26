@@ -11,6 +11,7 @@ import re
 import json
 import html
 import glob
+import shutil
 from pygments import highlight
 from pygments.lexers import PythonLexer
 from pygments.formatters import HtmlFormatter
@@ -268,7 +269,7 @@ def render_notebook(ipynb_path, output_html_path):
                         data = out.get('data', {})
                         if 'image/png' in data:
                             img_b64 = data['image/png'].strip()
-                            code_block += f'<div class="output-item image-output my-3 text-center"><img src="data:image/png;base64,{img_b64}" class="max-w-full rounded shadow-sm border border-stone-200" alt="Notebook Plot Output" /></div>'
+                            code_block += f'<div class="output-item image-output my-3 text-center"><img src="data:image/png;base64,{img_b64}" class="max-w-full mx-auto rounded-[2px] border border-[#cfc8ba]" alt="Notebook Plot Output" /></div>'
                         elif 'text/html' in data:
                             html_content = ''.join(data['text/html'])
                             code_block += f'<div class="output-item html-output overflow-x-auto my-2">{html_content}</div>'
@@ -281,7 +282,7 @@ def render_notebook(ipynb_path, output_html_path):
                         traceback_text = '\n'.join(out.get('traceback', []))
                         # Strip ANSI escape codes
                         clean_tb = re.sub(r'\x1b\[[0-9;]*m', '', traceback_text)
-                        code_block += f'<div class="output-item error-output"><pre class="notebook-output text-rose-700 bg-rose-50 border border-rose-200">{html.escape(clean_tb or f"{ename}: {evalue}")}</pre></div>'
+                        code_block += f'<div class="output-item error-output"><pre class="notebook-output text-[#9e3f32] bg-[#fdf3f2] border border-[#e6b8b3]">{html.escape(clean_tb or f"{ename}: {evalue}")}</pre></div>'
                 code_block += '</div>'
 
             code_block += '</div>'
@@ -291,8 +292,8 @@ def render_notebook(ipynb_path, output_html_path):
     toc_html = []
     for item in toc_entries:
         indent = (item['level'] - 1) * 12
-        level_class = "font-bold text-stone-800" if item['level'] <= 2 else "text-stone-600"
-        toc_html.append(f'<a href="#{item["slug"]}" class="block text-xs py-1 hover:text-sky-700 transition truncate {level_class}" style="padding-left: {indent}px;">{html.escape(item["title"])}</a>')
+        level_class = "font-bold text-[#0f172a]" if item['level'] <= 2 else "text-[#475569]"
+        toc_html.append(f'<a href="#{item["slug"]}" class="block text-xs py-1 hover:text-[#2b5c8f] transition truncate {level_class}" style="padding-left: {indent}px;">{html.escape(item["title"])}</a>')
 
     toc_rendered = '\n'.join(toc_html) if toc_html else '<p class="text-xs text-stone-500 italic">No section headers detected.</p>'
 
@@ -302,7 +303,11 @@ def render_notebook(ipynb_path, output_html_path):
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{html.escape(title)} — Colorado River Research Notebook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../editorial.css">
   <!-- KaTeX for LaTeX mathematical rendering -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
@@ -310,120 +315,130 @@ def render_notebook(ipynb_path, output_html_path):
           onload="renderMathInElement(document.body, {{delimiters: [{{left: '$$', right: '$$', display: true}}, {{left: '$', right: '$', display: false}}]}});"></script>
   <style>
     body {{
-      background-color: #faf9f5;
-      color: #1c1917;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #f5f2eb;
+      color: #1e293b;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       line-height: 1.6;
     }}
     {pygments_css}
     .highlight {{
-      background-color: #f6f8fa;
-      border: 1px solid #e1e4e8;
-      border-radius: 6px;
+      background-color: #faf8f4;
+      border: 1px solid #cfc8ba;
+      border-radius: 2px;
       padding: 12px 16px;
       overflow-x: auto;
-      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
       font-size: 12px;
       line-height: 1.5;
     }}
+    .code-cell .highlight {{
+      border: none;
+      border-radius: 0;
+    }}
     .inline-code {{
-      background-color: rgba(27, 31, 35, 0.05);
-      border-radius: 3px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      background-color: #f5f2eb;
+      border: 1px solid #dfd9cc;
+      border-radius: 2px;
+      color: #7c4318;
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 85%;
-      padding: 0.2em 0.4em;
+      padding: 0.12em 0.38em;
     }}
     .notebook-cell {{
-      margin-bottom: 1.75rem;
+      margin-bottom: 1.5rem;
     }}
     .code-cell {{
       background: #ffffff;
-      border: 1px solid #e7e5e4;
-      border-radius: 8px;
+      border: 1px solid #cfc8ba;
+      border-radius: 2px;
       overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      box-shadow: none;
     }}
     .code-header {{
-      background: #fbfbfa;
-      border-b: 1px solid #e7e5e4;
+      background: #ebe4d6;
+      border-bottom: 1px solid #cfc8ba;
       padding: 6px 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 11px;
-      font-family: ui-monospace, monospace;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
     }}
     .prompt-in {{
-      color: #0284c7;
+      color: #2b5c8f;
       font-weight: 700;
     }}
     .code-lang {{
-      color: #78716c;
+      color: #475569;
       text-transform: uppercase;
       font-size: 10px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.05em;
     }}
     .outputs-wrapper {{
-      border-top: 1px solid #e7e5e4;
+      border-top: 1px solid #cfc8ba;
       background: #ffffff;
       padding: 10px 14px;
     }}
     .notebook-output {{
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
       font-size: 11px;
       white-space: pre-wrap;
-      word-break: break-all;
-      background: #fafaf9;
+      word-break: break-word;
+      background: #faf8f4;
       padding: 8px 12px;
-      border-radius: 4px;
-      border: 1px solid #f5f5f4;
-      color: #292524;
+      border-radius: 2px;
+      border: 1px solid #dfd9cc;
+      color: #1e293b;
       max-height: 380px;
       overflow-y: auto;
     }}
-    .notebook-h1 {{ font-size: 1.75rem; font-weight: 900; color: #1c1917; margin-top: 1.5rem; margin-bottom: 0.75rem; border-bottom: 2px solid #e7e5e4; padding-bottom: 0.5rem; }}
-    .notebook-h2 {{ font-size: 1.35rem; font-weight: 800; color: #1c1917; margin-top: 1.75rem; margin-bottom: 0.6rem; border-bottom: 1px solid #e7e5e4; padding-bottom: 0.35rem; }}
-    .notebook-h3 {{ font-size: 1.15rem; font-weight: 700; color: #292524; margin-top: 1.25rem; margin-bottom: 0.5rem; }}
-    .notebook-h4 {{ font-size: 1.0rem; font-weight: 600; color: #44403c; margin-top: 1rem; margin-bottom: 0.4rem; }}
-    .notebook-p {{ margin-bottom: 0.85rem; font-size: 0.9375rem; color: #292524; }}
-    .notebook-ul {{ list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.85rem; font-size: 0.9375rem; color: #292524; }}
-    .notebook-ol {{ list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.85rem; font-size: 0.9375rem; color: #292524; }}
-    .notebook-quote {{ border-left: 4px solid #0284c7; padding-left: 1rem; margin: 1rem 0; color: #44403c; background: #f0f9ff; padding: 0.75rem 1rem; border-radius: 0 4px 4px 0; }}
-    .notebook-link {{ color: #0284c7; text-decoration: underline; text-underline-offset: 2px; font-weight: 500; }}
-    .notebook-link:hover {{ color: #0369a1; }}
-    .anchor-link {{ color: #a8a29e; margin-left: 0.35rem; text-decoration: none; opacity: 0; transition: opacity 0.2s; font-size: 0.9rem; }}
+    .notebook-h1 {{ font-size: 1.55rem; font-weight: 900; color: #0f172a; margin-top: 0.25rem; margin-bottom: 0.75rem; border-bottom: 1.5px solid #cfc8ba; padding-bottom: 0.5rem; letter-spacing: -0.02em; }}
+    .notebook-h2 {{ font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-top: 1.75rem; margin-bottom: 0.6rem; border-bottom: 1px solid #dfd9cc; padding-bottom: 0.35rem; letter-spacing: -0.01em; }}
+    .notebook-h3 {{ font-size: 1.05rem; font-weight: 700; color: #1e293b; margin-top: 1.25rem; margin-bottom: 0.45rem; }}
+    .notebook-h4 {{ font-size: 0.95rem; font-weight: 700; color: #334155; margin-top: 1rem; margin-bottom: 0.35rem; }}
+    .notebook-p {{ margin-bottom: 0.85rem; font-size: 0.9rem; color: #1e293b; overflow-wrap: anywhere; }}
+    .notebook-ul {{ list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.85rem; font-size: 0.9rem; color: #1e293b; }}
+    .notebook-ol {{ list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.85rem; font-size: 0.9rem; color: #1e293b; }}
+    .notebook-quote {{ border-left: 3px solid #2b5c8f; margin: 1rem 0; color: #334155; background: #f5f2eb; border-top: 1px solid #dfd9cc; border-right: 1px solid #dfd9cc; border-bottom: 1px solid #dfd9cc; padding: 0.7rem 1rem; border-radius: 2px; font-size: 0.875rem; }}
+    .notebook-link {{ color: #2b5c8f; text-decoration: underline; text-underline-offset: 2px; font-weight: 600; overflow-wrap: anywhere; }}
+    .notebook-link:hover {{ color: #1e436a; }}
+    .anchor-link {{ color: #8c8476; margin-left: 0.35rem; text-decoration: none; opacity: 0; transition: opacity 0.15s; font-size: 0.9rem; }}
     h1:hover .anchor-link, h2:hover .anchor-link, h3:hover .anchor-link {{ opacity: 1; }}
-    .notebook-table {{ width: 100%; border-collapse: collapse; font-size: 12px; margin: 1rem 0; }}
-    .notebook-table th {{ background: #f5f5f4; border: 1px solid #d6d3d1; padding: 6px 10px; text-align: left; font-weight: 700; color: #1c1917; }}
-    .notebook-table td {{ border: 1px solid #e7e5e4; padding: 6px 10px; color: #292524; }}
-    .notebook-table tr:nth-child(even) {{ background: #fafaf9; }}
+    .notebook-table {{ width: 100%; border-collapse: collapse; font-size: 12px; margin: 1rem 0; font-variant-numeric: tabular-nums; }}
+    .notebook-table th {{ background: #ebe4d6; border: 1px solid #cfc8ba; padding: 6px 10px; text-align: left; font-weight: 800; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; color: #0f172a; }}
+    .notebook-table td {{ border: 1px solid #dfd9cc; padding: 6px 10px; color: #1e293b; }}
+    .notebook-table tr:nth-child(even) {{ background: #faf8f4; }}
+    body.in-iframe #btn-back-portal {{ display: none !important; }}
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
+  <script>
+    if (window.self !== window.top) {{
+      document.body.classList.add('in-iframe');
+    }}
+  </script>
 
-  <!-- Top Sticky Navigation Bar -->
-  <header class="sticky top-0 z-50 bg-[#1c1917] text-stone-100 border-b border-stone-800 shadow-md">
+  <!-- Warm Sandstone Editorial Navigation Header -->
+  <header class="sticky top-0 z-50 bg-[#ebe4d6] text-[#0f172a] border-b border-[#cfc8ba]">
     <div class="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between flex-wrap gap-2">
-      <div class="flex items-center gap-3">
-        <a href="../index.html?tab=overview" class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded bg-stone-800 hover:bg-stone-700 text-sky-300 hover:text-sky-200 transition">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-          <span>Return to Portal</span>
+      <div class="flex items-center gap-3 min-w-0">
+        <a id="btn-back-portal" href="../index.html" class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-[2px] bg-white hover:bg-[#faf8f4] text-stone-800 border border-[#b8ae9c] transition shrink-0">
+          <span>← System Dashboard</span>
         </a>
-        <div class="h-4 w-px bg-stone-700 hidden sm:block"></div>
-        <span class="text-xs font-bold text-stone-300 hidden md:inline truncate max-w-md">{html.escape(title)}</span>
+        <div class="h-4 w-px bg-[#b8ae9c] hidden sm:block shrink-0"></div>
+        <span class="text-xs font-bold text-stone-800 hidden md:inline truncate max-w-md">{html.escape(title)}</span>
       </div>
 
-      <div class="flex items-center gap-2">
-        <a href="{filename}" download class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition" title="Download raw .ipynb file">
-          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      <div class="flex items-center gap-2 flex-wrap">
+        <a href="{filename}" download class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-[2px] bg-[#2b5c8f] hover:bg-[#21476e] text-white border border-[#21476e] transition" title="Download raw .ipynb file">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           <span>Download .ipynb</span>
         </a>
-        <a href="https://colab.research.google.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-800/80 transition" title="Open in Google Colab (Upload from computer or link)">
-          <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><path d="M16.9 8.2a4.8 4.8 0 00-6.8 0L3.5 14.8a4.8 4.8 0 106.8 6.8l6.6-6.6a4.8 4.8 0 000-6.8zm-1.4 5.4l-6.6 6.6a2.8 2.8 0 11-4-4l6.6-6.6a2.8 2.8 0 114 4z"/></svg>
-          <span>Google Colab</span>
+        <a href="https://colab.research.google.com/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-[2px] bg-white hover:bg-[#faf8f4] text-stone-800 border border-[#b8ae9c] transition" title="Open in Google Colab">
+          <span>Google Colab ↗</span>
         </a>
-        <a href="https://nbviewer.org/" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 transition" title="Project Jupyter nbviewer">
+        <a href="https://nbviewer.org/" target="_blank" rel="noopener noreferrer" class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-[2px] bg-white hover:bg-[#faf8f4] text-stone-800 border border-[#b8ae9c] transition" title="Project Jupyter nbviewer">
           <span>nbviewer ↗</span>
         </a>
       </div>
@@ -431,19 +446,13 @@ def render_notebook(ipynb_path, output_html_path):
   </header>
 
   <!-- Main Container -->
-  <div class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-4 gap-8">
+  <div class="max-w-7xl mx-auto px-3 sm:px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
     
     <!-- Left Reading Content (3 Columns) -->
-    <main class="lg:col-span-3 bg-white p-6 md:p-10 rounded-xl border border-stone-200 shadow-sm min-w-0">
-      <div class="mb-6 pb-6 border-b border-stone-200">
-        <div class="flex items-center gap-2 mb-2 flex-wrap">
-          <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-sky-100 text-sky-800 border border-sky-200">DAT 1001 Research</span>
-          <span class="text-[10px] font-bold text-stone-500">Colorado River Basin Data Pipeline</span>
-          <span class="text-[10px] font-bold text-stone-400">•</span>
-          <span class="text-[10px] font-mono text-stone-500">{filename}</span>
-        </div>
-        <h1 class="text-2xl md:text-3xl font-black text-stone-900 tracking-tight leading-tight">{html.escape(title)}</h1>
-        <p class="text-xs text-stone-600 mt-2">Static archival rendering generated from the master research repository. Interactive code blocks, mathematical formulations, and data figures preserved.</p>
+    <main class="lg:col-span-3 bg-white p-5 md:p-8 rounded-[2px] border border-[#cfc8ba] min-w-0">
+      <div class="mb-4 pb-2.5 border-b border-[#dfd9cc] flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-stone-500">
+        <span>notebooks/{filename}</span>
+        <span>Executed Python 3.11 • SQLite + Matplotlib / Seaborn</span>
       </div>
 
       <!-- Notebook Rendered Content -->
@@ -454,10 +463,10 @@ def render_notebook(ipynb_path, output_html_path):
 
     <!-- Right Sticky Table of Contents (1 Column) -->
     <aside class="hidden lg:block lg:col-span-1">
-      <div class="sticky top-20 bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
-        <h3 class="text-xs font-black uppercase tracking-wider text-stone-500 pb-2 border-b border-stone-200 mb-3 flex items-center justify-between">
+      <div class="sticky top-16 bg-white p-4 rounded-[2px] border border-[#cfc8ba]">
+        <h3 class="text-xs font-black uppercase tracking-wider text-stone-700 pb-2 border-b border-[#cfc8ba] mb-3 flex items-center justify-between">
           <span>Table of Contents</span>
-          <span class="text-[10px] font-normal text-stone-400">Jump to section</span>
+          <span class="text-[10px] font-normal text-stone-500">Sections</span>
         </h3>
         <nav class="space-y-0.5 max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
           {toc_rendered}
@@ -467,9 +476,12 @@ def render_notebook(ipynb_path, output_html_path):
 
   </div>
 
-  <!-- Footer -->
-  <footer class="bg-stone-100 border-t border-stone-200 py-6 text-center text-xs text-stone-500 mt-12">
-    <p>Colorado River Basin • DAT1001 • Douglas Schoch • Fall 2026</p>
+  <!-- Editorial Footer -->
+  <footer class="bg-[#ebe4d6] border-t border-[#cfc8ba] px-6 py-3 mt-10">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-[11px] text-stone-600">
+      <span>Colorado River Basin • DAT1001 • Douglas Schoch • Fall 2026</span>
+      <a href="../index.html" class="font-bold text-stone-800 hover:text-stone-950">← Return to System Dashboard</a>
+    </div>
   </footer>
 
 </body>
@@ -486,6 +498,7 @@ def main():
     
     for nb in sorted(notebook_files):
         base = os.path.basename(nb)
+        shutil.copy2(nb, os.path.join('web/notebooks', base))
         out_name = os.path.splitext(base)[0] + '.html'
         out_path = os.path.join('web/notebooks', out_name)
         render_notebook(nb, out_path)

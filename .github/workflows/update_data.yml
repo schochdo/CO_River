@@ -49,6 +49,14 @@ jobs:
         run: |
           python3 src/fetch_replay_30d.py
 
+      - name: Export Static JSON Contracts from SQLite
+        run: |
+          python3 scripts/export_sqlite_to_json.py
+
+      - name: Run Quantitative Data & Provenance Smoke Tests
+        run: |
+          python3 scripts/data_smoke_test.py
+
       - name: Commit and Push Updated Data
         run: |
           git config user.name "github-actions[bot]"

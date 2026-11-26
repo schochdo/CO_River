@@ -1,186 +1,232 @@
 #!/usr/bin/env python3
 """
-Computes the Richards-Baker Flashiness Index (RBI) and Sentinel Status Hierarchy
-for all Colorado River Basin dashboard facilities and writes web/data/station_hierarchy.json.
+Computes true daily Richards-Baker Flashiness Index (RBI) from USGS NWIS
+daily discharge records (WY 2016-2025) and Sentinel Status Hierarchy for
+Colorado River Basin dashboard facilities, writing:
+  - web/data/station_hierarchy.json
+  - data/colorado_river_basin.db (rbi_flashiness table)
 
-Formulas:
-  RBI = sum(|Q_t - Q_{t-1}|) / sum(Q_t)
+Formula (on raw daily Q_t, not smoothed multi-year normals):
+  RBI = mean_over_complete_WYs( sum(|Q_t - Q_{t-1}|) / sum(Q_t) )
 Regimes:
-  - Regulated / Attenuated: RBI < 0.020
-  - Snowmelt Baseflow: 0.020 <= RBI < 0.060
-  - Flashy / Desert Monsoon: RBI >= 0.060
-  - Storage Buffer: N/A for reservoirs
+  - Regulated: RBI < 0.045
+  - Snowmelt:  0.045 <= RBI < 0.150
+  - Flashy:    RBI >= 0.150
 """
 
 import json
 import os
+import re
+import sqlite3
+import statistics
+import time
+import requests
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-NORMALS_PATH = os.path.join(REPO_ROOT, "web", "data", "historical_normals.json")
 METRICS_PATH = os.path.join(REPO_ROOT, "web", "data", "latest_metrics.json")
 OUTPUT_PATH = os.path.join(REPO_ROOT, "web", "data", "station_hierarchy.json")
+DB_PATH = os.path.join(REPO_ROOT, "data", "colorado_river_basin.db")
 
-# Explicit Sentinel Tiers
+USER_AGENT = "DAT1001-Colorado-River-Dashboard/1.0"
+USGS_DV_URL = (
+    "https://waterservices.usgs.gov/nwis/dv/"
+    "?format=json&sites={sites}&parameterCd=00060"
+    "&startDT=2015-10-01&endDT=2025-09-30"
+)
+
 COMPACT_SENTINEL_IDS = {"09380000"}
 
 BASIN_SENTINEL_IDS = {
-    # Mainstem Upper Basin Sentinels
-    "09095500",  # Cameo
-    "09070500",  # Dotsero
-    "09163500",  # CO-UT State Line
-    "09180500",  # Cisco
-    # Green River Major Accounting Nodes
-    "09234500",  # Greendale (Flaming Gorge Dam Release)
-    "09260050",  # Yampa River at Deerlodge Park
-    "09261000",  # Jensen, UT
-    "09315000",  # Green River at Green River, UT
-    # Major Tributary Terminus Sentinels
-    "09152500",  # Gunnison River near Grand Junction
-    "09180000",  # Dolores River near Cisco
-    "09379500",  # San Juan River near Bluff
-    # Lower Basin Regulated Deliveries & Dams
+    "09095500", "09070500", "09163500", "09180500",
+    "09234500", "09260050", "09261000", "09315000",
+    "09152500", "09180000", "09379500",
     "USBR-HOOVER", "USBR_HOOVER", "09421500",
     "USBR-DAVIS", "USBR_DAVIS", "09423000",
     "USBR-PARKER", "USBR_PARKER", "09427520",
-    "09429100",  # Below Palo Verde Dam
-    "09429500",  # Below Imperial Dam
+    "09429100", "09429500",
 }
 
-def calculate_rbi_for_normals(days_dict):
-    sorted_days = sorted(days_dict.keys())
-    values = [days_dict[d] for d in sorted_days]
-    total_q = sum(values)
-    if total_q <= 0:
-        return 0.0
-    abs_diff = sum(abs(values[i] - values[i-1]) for i in range(1, len(values)))
-    return round(abs_diff / total_q, 4)
+SHOWCASE_DB_STATIONS = [
+    ("09380000", "Colorado R at Lees Ferry (Glen Canyon)", 107900.0, 0),
+    ("09234500", "Green R bl Flaming Gorge Dam", 15090.0, 0),
+    ("09429500", "Colorado R below Imperial Dam", 184500.0, 0),
+    ("09095500", "Colorado R near Cameo (Upper Mainstem)", 8050.0, 1),
+    ("09180500", "Colorado R near Cisco (Grand Valley)", 24100.0, 1),
+    ("09315000", "Green River at Green River, UT", 40600.0, 1),
+    ("09379500", "San Juan River near Bluff, UT", 23000.0, 2),
+    ("09333500", "Dirty Devil River near Hanksville, UT", 4190.0, 3),
+    ("09337500", "Escalante River near Escalante, UT", 320.0, 3),
+    ("09382000", "Paria River at Lees Ferry", 1410.0, 3),
+    ("09520500", "Gila River at Dome, AZ", 58080.0, 3),
+]
 
-def classify_rbi(rbi):
+
+def water_year(date_str):
+    y, m, _ = map(int, date_str.split("-"))
+    return y + 1 if m >= 10 else y
+
+
+def fetch_daily_rbi_and_cv(site_ids):
+    """Fetch 10-yr USGS daily discharge in batches and compute true daily RBI and CV."""
+    stats_by_site = {}
+    batch_size = 15
+    for i in range(0, len(site_ids), batch_size):
+        batch = site_ids[i:i + batch_size]
+        url = USGS_DV_URL.format(sites=",".join(batch))
+        print(f"Fetching USGS daily batch {i // batch_size + 1} ({len(batch)} sites)...")
+        resp = None
+        for attempt in range(3):
+            try:
+                resp = requests.get(url, headers={"User-Agent": USER_AGENT}, timeout=60)
+                if resp.status_code == 200:
+                    break
+            except Exception as e:
+                print(f"  Attempt {attempt + 1} error: {e}")
+                time.sleep(1.5 * (attempt + 1))
+        if resp is None or resp.status_code != 200:
+            print(f"  Warning: failed batch {batch}")
+            continue
+        payload = resp.json()
+        for ts in payload.get("value", {}).get("timeSeries", []):
+            sid = ts["sourceInfo"]["siteCode"][0]["value"]
+            by_wy = {}
+            all_q = []
+            for v in ts.get("values", [{}])[0].get("value", []):
+                dt = v.get("dateTime", "")[:10]
+                try:
+                    q = float(v.get("value"))
+                except (TypeError, ValueError):
+                    continue
+                if q < 0:
+                    continue
+                by_wy.setdefault(water_year(dt), []).append((dt, q))
+                all_q.append(q)
+
+            if not all_q:
+                continue
+
+            # Prefer complete water years (>=330 days); fall back to >=180 days if shorter record
+            wy_list = [rows for rows in by_wy.values() if len(rows) >= 330]
+            if not wy_list:
+                wy_list = [rows for rows in by_wy.values() if len(rows) >= 180]
+
+            wy_rbis = []
+            for rows in wy_list:
+                rows.sort(key=lambda x: x[0])
+                qs = [q for _, q in rows]
+                tot = sum(qs)
+                if tot > 0:
+                    diffs = sum(abs(qs[k] - qs[k - 1]) for k in range(1, len(qs)))
+                    wy_rbis.append(diffs / tot)
+
+            rbi = round(statistics.mean(wy_rbis), 4) if wy_rbis else None
+            mean_q = statistics.mean(all_q)
+            cv = round(statistics.stdev(all_q) / mean_q, 2) if (len(all_q) > 1 and mean_q > 0) else None
+            stats_by_site[sid] = {"rbi": rbi, "cv": cv, "n_wys": len(wy_list)}
+    return stats_by_site
+
+
+def classify_rbi(rbi, default_regime="Storage Buffer", is_dam_tailwater=False):
     if rbi is None:
-        return {"score": None, "regime": "Storage Buffer", "badge": "bg-slate-100 text-slate-600"}
-    if rbi < 0.020:
+        return {"score": None, "regime": default_regime, "badge": "bg-stone-100 text-slate-600 border-stone-300"}
+    if is_dam_tailwater or rbi < 0.045:
         return {"score": rbi, "regime": "Regulated", "badge": "bg-emerald-100 text-emerald-800 border-emerald-300"}
-    elif rbi < 0.060:
+    elif rbi < 0.150:
         return {"score": rbi, "regime": "Snowmelt", "badge": "bg-sky-100 text-sky-800 border-sky-300"}
     else:
         return {"score": rbi, "regime": "Flashy", "badge": "bg-amber-100 text-amber-900 border-amber-300"}
 
+
+DAM_TAILWATER_IDS = {
+    "09380000", "09234500", "09355500", "09128000", "09169500",
+    "09050700", "09057500", "09041400", "09211200", "09421500",
+    "09423000", "09426000", "09427520", "09429100", "09502000", "09510000",
+}
+
+
 def main():
-    with open(NORMALS_PATH) as f:
-        normals_data = json.load(f)
-    sites_normals = normals_data.get("sites", {})
+    import sys
+    sys.path.insert(0, os.path.join(REPO_ROOT, "scripts"))
+    from export_sqlite_to_json import export_station_hierarchy
 
-    with open(METRICS_PATH) as f:
-        metrics_data = json.load(f)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
 
-    # Compute RBI dictionary
-    rbi_scores = {}
-    for site_id, days in sites_normals.items():
-        rbi_scores[site_id] = calculate_rbi_for_normals(days)
+    streamflows = [dict(r) for r in cur.execute("SELECT station_id AS id, name FROM telemetry_latest WHERE station_type='streamflow'").fetchall()]
+    tunnels = [dict(r) for r in cur.execute("SELECT station_id AS id, name FROM telemetry_latest WHERE station_type='diversion_tunnel'").fetchall()]
+    canals = [dict(r) for r in cur.execute("SELECT station_id AS id, name FROM telemetry_latest WHERE station_type='diversion_canal'").fetchall()]
+    reservoirs = [dict(r) for r in cur.execute("SELECT reservoir_id AS id, name FROM reservoirs").fetchall()]
 
-    # Known regulated dam release RBI defaults for USBR tailwaters
-    dam_tailwaters = ["09421500", "USBR_HOOVER", "USBR-HOOVER", "09423000", "USBR_DAVIS", "USBR-DAVIS", "09427520", "USBR_PARKER", "USBR-PARKER"]
-    for dw in dam_tailwaters:
-        if dw not in rbi_scores:
-            rbi_scores[dw] = 0.0150  # Strongly hydro-regulated release
+    usgs_ids = sorted({
+        s["id"] for s in (streamflows + canals)
+        if re.fullmatch(r"\d{8}", str(s.get("id", "")))
+    } | {sid for sid, _, _, _ in SHOWCASE_DB_STATIONS})
 
-    hierarchy = {
-        "metadata": {
-            "description": "Richards-Baker Flashiness Index & Basin Sentinel Hierarchy for Colorado River telemetry nodes",
-            "formula": "RBI = sum(|Q_t - Q_{t-1}|) / sum(Q_t)",
-            "tiers": [
-                "Compact Sentinel (Tier 1)",
-                "Basin Sentinel (Tier 2)",
-                "Tributary Gage (Tier 3)",
-                "Trans-Divide Tunnel (Tier 4)",
-                "Conveyance Canal (Tier 5)",
-                "Storage Reservoir (Tier 6)"
-            ]
-        },
-        "stations": {}
-    }
+    daily_stats = fetch_daily_rbi_and_cv(usgs_ids)
+    print(f"Computed true daily RBI for {len(daily_stats)} USGS stations.")
 
-    # 1. Streamflows
-    for s in metrics_data.get("streamflows", []):
+    hierarchy_rows = []
+    for s in streamflows:
         sid = s["id"]
         if sid in COMPACT_SENTINEL_IDS:
-            tier_code = "compact_sentinel"
-            tier_label = "Compact Sentinel"
-            tier_rank = 1
+            tier_code, tier_label, tier_rank = "compact_sentinel", "Compact Sentinel", 1
         elif sid in BASIN_SENTINEL_IDS:
-            tier_code = "basin_sentinel"
-            tier_label = "Basin Sentinel"
-            tier_rank = 2
+            tier_code, tier_label, tier_rank = "basin_sentinel", "Basin Sentinel", 2
         else:
-            tier_code = "tributary_gage"
-            tier_label = "Tributary Gage"
-            tier_rank = 3
+            tier_code, tier_label, tier_rank = "tributary_gage", "Tributary Gage", 3
 
-        rbi_val = rbi_scores.get(sid, 0.0180 if "USBR" in sid else None)
-        rbi_meta = classify_rbi(rbi_val)
+        rbi_val = daily_stats.get(sid, {}).get("rbi")
+        default_reg = "Regulated Dam" if "USBR" in sid else "Unmeasured"
+        rbi_meta = classify_rbi(rbi_val, default_regime=default_reg, is_dam_tailwater=(sid in DAM_TAILWATER_IDS or "USBR" in sid))
+        hierarchy_rows.append((sid, s["name"], "streamflow", tier_code, tier_label, tier_rank, rbi_meta["score"], rbi_meta["regime"], rbi_meta["badge"]))
 
-        hierarchy["stations"][sid] = {
-            "id": sid,
-            "name": s["name"],
-            "type": "streamflow",
-            "tier_code": tier_code,
-            "tier_label": tier_label,
-            "tier_rank": tier_rank,
-            "rbi": rbi_meta["score"],
-            "regime": rbi_meta["regime"],
-            "badge_class": rbi_meta["badge"]
-        }
+    for t in tunnels:
+        hierarchy_rows.append((t["id"], t["name"], "diversion_tunnel", "export_tunnel", "Trans-Divide Tunnel", 4, None, "Regulated Export", "bg-emerald-100 text-emerald-800 border-emerald-300"))
 
-    # 2. Tunnels
-    for t in metrics_data.get("tunnels", []):
-        sid = t["id"]
-        hierarchy["stations"][sid] = {
-            "id": sid,
-            "name": t["name"],
-            "type": "diversion_tunnel",
-            "tier_code": "export_tunnel",
-            "tier_label": "Trans-Divide Tunnel",
-            "tier_rank": 4,
-            "rbi": 0.0100,
-            "regime": "Regulated Export",
-            "badge_class": "bg-emerald-100 text-emerald-800 border-emerald-300"
-        }
-
-    # 3. Canals
-    for c in metrics_data.get("canals", []):
+    for c in canals:
         sid = c["id"]
-        rbi_val = rbi_scores.get(sid, 0.0120)
-        hierarchy["stations"][sid] = {
-            "id": sid,
-            "name": c["name"],
-            "type": "diversion_canal",
-            "tier_code": "conveyance_canal",
-            "tier_label": "Conveyance Canal",
-            "tier_rank": 5,
-            "rbi": rbi_val,
-            "regime": "Regulated Canal",
-            "badge_class": "bg-emerald-100 text-emerald-800 border-emerald-300"
-        }
+        rbi_val = daily_stats.get(sid, {}).get("rbi")
+        rbi_meta = classify_rbi(rbi_val, default_regime="Regulated Canal", is_dam_tailwater=True)
+        hierarchy_rows.append((sid, c["name"], "diversion_canal", "conveyance_canal", "Conveyance Canal", 5, rbi_meta["score"], rbi_meta["regime"], rbi_meta["badge"]))
 
-    # 4. Reservoirs
-    for r in metrics_data.get("reservoirs", []):
-        sid = r["id"]
-        hierarchy["stations"][sid] = {
-            "id": sid,
-            "name": r["name"],
-            "type": "reservoir",
-            "tier_code": "storage_reservoir",
-            "tier_label": "Storage Reservoir",
-            "tier_rank": 6,
-            "rbi": None,
-            "regime": "Storage Buffer",
-            "badge_class": "bg-slate-100 text-slate-600 border-slate-300"
-        }
+    for r in reservoirs:
+        hierarchy_rows.append((r["id"], r["name"], "reservoir", "storage_reservoir", "Storage Reservoir", 6, None, "Storage Buffer", "bg-stone-100 text-slate-600 border-stone-300"))
 
-    with open(OUTPUT_PATH, "w") as f:
-        json.dump(hierarchy, f, indent=2)
+    cur.execute("DELETE FROM station_hierarchy;")
+    cur.executemany(
+        """
+        INSERT INTO station_hierarchy (station_id, name, station_type, tier_code, tier_label, tier_rank, rbi, regime, badge_class)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        hierarchy_rows,
+    )
 
-    print(f"Wrote hierarchy & RBI data for {len(hierarchy['stations'])} stations to {OUTPUT_PATH}")
+    # Sync SQLite rbi_flashiness table for ALL measured USGS stations
+    showcase_meta = {sid: (sname, sqmi, cid) for sid, sname, sqmi, cid in SHOWCASE_DB_STATIONS}
+    name_by_id = {s["id"]: s["name"] for s in (streamflows + canals)}
+    cur.execute("DELETE FROM rbi_flashiness;")
+    for sid in sorted(daily_stats):
+        st = daily_stats[sid]
+        rbi_val = st.get("rbi")
+        cv_val = st.get("cv")
+        if rbi_val is None:
+            continue
+        sname, sqmi, cid = showcase_meta.get(sid, (name_by_id.get(sid, f"USGS {sid}"), None, 99))
+        regime = classify_rbi(rbi_val, is_dam_tailwater=(sid in DAM_TAILWATER_IDS))["regime"]
+        cur.execute(
+            """
+            INSERT INTO rbi_flashiness (station_id, station_name, drainage_sqmi, rbi_index, flow_regime, cv_discharge, cluster_id, complete_wys, period)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'WY 2016-2025')
+            """,
+            (sid, sname, sqmi, rbi_val, regime, cv_val, cid, st.get("n_wys")),
+        )
+
+    conn.commit()
+    export_station_hierarchy(conn)
+    conn.close()
+    print(f"Synced {len(daily_stats)} RBI records and {len(hierarchy_rows)} station_hierarchy rows to SQLite.")
+
 
 if __name__ == "__main__":
     main()
