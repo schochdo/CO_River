@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.4.12] - 2026-11-27
+### Fixed (Zero SVG Card/Badge Text Overflows on River Schematic & Elevation Profile)
+- **SVG Bounding-Box Reflow ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):** Measured every SVG `<rect>` card, MAF pill badge, and multi-line `<text>` pair in headless Chrome CDP after the `11px / 12px / 13px` typography bump and eliminated all `34` schematic border crossings/collisions and `11` elevation-profile card clips (`0` rect overflows and `0` pairwise text collisions across both views).
+
+---
+
 ## [2.4.11] - 2026-11-27
 ### Changed (Log-Scale RBI Scatter Readability, High-Contrast Shapes & Tactile Filter Toggles)
 - **Tributary Gapminder Readability ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html), [scripts/build_unified_notebook.py](file:///Users/macstudio/Documents/Antigravity/CO_River/scripts/build_unified_notebook.py)):** Switched the RBI X-axis to a **logarithmic scale (`0.015`–`0.85`)** with dashed regime threshold bands (`0.05` and `0.15`) so `Dam-Regulated`, `Snowmelt`, and `Desert Flash` clusters separate cleanly across the full plot width; gave `Dam-Regulated` a distinct **warm amber diamond** (`#b8860b`) vs. **cobalt circle** (`#1d5ea8`, Snowmelt) and **rust circle** (`#c2410c`, Desert Flash); reduced bubble overlap and added white text halos + per-landmark offsets; replaced bare text regime spans with tactile segmented toggle buttons (`All Gages`, `Snowmelt`, `Dam-Regulated`, `Desert Flash`) showing live gage counts.
