@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.4.12] - 2026-11-27
 ### Fixed (Zero SVG Card/Badge Text Overflows on River Schematic & Elevation Profile)
-- **SVG Bounding-Box Reflow & Taller Lower Basin Canvas ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):** Removed the fixed `h-[calc(100vh-155px)]` height clamp (which triggered `preserveAspectRatio` left/right edge cropping when tall viewports stretched the SVG), expanded the Schematic `viewBox` from `1280×750` to `1280×860` (`w-full h-auto`), opened generous vertical spacing across the Lower Basin spine (`Parker` → `Mohave/Havasu Evap` → `Imperial/AAC` → `Morelos/Mexico` → `Gulf of California`), and verified `0` SVG edge clips, `0` `<rect>` border crossings, and `0` text-or-path collisions in headless Chrome CDP across wide (`1600×750`), standard (`1360×860`), and tall (`1050×980`) viewports.
+- **SVG Bounding-Box Reflow & Taller Lower Basin Canvas ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):** Removed the fixed `h-[calc(100vh-155px)]` height clamp (which triggered `preserveAspectRatio` left/right edge cropping when tall viewports stretched the SVG), expanded the Schematic `viewBox` from `1280×750` to `1280×860` (`w-full h-auto`), opened generous vertical spacing across the Lower Basin spine (`Parker` → `Mohave/Havasu Evap` → `Imperial/AAC` → `Morelos/Mexico` → `Gulf of California`), nudged `Denver & Front Range Diversions` clear of its gate icon, and verified `0` SVG edge clips, `0` `<rect>` border crossings, and `0` text-or-path collisions in headless Chrome CDP across wide (`1600×760`), standard (`1360×860`), and tall (`1020×1050`) viewports.
 
 ---
 
