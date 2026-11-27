@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.4.12] - 2026-11-27
 ### Fixed (Zero SVG Card/Badge Text Overflows on River Schematic & Elevation Profile)
-- **SVG Bounding-Box Reflow ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):** Measured every SVG `<rect>` card, MAF pill badge, and multi-line `<text>` pair in headless Chrome CDP after the `11px / 12px / 13px` typography bump and eliminated all `34` schematic border crossings/collisions and `11` elevation-profile card clips (`0` rect overflows and `0` pairwise text collisions across both views).
+- **SVG Bounding-Box Reflow ([web/pipeline.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/pipeline.html)):** Measured every SVG `<rect>` card, MAF pill badge, evaporation callout, and multi-line `<text>` pair in headless Chrome CDP after the `11px / 12px / 13px` typography bump and eliminated all `34` schematic border crossings/collisions and `11` elevation-profile card clips (`0` rect overflows and `0` pairwise text collisions across both views).
 
 ---
 
