@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.4.9] - 2026-11-27
+### Changed (Tributary Hydrology Linked 71-Gage Gapminder Overhaul & Notebook Parity)
+- **Linked Gapminder Tributary View ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):** Replaced the fragmented 4-card layout (6-gage scatter + Lake Powell hypsometry + 2021 one-off flash-flood event + regimes) with a cohesive presentation-ready view: a **71-gage interactive Gapminder bubble scatter** (`WY 2016–2025` daily `RBI` vs. log-scale annual volume from `station_hierarchy.json` + `historical_normals.json`) linked to a **full-POR daily hydrograph** for whichever gage is clicked or selected, paired with the **5 Normalized Seasonal Flow Regimes** (`monsoon_tributaries` accurately relabeled **"Desert Bimodal (Winter + Monsoon)"** to reflect the real `Feb–Apr` winter rain/snowmelt + `Aug–Oct` North American Monsoon profile of Little Colorado `#09402000` and Paria `#09382000`).
+- **Notebook Figure 4 Parity ([scripts/build_unified_notebook.py](file:///Users/macstudio/Documents/Antigravity/CO_River/scripts/build_unified_notebook.py), [notebooks/colorado_river_analysis.ipynb](file:///Users/macstudio/Documents/Antigravity/CO_River/notebooks/colorado_river_analysis.ipynb), [web/notebooks/colorado_river_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/notebooks/colorado_river_analysis.html)):** Updated Section 5 / Figures 4A & 4B to plot the full **74-gage `rbi_flashiness` scatter** (log-scale annual volume) alongside the **5 Normalized Seasonal Flow Regimes** (`Desert Bimodal (Winter + Monsoon)`), matching `web/ml_analysis.html` 1:1.
+
+---
+
 ## [2.4.8] - 2026-11-26
 ### Added (AI Prompt Archive Model Tags, KaTeX Math Rendering & Pipeline Flowcharts)
 - **Verified Model Attribution & Filter ([scripts/compile_full_ai_transcript.py](file:///Users/macstudio/Documents/Antigravity/CO_River/scripts/compile_full_ai_transcript.py), [web/ai_complete_prompt_archive.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ai_complete_prompt_archive.html)):** Extracted active model selections (`<USER_SETTINGS_CHANGE>` transitions and `PLANNER_RESPONSE` step slugs across all `13` Antigravity sessions plus `Gemini Web (Argon)` PDF exports) onto every `.audit-card` header badge and added an `#modelFilter` family dropdown alongside `#sessionFilter` and full-text search.
