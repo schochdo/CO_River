@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.4.11] - 2026-11-27
+### Changed (Log-Scale RBI Scatter Readability, High-Contrast Shapes & Tactile Filter Toggles)
+- **Tributary Gapminder Readability ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html), [scripts/build_unified_notebook.py](file:///Users/macstudio/Documents/Antigravity/CO_River/scripts/build_unified_notebook.py)):** Switched the RBI X-axis to a **logarithmic scale (`0.015`–`0.85`)** with dashed regime threshold bands (`0.05` and `0.15`) so `Dam-Regulated`, `Snowmelt`, and `Desert Flash` clusters separate cleanly across the full plot width; gave `Dam-Regulated` a distinct **warm amber diamond** (`#b8860b`) vs. **cobalt circle** (`#1d5ea8`, Snowmelt) and **rust circle** (`#c2410c`, Desert Flash); reduced bubble overlap and added white text halos + per-landmark offsets; replaced bare text regime spans with tactile segmented toggle buttons (`All Gages`, `Snowmelt`, `Dam-Regulated`, `Desert Flash`) showing live gage counts.
+- **Tactile Series Toggles ([web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html)):** Upgraded the 3 bare legend spans on the `Natural Flow vs. Compact Promises` sub-tab to bordered toggle buttons.
+
+---
+
 ## [2.4.10] - 2026-11-27
 ### Changed (Instant Chart Rendering on Tributaries & Compact Promises Tab Moved to Water Budget)
 - **Zero Loading Animation & Clean Microcopy ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):** Disabled Chart.js loading/zoom animations (`animation: false`) across all three charts on `Tributary Hydrology` for instant gage switching and removed redundant "Click any..." instruction strings.
