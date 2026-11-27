@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [2.4.10] - 2026-11-27
 ### Changed (Instant Chart Rendering on Tributaries & Compact Promises Tab Moved to Water Budget)
-- **Zero Loading Animation ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):** Disabled Chart.js loading/zoom animations (`animation: false`) across all three charts on `Tributary Hydrology` for instant, jitter-free gage switching.
+- **Zero Loading Animation & Clean Microcopy ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):** Disabled Chart.js loading/zoom animations (`animation: false`) across all three charts on `Tributary Hydrology` for instant gage switching and removed redundant "Click any..." instruction strings.
 - **Natural Flow vs. Compact Promises Moved to Water Budget ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html)):** Removed the `Natural Flow vs. Compact Promises (Water Years 1922–2024)` card from below the fold on `Reservoir Storage` (`web/index.html`) so `Reservoir Storage` fits cleanly without vertical scrolling, and moved it into a dedicated 3rd sub-tab (`Natural Flow vs. Compact Promises (1922–2024)`) on `Water Budget` (`web/sankey.html`), where surplus/deficit accounting lives.
 
 ---
