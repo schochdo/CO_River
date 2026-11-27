@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.4.10] - 2026-11-27
+### Changed (Instant Chart Rendering on Tributaries & Compact Promises Tab Moved to Water Budget)
+- **Zero Loading Animation ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):** Disabled Chart.js loading/zoom animations (`animation: false`) across all three charts on `Tributary Hydrology` for instant, jitter-free gage switching.
+- **Natural Flow vs. Compact Promises Moved to Water Budget ([web/index.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/index.html), [web/sankey.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/sankey.html)):** Removed the `Natural Flow vs. Compact Promises (Water Years 1922–2024)` card from below the fold on `Reservoir Storage` (`web/index.html`) so `Reservoir Storage` fits cleanly without vertical scrolling, and moved it into a dedicated 3rd sub-tab (`Natural Flow vs. Compact Promises (1922–2024)`) on `Water Budget` (`web/sankey.html`), where surplus/deficit accounting lives.
+
+---
+
 ## [2.4.9] - 2026-11-27
 ### Changed (Tributary Hydrology Linked 71-Gage Gapminder Overhaul & Notebook Parity)
 - **Linked Gapminder Tributary View ([web/ml_analysis.html](file:///Users/macstudio/Documents/Antigravity/CO_River/web/ml_analysis.html)):** Replaced the fragmented 4-card layout (6-gage scatter + Lake Powell hypsometry + 2021 one-off flash-flood event + regimes) with a cohesive presentation-ready view: a **71-gage interactive Gapminder bubble scatter** (`WY 2016–2025` daily `RBI` vs. log-scale annual volume from `station_hierarchy.json` + `historical_normals.json`) linked to a **full-POR daily hydrograph** for whichever gage is clicked or selected, paired with the **5 Normalized Seasonal Flow Regimes** (`monsoon_tributaries` accurately relabeled **"Desert Bimodal (Winter + Monsoon)"** to reflect the real `Feb–Apr` winter rain/snowmelt + `Aug–Oct` North American Monsoon profile of Little Colorado `#09402000` and Paria `#09382000`).
