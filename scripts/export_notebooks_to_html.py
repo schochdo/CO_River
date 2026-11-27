@@ -233,13 +233,17 @@ def render_notebook(ipynb_path, output_html_path):
 
     cell_execution_count = 1
 
+    html_cells = {'html', 'svg-flowchart'}
     for cell in nb.get('cells', []):
         cell_type = cell.get('cell_type')
         source = ''.join(cell.get('source', []))
 
         if cell_type == 'markdown':
-            cell_html = markdown_to_html(source, toc_entries)
-            rendered_cells.append(f'<div class="notebook-cell markdown-cell">{cell_html}</div>')
+            if cell.get('metadata', {}).get('render_as') in html_cells or source.lstrip().startswith('<!-- RAW_HTML_FLOWCHART -->'):
+                rendered_cells.append(f'<div class="notebook-cell markdown-cell">{source}</div>')
+            else:
+                cell_html = markdown_to_html(source, toc_entries)
+                rendered_cells.append(f'<div class="notebook-cell markdown-cell">{cell_html}</div>')
 
         elif cell_type == 'code':
             count = cell.get('execution_count') or cell_execution_count

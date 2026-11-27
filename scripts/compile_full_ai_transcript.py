@@ -100,57 +100,222 @@ if let doc = PDFDocument(url: url), let s = doc.string {
                 'tools_used': [f'Source PDF: {pdf_title}.pdf'],
                 'pdf_src': dest_rel_src,
                 'pdf_name': os.path.basename(pdf_path),
-                'pdf_title': pdf_title
+                'pdf_title': pdf_title,
+                'model_label': 'Gemini Web (Argon)',
+                'model_family': 'Gemini Web (Argon)',
+                'model_detail': 'Exported Gemini Web Meta-Prompting Session PDF',
             })
     return turns
+
+MODEL_SLUG_MAP = {
+    'gemini-3.8-flash-low': 'Gemini 3.8 Flash (Low)',
+    'gemini-3.8-flash-medium': 'Gemini 3.8 Flash (Medium)',
+    'gemini-3.8-flash-high': 'Gemini 3.8 Flash (High)',
+    'gemini-4-argon-low': 'Gemini 4 Argon (Low)',
+    'gemini-4-argon-medium': 'Gemini 4 Argon (Medium)',
+    'gemini-4-argon-high': 'Gemini 4 Argon (High)',
+    'gemini-4-neon-low': 'Gemini 4 Neon (Low)',
+    'gemini-4-neon-medium': 'Gemini 4 Neon (Medium)',
+    'gemini-4-neon-high': 'Gemini 4 Neon (High)',
+    'gemini-4-hydrogen-low': 'Gemini 4 Hydrogen (Low)',
+    'gemini-4-hydrogen-high': 'Gemini 4 Hydrogen (High)',
+    'gemini-4-hydrogen-xhigh': 'Gemini 4 Hydrogen (XHigh)',
+    'gemini-4-carbon-low': 'Gemini 4 Carbon (Low)',
+    'gemini-4-carbon-medium': 'Gemini 4 Carbon (Medium)',
+    'gemini-4-carbon-high': 'Gemini 4 Carbon (High)',
+    'claude-sonnet-4-6': 'Claude Sonnet 4.6',
+    'claude-opus-4-6': 'Claude Opus 4.6',
+    'claude-sonnet-5-5-low': 'Claude Sonnet 5.5 (Low)',
+    'claude-opus-5-5-medium': 'Claude Opus 5.5 (Medium)',
+    'claude-opus-5-5-high': 'Claude Opus 5.5 (High)',
+    'gpt-oss-120b-medium': 'GPT-OSS 120B (Medium)',
+}
+
+def canonical_model_family(label):
+    fl = (label or '').lower()
+    if 'gemini web' in fl:
+        return 'Gemini Web (Argon)'
+    if '3.8 flash' in fl:
+        return 'Gemini 3.8 Flash'
+    if '3.1 pro' in fl:
+        return 'Gemini 3.1 Pro'
+    if '4 carbon' in fl or 'gemini carbon' in fl:
+        return 'Gemini 4 Carbon'
+    if '4 neon' in fl:
+        return 'Gemini 4 Neon'
+    if '4 argon' in fl:
+        return 'Gemini 4 Argon'
+    if '4 hydrogen' in fl:
+        return 'Gemini 4 Hydrogen'
+    if 'claude opus 5.5' in fl:
+        return 'Claude Opus 5.5'
+    if 'claude sonnet 5.5' in fl:
+        return 'Claude Sonnet 5.5'
+    if 'claude opus 4.6' in fl:
+        return 'Claude Opus 4.6'
+    if 'claude sonnet 4.6' in fl:
+        return 'Claude Sonnet 4.6'
+    if 'gpt-oss' in fl:
+        return 'GPT-OSS 120B'
+    return label or 'Unspecified'
+
+CURRENCY_START_RE = re.compile(
+    r'^\s*\d[\d,]*(?:\.\d+)?\s*(?:billion|million|thousand|trillion|B\b|M\b|k\b|K\b|per\b|/|\s+and\b|\s+to\b|\s+in\b|\s+for\b|\s+of\b|\s+from\b|\s+on\b|\s+at\b|\s+each\b|\s+worth\b|\s+budget\b|\s+cost\b|\s+credit|\s+token)',
+    re.IGNORECASE,
+)
+LATEX_SIGNAL_RE = re.compile(
+    r'(\\[a-zA-Z]+|[_^]|=|\b(?:dV|dt|dq|dx|dy|MAF|AF|cfs|RBI|px|yr)\b|[<>≤≥±×÷∑∫√])'
+)
+
+def is_latex_inline_math(inner):
+    if '\n' in inner or len(inner) > 160 or not inner.strip():
+        return False
+    if (inner[0].isspace() or inner[-1].isspace()) and '\\' not in inner:
+        return False
+    if '\\' not in inner and CURRENCY_START_RE.search(inner):
+        return False
+    if LATEX_SIGNAL_RE.search(inner):
+        return True
+    stripped = inner.strip()
+    if re.match(r'^[A-Za-z](?:[0-9]|[\s+\-*/=<>.,()0-9A-Za-z]{0,18})?$', stripped):
+        if len(stripped) <= 3 or any(op in stripped for op in '+-*/=<>()0123456789'):
+            return True
+    return False
+
+def protect_code_and_math(raw_text, is_prompt=False):
+    """Protect code spans and convert validated LaTeX delimiters to \\(...\\) / \\[...\\] placeholders before HTML/Markdown formatting."""
+    placeholders = []
+
+    def hold(fragment):
+        idx = len(placeholders)
+        placeholders.append(fragment)
+        return f"\x00PH{idx}\x00"
+
+    text = raw_text
+
+    # 1. Fenced code blocks ```lang ... ```
+    def hold_fenced(m):
+        lang = html.escape((m.group(1) or 'code').strip())
+        body = html.escape(m.group(2))
+        if is_prompt:
+            return hold(f'<pre class="code-block" style="margin-top:0.5rem;"><code>{body}</code></pre>')
+        return hold(f'<div class="code-block-header">{lang}</div><pre class="code-block"><code>{body}</code></pre>')
+
+    text = re.sub(r'```([a-zA-Z0-9_\-\+]*)\n(.*?)```', hold_fenced, text, flags=re.DOTALL)
+
+    # 2. Inline code `...`
+    text = re.sub(
+        r'`([^`\n]+)`',
+        lambda m: hold(f'<code class="inline-code">{html.escape(m.group(1))}</code>'),
+        text,
+    )
+
+    # 3. Explicit display math $$...$$ and \[...\]
+    text = re.sub(
+        r'\$\$(.+?)\$\$',
+        lambda m: hold(f'<span class="math-display">\\[{html.escape(m.group(1))}\\]</span>'),
+        text,
+        flags=re.DOTALL,
+    )
+    text = re.sub(
+        r'\\\[(.+?)\\\]',
+        lambda m: hold(f'<span class="math-display">\\[{html.escape(m.group(1))}\\]</span>'),
+        text,
+        flags=re.DOTALL,
+    )
+
+    # 4. Explicit inline math \(...\)
+    text = re.sub(
+        r'\\\((.+?)\\\)',
+        lambda m: hold(f'<span class="math-inline">\\({html.escape(m.group(1))}\\)</span>'),
+        text,
+    )
+
+    # 5. Validated inline $...$ (allowing escaped \$ inside math, while strictly skipping currency prose like "$1.2 billion ... $400")
+    def maybe_hold_dollar(m):
+        inner = m.group(1)
+        if is_latex_inline_math(inner):
+            return hold(f'<span class="math-inline">\\({html.escape(inner)}\\)</span>')
+        return m.group(0)
+
+    text = re.sub(r'(?<!\\)\$((?:\\\$|[^$\n])+?)(?<!\\)\$', maybe_hold_dollar, text)
+
+    # 6. Handle truncated unclosed math lines from compact transcripts & bare \frac{a}{b} prose mentions
+    def fix_unclosed_math(m):
+        inner = m.group(2)
+        cleaned = re.sub(r'\\text\{([^}\n]*)(\}|$)', r'\1', inner)
+        cleaned = cleaned.replace(r'\Delta', 'Δ').replace(r'\sum', 'Σ').replace(r'\max', 'max').replace(r'\left', '').replace(r'\;', ' ')
+        cleaned = re.sub(r'_\{([^}\n]*)(\}|$)', r'_\1', cleaned)
+        return hold(f'<code class="inline-code">{html.escape(cleaned.strip())}…</code>')
+
+    text = re.sub(r'(\$\$|\$)([^\n$]*\\(?:text|sum|Delta|frac)[^\n$]*)$', fix_unclosed_math, text, flags=re.MULTILINE)
+    text = re.sub(
+        r'\\frac\{([^{}\n]+)\}\{([^{}\n]+)\}',
+        lambda m: hold(f'<span class="math-inline">\\(\\frac{{{html.escape(m.group(1))}}}{{{html.escape(m.group(2))}}}\\)</span>'),
+        text,
+    )
+    return text, placeholders
+
+def restore_placeholders(text, placeholders):
+    for idx, frag in enumerate(placeholders):
+        text = text.replace(f"\x00PH{idx}\x00", frag)
+    return text
+
+def format_user_prompt_html(text):
+    if not text:
+        return ''
+    protected, placeholders = protect_code_and_math(text, is_prompt=True)
+    escaped = html.escape(protected)
+    return restore_placeholders(escaped, placeholders)
 
 def clean_markdown_to_html(text):
     if not text:
         return ''
-    # Escape HTML characters first
-    escaped = html.escape(text)
-    
-    # Format code blocks ```lang ... ```
-    def replace_code_block(match):
-        code_body = match.group(2)
-        lang = match.group(1) or 'code'
-        return f'<div class="code-block-header">{lang}</div><pre class="code-block"><code>{code_body}</code></pre>'
-    escaped = re.sub(r'```([a-zA-Z0-9_\-\+]*)\n(.*?)```', replace_code_block, escaped, flags=re.DOTALL)
-    
-    # Format inline code `...`
-    escaped = re.sub(r'`([^`\n]+)`', r'<code class="inline-code">\1</code>', escaped)
-    
-    # Bold **...**
+    protected, placeholders = protect_code_and_math(text, is_prompt=False)
+    escaped = html.escape(protected)
+
+    # Markdown links [label](url)
+    escaped = re.sub(
+        r'\[([^\]]+)\]\((https?://[^\s)]+)\)',
+        r'<a href="\2" target="_blank" rel="noopener noreferrer">\1 ↗</a>',
+        escaped,
+    )
+
+    # Bold **...** and word-boundary italic *...*
     escaped = re.sub(r'\*\*([^\*\n]+)\*\*', r'<strong>\1</strong>', escaped)
-    
-    # Italic *...*
-    escaped = re.sub(r'\*([^\*\n]+)\*', r'<em>\1</em>', escaped)
-    
+    escaped = re.sub(r'(?<!\*)\*([^\*\n]+)\*(?!\*)', r'<em>\1</em>', escaped)
+
     # Headers
+    escaped = re.sub(r'^#### (.*?)$', r'<h5 class="ai-heading">\1</h5>', escaped, flags=re.MULTILINE)
     escaped = re.sub(r'^### (.*?)$', r'<h4 class="ai-heading">\1</h4>', escaped, flags=re.MULTILINE)
     escaped = re.sub(r'^## (.*?)$', r'<h3 class="ai-heading">\1</h3>', escaped, flags=re.MULTILINE)
     escaped = re.sub(r'^# (.*?)$', r'<h2 class="ai-heading">\1</h2>', escaped, flags=re.MULTILINE)
-    
+
     # Bullet points
     escaped = re.sub(r'^\s*[\*\-]\s+(.*?)$', r'<li class="ai-li">\1</li>', escaped, flags=re.MULTILINE)
-    # Convert consecutive <li> into <ul>
     escaped = re.sub(r'((?:<li class="ai-li">.*?</li>\n?)+)', r'<ul class="ai-ul">\1</ul>', escaped)
-    
-    # Line breaks for remaining text
-    # Paragraphs
-    parts = escaped.split('\n\n')
+
+    # Markdown tables & paragraphs
+    blocks = escaped.split('\n\n')
     formatted_parts = []
-    for p in parts:
+    for p in blocks:
         p_clean = p.strip()
         if not p_clean:
             continue
-        if p_clean.startswith('<h') or p_clean.startswith('<pre') or p_clean.startswith('<div') or p_clean.startswith('<ul'):
+        lines_p = [ln.strip() for ln in p_clean.split('\n') if ln.strip()]
+        if len(lines_p) >= 2 and all('|' in ln for ln in lines_p) and re.match(r'^[\|\s:\-]+$', lines_p[1]):
+            headers = [c.strip() for c in lines_p[0].strip('|').split('|')]
+            rows = [[c.strip() for c in r.strip('|').split('|')] for r in lines_p[2:]]
+            th_html = ''.join(f'<th>{h}</th>' for h in headers)
+            tr_html = ''.join('<tr>' + ''.join(f'<td>{c}</td>' for c in r) + '</tr>' for r in rows)
+            formatted_parts.append(f'<div class="ai-table-wrap"><table class="ai-table"><thead><tr>{th_html}</tr></thead><tbody>{tr_html}</tbody></table></div>')
+        elif p_clean.startswith(('<h', '<pre', '<div', '<ul', '\x00PH')):
             formatted_parts.append(p_clean)
         else:
             p_with_br = p_clean.replace('\n', '<br>')
             formatted_parts.append(f'<p>{p_with_br}</p>')
-            
-    return '\n'.join(formatted_parts)
+
+    return restore_placeholders('\n'.join(formatted_parts), placeholders)
 
 def main():
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -213,13 +378,21 @@ def main():
             
         with open(target_path, 'r', encoding='utf-8', errors='ignore') as f:
             lines = f.readlines()
-            
+
+        active_setting_model = None
         for i, line in enumerate(lines):
             try:
                 step = json.loads(line)
             except Exception:
                 continue
-                
+
+            if step.get('type') == 'USER_INPUT':
+                raw_content_any = step.get('content', '') or ''
+                for sc_block in re.findall(r'<USER_SETTINGS_CHANGE>(.*?)</USER_SETTINGS_CHANGE>', raw_content_any, flags=re.DOTALL):
+                    m_sel = re.search(r'Model Selection`?\s+from\s+(.+?)\s+to\s+([^\n]+?)\.\s+No need', sc_block)
+                    if m_sel:
+                        active_setting_model = m_sel.group(2).strip()
+
             if step.get('type') == 'USER_INPUT' and step.get('source') == 'USER_EXPLICIT':
                 raw_content = step.get('content', '')
                 req_match = re.search(r'<USER_REQUEST>(.*?)</USER_REQUEST>', raw_content, re.DOTALL)
@@ -257,15 +430,18 @@ def main():
                             'mime_type': m.get('mime_type', 'image/png')
                         })
                         
-                # Look ahead for assistant responses, planning-mode plans, and actions
+                # Look ahead for assistant responses, planning-mode plans, actions, and step model slug
                 assistant_replies = []
                 thinking_blocks = []
                 tools_used = []
+                step_model_slug = None
                 for j in range(i + 1, len(lines)):
                     next_step = json.loads(lines[j])
                     if next_step.get('type') == 'USER_INPUT':
                         break
                     if next_step.get('type') == 'PLANNER_RESPONSE':
+                        if not step_model_slug:
+                            step_model_slug = next_step.get('model') or next_step.get('metadata', {}).get('model')
                         c = next_step.get('content')
                         if c and c.strip():
                             assistant_replies.append(c.strip())
@@ -294,6 +470,23 @@ def main():
 
                 if not assistant_replies and thinking_blocks:
                     assistant_replies.append("### Planning Mode Diagnostic Reasoning\n\n" + "\n\n".join(thinking_blocks))
+
+                if step_model_slug in MODEL_SLUG_MAP:
+                    mapped_slug = MODEL_SLUG_MAP[step_model_slug]
+                    if 'Hydrogen' in mapped_slug and active_setting_model and 'Hydrogen' not in active_setting_model:
+                        model_label = active_setting_model
+                        model_detail = f"{active_setting_model} • Orchestrator: {mapped_slug}"
+                    else:
+                        model_label = mapped_slug
+                        model_detail = mapped_slug
+                elif active_setting_model:
+                    model_label = active_setting_model
+                    model_detail = active_setting_model
+                else:
+                    model_label = step_model_slug or 'Unspecified'
+                    model_detail = model_label
+
+                model_family = canonical_model_family(model_label)
                                 
                 all_dialogues.append({
                     'session_id': cid,
@@ -301,7 +494,10 @@ def main():
                     'prompt': clean_prompt,
                     'media': staged_media,
                     'assistant_text': '\n\n---\n\n'.join(assistant_replies) if assistant_replies else None,
-                    'tools_used': tools_used
+                    'tools_used': tools_used,
+                    'model_label': model_label,
+                    'model_family': model_family,
+                    'model_detail': model_detail,
                 })
 
     # Sort strictly chronologically using timezone-aware UTC datetimes
@@ -421,15 +617,24 @@ def main():
     print(f"Total user-uploaded images verified and staged: {image_copy_count}")
     print(f"Matched Argon -> Flash prompts: {argon_match_count}")
 
+    # Tally model family usage for the filter dropdown
+    model_family_counts = {}
+    for item in all_dialogues:
+        mf = item.get('model_family') or 'Unspecified'
+        model_family_counts[mf] = model_family_counts.get(mf, 0) + 1
+
     # Generate Dialogue HTML Cards
     dialogue_html = []
     for idx, item in enumerate(all_dialogues, 1):
         cid = item['session_id']
         ts = item['created_at']
-        p_text = html.escape(item['prompt'])
+        p_text = format_user_prompt_html(item['prompt'])
         media_items = item['media']
         tools = item['tools_used']
         ai_resp = item['assistant_text']
+        model_label = item.get('model_label') or 'Unspecified'
+        model_family = item.get('model_family') or 'Unspecified'
+        model_detail = item.get('model_detail') or model_label
         
         media_html = ""
         if media_items:
@@ -513,11 +718,22 @@ def main():
             )
             argon_badge_html = f'<span class="badge-argon-used">Used in Flash:{links}</span>'
         argon_flag = '1' if item.get('argon_source') else '0'
+        model_tone = (
+            'claude' if 'claude' in model_family.lower()
+            else 'carbon' if 'carbon' in model_family.lower()
+            else 'neon' if ('neon' in model_family.lower() or 'argon' in model_family.lower() or 'hydrogen' in model_family.lower())
+            else 'flash'
+        )
+        model_badge_html = (
+            f'<span class="badge-model tone-{model_tone}" title="Model setting: {html.escape(model_detail)}">'
+            f'{html.escape(model_label)}</span>'
+        )
         card = f"""
-        <article class="audit-card" id="turn-{idx}" data-idx="{idx}" data-cid="{html.escape(cid)}" data-ts="{html.escape(ts)}" data-argon="{argon_flag}">
+        <article class="audit-card" id="turn-{idx}" data-idx="{idx}" data-cid="{html.escape(cid)}" data-model="{html.escape(model_family)}" data-ts="{html.escape(ts)}" data-argon="{argon_flag}">
             <div class="card-meta">
                 <span class="badge-idx">#{idx}</span>
                 <span class="badge-session">{html.escape(sess_label)}</span>
+                {model_badge_html}
                 {pdf_btn}
                 {argon_badge_html}
                 <time class="meta-time"{time_title_attr}>{html.escape(display_ts)}</time>
@@ -592,6 +808,10 @@ def main():
         for cid in CO_SESSIONS
     )
     gemini_web_option_label = f"Gemini Web Sessions ({len(gemini_pdf_docs)} PDFs / {len(gemini_web_turns)} Turns)"
+    model_options_html = "\n".join(
+        f'                <option value="{html.escape(mf)}">{html.escape(mf)} ({cnt})</option>'
+        for mf, cnt in sorted(model_family_counts.items(), key=lambda x: (-x[1], x[0]))
+    )
     
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -603,6 +823,10 @@ def main():
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="editorial.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+            onload="renderMathInElement(document.body, {{delimiters: [{{left: '\\\\[', right: '\\\\]', display: true}}, {{left: '\\\\(', right: '\\\\)', display: false}}], throwOnError: false}});"></script>
     <style>
         :root {{
             --canvas-bg: #f5f2eb;
@@ -938,6 +1162,69 @@ def main():
         .badge-session {{
             color: var(--ink-heading);
             font-weight: 700;
+        }}
+
+        .badge-model {{
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.71rem;
+            font-weight: 700;
+            padding: 0.12rem 0.45rem;
+            border-radius: 2px;
+            border: 1px solid var(--hairline-dark);
+            background: var(--surface-subtle);
+            color: var(--ink-body);
+        }}
+        .badge-model.tone-carbon {{
+            background: #eef4fa;
+            border-color: #9cb8d6;
+            color: #1e436a;
+        }}
+        .badge-model.tone-neon {{
+            background: #edf5f0;
+            border-color: #9ec2ae;
+            color: #27533d;
+        }}
+        .badge-model.tone-claude {{
+            background: #f6efe8;
+            border-color: #cfb093;
+            color: #6e3b14;
+        }}
+        .badge-model.tone-flash {{
+            background: #faf8f4;
+            border-color: #c7bfb0;
+            color: #334155;
+        }}
+
+        .ai-table-wrap {{
+            overflow-x: auto;
+            margin: 0.75rem 0 0.95rem;
+        }}
+        .ai-table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            font-variant-numeric: tabular-nums;
+        }}
+        .ai-table th {{
+            background: var(--surface-header);
+            border: 1px solid var(--hairline);
+            padding: 5px 8px;
+            text-align: left;
+            font-weight: 800;
+            color: var(--ink-heading);
+        }}
+        .ai-table td {{
+            border: 1px solid #dfd9cc;
+            padding: 5px 8px;
+            color: var(--ink-body);
+        }}
+        .ai-table tr:nth-child(even) {{
+            background: var(--surface-subtle);
+        }}
+        .math-display {{
+            display: block;
+            overflow-x: auto;
+            margin: 0.65rem 0;
         }}
 
         .badge-argon {{
@@ -1276,10 +1563,14 @@ def main():
         </div>
         <div class="filter-controls">
             <select id="sessionFilter" class="filter-select" onchange="filterDialogues()">
-                <option value="ALL">All Sessions + Gemini Web PDFs</option>
+                <option value="ALL">All Sessions ({total_turns})</option>
                 <option value="ARGON_TO_FLASH">Argon &rarr; Flash Prompts ({argon_match_count} Matched)</option>
 {session_options_html}
                 <option value="gemini-web-sessions">{html.escape(gemini_web_option_label)}</option>
+            </select>
+            <select id="modelFilter" class="filter-select" onchange="filterDialogues()">
+                <option value="ALL">All Models ({len(model_family_counts)} Families)</option>
+{model_options_html}
             </select>
             <select id="sortOrder" class="filter-select" onchange="applySortOrder()">
                 <option value="DESC" selected>Sort: Newest First ({html.escape(sort_end_label)} &rarr; {html.escape(sort_start_label)})</option>
@@ -1358,8 +1649,10 @@ def main():
         if (!el) return;
         if (el.style.display === 'none') {{
             const sf = document.getElementById('sessionFilter');
+            const mf = document.getElementById('modelFilter');
             const si = document.getElementById('searchInput');
             if (sf) sf.value = 'ALL';
+            if (mf) mf.value = 'ALL';
             if (si) si.value = '';
             filterDialogues();
         }}
@@ -1371,16 +1664,19 @@ def main():
     function filterDialogues() {{
         const q = document.getElementById('searchInput').value.toLowerCase().trim();
         const selectedSession = document.getElementById('sessionFilter').value;
+        const selectedModel = document.getElementById('modelFilter') ? document.getElementById('modelFilter').value : 'ALL';
         const cards = document.querySelectorAll('.audit-card');
 
         cards.forEach(card => {{
             const cid = card.getAttribute('data-cid');
+            const modelFam = card.getAttribute('data-model');
             const text = card.textContent.toLowerCase();
             
             const matchesSession = (selectedSession === 'ALL' || (selectedSession === 'ARGON_TO_FLASH' ? card.getAttribute('data-argon') === '1' : cid === selectedSession));
+            const matchesModel = (selectedModel === 'ALL' || modelFam === selectedModel);
             const matchesQuery = (!q || text.includes(q));
 
-            if (matchesSession && matchesQuery) {{
+            if (matchesSession && matchesModel && matchesQuery) {{
                 card.style.display = 'block';
             }} else {{
                 card.style.display = 'none';
