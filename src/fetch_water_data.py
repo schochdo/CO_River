@@ -377,7 +377,7 @@ def fetch_usgs_daily():
                             elif code == "09522000":
                                 dest = "Mexicali Valley Agriculture & Municipal Users (District 014)"
                                 c_name = "Canal Alimentador Central (Central Feeder Canal)"
-                                lat, lon = 32.7056, -114.7292  # Morelos Dam intake coordinates
+                                lat, lon = 32.7032, -114.7335  # Downstream on Canal Alimentador Central below Morelos Dam
                             else:
                                 dest = "Los Angeles / Southern California"
                                 c_name = "Colorado River Aqueduct"
@@ -1485,8 +1485,8 @@ def main():
                 "source_url": "https://www.usbr.gov/lc/region/g4000/riverops/hourly7.html",
                 "age_hours": age,
                 "data_status": status,
-                "lat": 36.0156,
-                "lon": -114.7378
+                "lat": 36.00956,
+                "lon": -114.74314
             },
             "davis_dam": {
                 "id": "USBR_DAVIS",
@@ -1497,8 +1497,8 @@ def main():
                 "source_url": "https://www.usbr.gov/lc/region/g4000/riverops/hourly7.html",
                 "age_hours": age,
                 "data_status": status,
-                "lat": 35.1989,
-                "lon": -114.5683
+                "lat": 35.19286,
+                "lon": -114.57208
             },
             "parker_dam": {
                 "id": "USBR_PARKER",
@@ -1509,8 +1509,8 @@ def main():
                 "source_url": "https://www.usbr.gov/lc/region/g4000/riverops/hourly7.html",
                 "age_hours": age,
                 "data_status": status,
-                "lat": 34.2981,
-                "lon": -114.1678
+                "lat": 34.27943,
+                "lon": -114.13613
             }
         }
 
@@ -1518,9 +1518,9 @@ def main():
         # Note: Legacy USGS gages (09421500, 09423000, 09427520) are discontinued/unmonitored for real-time IV.
         # USBR Lower Colorado Hourly Operations is the authoritative operational source.
         dam_entries = [
-            ("USBR-HOOVER", "Colorado River below Hoover Dam (USBR Hydroelectric Release)", h_rel, 36.0156, -114.7378),
-            ("USBR-DAVIS", "Colorado River below Davis Dam (USBR Hydroelectric Release)", d_rel, 35.1989, -114.5683),
-            ("USBR-PARKER", "Colorado River below Parker Dam (USBR Hydroelectric Release)", p_rel, 34.2981, -114.1678)
+            ("USBR-HOOVER", "Colorado River below Hoover Dam (USBR Hydroelectric Release)", h_rel, 36.00956, -114.74314),
+            ("USBR-DAVIS", "Colorado River below Davis Dam (USBR Hydroelectric Release)", d_rel, 35.19286, -114.57208),
+            ("USBR-PARKER", "Colorado River below Parker Dam (USBR Hydroelectric Release)", p_rel, 34.27943, -114.13613)
         ]
         for entry_id, name, flow, lat, lon in dam_entries:
             streamflows.append({
